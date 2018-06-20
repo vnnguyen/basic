@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'New' => 'Mới',
+    'Status' => 'Trạng Thái',
+    'Guide' => 'Hướng dẫn',
+    'Service time' => 'Thời gian',
+    'Note' => 'Ghi chú',
+    'Points' => 'Điểm',
+    'Confirmed' => 'Đã xác nhận',
+    'NEW TOUR GUIDE INFO' => 'Thông tin hướng dẫn viên mới',
+    'Guide Company' => 'Hướng dẫn viên của công ty',
+    'Name of tour guide' => 'Tên hướng dẫn viên',
+    'Service time from' => 'Thời gian từ',
+    'Service time until' => 'Thời gian đến',
+    'Booking status' => 'Trạng thái dịch vụ',
+    'Draft' => 'Nháp',
+    'Planned' => 'Kế hoạch',
+    'Request sent' => 'Yêu cầu được gửi',
+    'Request rejected' => 'Yêu cầu từ chối',
+    'Wait list' => 'Chờ',
+    'Note: You cannot edit guide\'s name\. To replace guide, delete and then add new' => 'Chú ý: Không thể Sửa, Xóa, thay đổi vị trí, tên hướng dẫn viên',
+    'Canceled' => 'Hủy',
+    'Confirmed' => 'Xác nhận',
+    'Points' => 'Điểm',
+];

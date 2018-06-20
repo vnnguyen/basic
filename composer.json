@@ -1,0 +1,36 @@
+{
+	"require": {
+		"php": ">=5.4.0",
+		"yiisoft/yii2": "~2.0.14",
+		"yiisoft/yii2-authclient": "~2.0.0",
+		"yiisoft/yii2-bootstrap": "~2.1.0@dev",
+		"yiisoft/yii2-debug": "~2.0.0",
+		"yiisoft/yii2-imagine": "~2.0.0",
+		"yiisoft/yii2-swiftmailer": "~2.0.0",
+		"yiisoft/yii2-gii": "~2.0.0",
+		"yiisoft/yii2-composer": "~2.0.0",
+
+		"swiftmailer/swiftmailer": "~5.0",
+		"mailgun/mailgun-php": "~1.8.0",
+		"flourish/flourish": "dev-master",
+		"michelf/php-markdown": "1.3.*@dev",
+		"mobiledetect/mobiledetectlib": "dev-master",
+		"kartik-v/yii2-mpdf": "*",
+
+		"ezyang/htmlpurifier":"4.6.*",
+
+		"creocoder/yii2-nested-sets": "^0.9.0",
+		"creocoder/yii2-taggable": "^2.0",
+		"phpoffice/phpexcel": "^1.8",
+		"moonlandsoft/yii2-phpexcel": "*",
+		"kartik-v/yii2-widget-fileinput": "@dev",
+		"phpoffice/phpspreadsheet": "^1.1",
+		"mpdf/mpdf": "^7.0"
+	},
+	"extra": {
+		"asset-installer-paths": {
+			"npm-asset-library": "vendor/npm",
+			"bower-asset-library": "vendor/bower"
+		}
+	}
+}
