@@ -1,0 +1,14 @@
+blog
+	*index
+	search
+	manage
+		*index
+		blogs
+		posts
+		authors
+		categories
+		tags
+		search
+		me
+			*index
+			my-draft
