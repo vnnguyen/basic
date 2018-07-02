@@ -1,4 +1,4 @@
-<?php
+<?
 use yii\helpers\Html;
 
 if (!function_exists('renderDropdownMenu')) {
@@ -24,7 +24,7 @@ if (!function_exists('renderDropdownMenu')) {
                         }
                         echo '</li>';
                     } else {
-                        $icon = isset($item['icon']) ? '<i class="slicon-'.$item['icon'].'"></i> ' : '';
+                        $icon = isset($item['icon']) ? '<i class="fa fa-fw fa-'.$item['icon'].'"></i> ' : '';
                         $label = isset($item['label']) ? $item['label'] : '';
                         if (count(Yii::$app->params['active_languages']) > 1) {
                             $label = Yii::t('nav', $label);
@@ -64,26 +64,24 @@ Yii::$app->params['brand_name'] = 'AMICA TRAVEL';
 
 Yii::$app->params['top_nav']['sections'] = [
     ['label'=>'Tours', 'link'=>'tours'],
-    ['label'=>'Tour calendar', 'link'=>'tours/calendar'],
     //['label'=>Yii::t('mn', 'Groups & Spaces'), 'link'=>'spaces'],
     ['-'],
     ['label'=>'News', 'link'=>'blog'],
-    // ['label'=>'Discussion forums', 'link'=>'https://discourse.amicatravel.com', 'target'=>'_blank'],
-    // ['label'=>'Events', 'link'=>'eventful'],
-    // ['label'=>'Gallery', 'link'=>'gallery'],
-    // ['label'=>'Knowledge base', 'link'=>'kb'],
+    ['label'=>'Discussion forums', 'link'=>'https://discourse.amicatravel.com', 'target'=>'_blank'],
+    ['label'=>'Events', 'link'=>'eventful'],
+    ['label'=>'Gallery', 'link'=>'gallery'],
+    ['label'=>'Knowledge base', 'link'=>'kb'],
     ['-'],
-    // ['label'=>'Website management', 'link'=>'https://admin.amica-travel.com/', 'target'=>'_blank'],
-    ['label'=>'B2B', 'link'=>'b2b'],
+    ['label'=>'Website management', 'link'=>'https://admin.amica-travel.com/', 'target'=>'_blank'],
     ['-'],
-    ['label'=>'Organization', 'link'=>'members']
+    ['label'=>'Organization', 'link'=>'org']
 ];
 
 Yii::$app->params['top_nav']['search'] = true;
 
 Yii::$app->params['top_nav']['links'] = [
-    ['icon'=>'home', 'label'=>'Hotels', 'link'=>'venues'],
-    ['icon'=>'home', 'label'=>'Homestays', 'link'=>'venues?stra=h'],
+    ['icon'=>'building-o', 'label'=>'Hotels', 'link'=>'ref/hotels'],
+    ['icon'=>'home', 'label'=>'Local homes', 'link'=>'ref/homes'],
     ['icon'=>'anchor', 'label'=>'Cruises', 'link'=>'ref/halongcruises'],
     ['icon'=>'truck', 'label'=>'Sightseeing', 'link'=>'ref/ssspots'],
     ['icon'=>'coffee', 'label'=>'Restaurants', 'link'=>'venues?type=restaurant&destination_id=1'],
@@ -91,7 +89,7 @@ Yii::$app->params['top_nav']['links'] = [
     ['-'],
     ['icon'=>'car', 'label'=>'Tours starting this month', 'link'=>'tours'],
     ['-'],
-    ['icon'=>'font', 'label'=>'Amica members', 'link'=>'members'],
+    ['icon'=>'font', 'label'=>'Amica members', 'link'=>'kb/lists/members'],
 ];
 
 Yii::$app->params['top_nav']['help'] = [
@@ -113,24 +111,36 @@ Yii::$app->params['top_nav']['lang'] = [
     ['flag'=>'vn', 'code'=>'vi', 'name'=>'Tiếng Việt', 'link'=>'select/lang/vi'],
 ];
 
+/*$themeColorsHtml = '<li><div style="padding:3px 20px;">';
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#0B8043"></i>', DIR.URI.'?mycolor=green', ['title'=>'Green']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#303F9F"></i>', DIR.URI.'?mycolor=blue', ['title'=>'Blue']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#0097A7"></i>', DIR.URI.'?mycolor=cyan', ['title'=>'Cyan']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#C53929"></i>', DIR.URI.'?mycolor=red', ['title'=>'Red']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="xmargin-right:2px;color:#EF6C00"></i>', DIR.URI.'?mycolor=orange', ['title'=>'Orange']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#512DA8"></i>', DIR.URI.'?mycolor=purple', ['title'=>'Purple']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#BD499B"></i>', DIR.URI.'?mycolor=lotus', ['title'=>'Lotus']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#dd537c"></i>', DIR.URI.'?mycolor=pink', ['title'=>'Pink']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="margin-right:2px;color:#455A64"></i>', DIR.URI.'?mycolor=dark', ['title'=>'Dark']);
+$themeColorsHtml .= Html::a('<i class="fa fa-circle fa-2x" style="xmargin-right:2px;color:#5d4037"></i>', DIR.URI.'?mycolor=brown', ['title'=>'Brown']);
+$themeColorsHtml .= '</div></li>';*/
+
 Yii::$app->params['top_nav']['user'] = [
-    ['icon'=>'user', 'label'=>Yii::t('x', 'My profile'), 'link'=>'me/profile'],
-    ['icon'=>'key', 'label'=>Yii::t('x', 'Change password'), 'link'=>'me/account'],
-    ['icon'=>'settings', 'label'=>Yii::t('x', 'Preferences'), 'link'=>'me/preferences'],
+    ['icon'=>'user', 'label'=>'My profile', 'link'=>'me/profile'],
+    ['icon'=>'key', 'label'=>'Change password', 'link'=>'me/account'],
+    ['icon'=>'cog', 'label'=>'Preferences', 'link'=>'me/preferences'],
+    ['icon'=>'envelope-o', 'label'=>'My emails', 'link'=>'mails'],
+    ['icon'=>'file-text-o', 'label'=>'My notes', 'link'=>'notes'],
+    ['icon'=>'bar-chart-o', 'label'=>'Seller report', 'link'=>'me/reports'],
     ['-'],
-    ['icon'=>'check', 'label'=>Yii::t('x', 'My tasks'), 'link'=>'tasks'],
-    ['icon'=>'envelope', 'label'=>Yii::t('x', 'My emails'), 'link'=>'mails'],
-    ['icon'=>'notebook', 'label'=>Yii::t('x', 'My notes'), 'link'=>'notes'],
-    ['icon'=>'pie-chart', 'label'=>Yii::t('x', 'Seller report'), 'link'=>'me/reports'],
+    ['icon'=>'tasks', 'label'=>'My tasks', 'link'=>'tasks'],
     ['-'],
     //['header'=>'Theme colors'],
     //['html'=>$themeColorsHtml],
     //['-'],
-    ['icon'=>'power', 'label'=>Yii::t('x', 'Log out'), 'link'=>'logout'],
+    ['icon'=>'power-off', 'label'=>'Log out', 'link'=>'logout'],
 ];
 
 Yii::$app->params['side_nav']['travel'] = [
-    ['heading'=>Yii::t('x', 'Work')],
     ['icon'=>'home', 'label'=>'Home', 'submenu'=>[
         ['label'=>'Dashboard', 'active'=>in_array(SEG1, [''])],
         ['label'=>'My tasks', 'link'=>'tasks', 'active'=>in_array(SEG1, ['tasks'])],
@@ -139,10 +149,10 @@ Yii::$app->params['side_nav']['travel'] = [
         ['label'=>'My tours', 'link'=>'tours', 'active'=>in_array(SEG2, ['dopen'])],
         ],
     ],
-    ['icon'=>'umbrella', 'label'=>'Service vendors', 'submenu'=>[
+    ['icon'=>'cup', 'label'=>'Service vendors', 'submenu'=>[
         ['label'=>'Service suppliers', 'link'=>'suppliers', 'active'=>SEG1 == 'suppliers'],
-        ['label'=>'Hotels', 'link'=>'venues', 'active'=>SEG1 == 'venues' && SEG2 == ''],
-        ['label'=>'Homestays', 'link'=>'venues?stra=h'],
+        ['label'=>'Hotels', 'link'=>'ref/hotels', 'active'=>SEG1 == 'ref' && SEG2 == 'hotels'],
+        ['label'=>'Local homes', 'link'=>'ref/homes', 'active'=>SEG1 == 'ref' && SEG2 == 'hotels'],
         ['label'=>'Cruises', 'link'=>'ref/halongcruises', 'active'=>SEG1 == 'ref' && SEG2 == 'hotels'],
         ['label'=>'Restaurants', 'link'=>'https://my.amicatravel.com/venues?type=restaurant&destination_id=1', 'active'=>SEG1 == 'ref' && SEG2 == 'hotels'],
         ['label'=>'Tour costs', 'link'=>'dv', 'active'=>SEG1 == 'dv'],
@@ -154,7 +164,7 @@ Yii::$app->params['side_nav']['travel'] = [
         ['label'=>'Tour routes', 'link'=>'td', 'active'=>SEG1 == 'td'],
         ], 'active'=>in_array(SEG1, ['countries', 'destinations', 'td'])
     ],
-    ['icon'=>'diamond', 'label'=>'Products & services', 'active'=>in_array(SEG1, ['products', 'packages', 'nm']), 'submenu'=>[
+    ['icon'=>'umbrella', 'label'=>'Products & services', 'active'=>in_array(SEG1, ['products', 'packages', 'nm']), 'submenu'=>[
         ['label'=>'Tour programs', 'link'=>'products', 'active'=>SEG1 == 'products' && SEG2 != 'b2b'],
         ['label'=>'Tour programs (B2B)', 'link'=>'b2b/programs'],
         ['label'=>'Sample days', 'link'=>'nm', 'active'=>SEG1 == 'nm'],
@@ -164,7 +174,7 @@ Yii::$app->params['side_nav']['travel'] = [
         ['label'=>'Package tours', 'link'=>'packages', 'active'=>SEG1 == 'packages'],
         ],
     ],
-    ['icon'=>'microphone', 'label'=>'Marketing', 'active'=>in_array(SEG1, ['campaigns', 'promotions']), 'submenu'=>[
+    ['icon'=>'like', 'label'=>'Marketing', 'active'=>in_array(SEG1, ['campaigns', 'promotions']), 'submenu'=>[
         ['label'=>'Campaigns', 'link'=>'campaigns', 'active'=>in_array(SEG1, ['campaigns'])],
         ['label'=>'Promotions', 'link'=>'promotions', 'active'=>in_array(SEG1, ['promotions'])],
         ['label'=>'Websites', 'link'=>'http://admin.amica-travel.com', 'terget'=>'_blank'],
@@ -184,15 +194,15 @@ Yii::$app->params['side_nav']['travel'] = [
         ['label'=>'Payments', 'link'=>'payments', 'active'=>in_array(SEG1, ['payments'])],
         ],
     ],
-    ['icon'=>'briefcase', 'label'=>'Sales B2B', 'submenu'=>[
+    ['icon'=>'basket', 'label'=>'Sales B2B', 'submenu'=>[
         ['label'=>'B2B cases', 'link'=>'b2b/cases', 'active'=>SEG1 == 'b2b' && in_array(SEG2, ['cases'])],
         ['label'=>'B2B tours', 'link'=>'b2b/tours', 'active'=>SEG1 == 'b2b' && in_array(SEG2, ['tours'])],
         ['label'=>'B2B clients', 'link'=>'b2b/clients', 'active'=>SEG1 == 'b2b' && in_array(SEG2, ['clients', 'client', 'client-login'])],
         ],
         'active'=>SEG1 == 'b2b'
     ],
-    ['icon'=>'paper-plane', 'label'=>'Tour operation', 'active'=>in_array(SEG1, ['tours', 'tourguides', 'drivers', 'incidents']), 'submenu'=>[
-        ['label'=>'Tours', 'link'=>'tours', 'active'=>in_array(SEG1, ['tours']) && !in_array(SEG2, ['nhadan', 'calendar', 'calendar-month', 'tong-hop-roi-nuoc', 'tong-hop-nuoc-uong', 'tong-hop-tiet-kiem'])],
+    ['icon'=>'magic-wand', 'label'=>'Tour operation', 'active'=>in_array(SEG1, ['tours', 'tourguides', 'drivers', 'incidents']), 'submenu'=>[
+        ['label'=>'Tours', 'link'=>'tours', 'active'=>in_array(SEG1, ['tours']) && !in_array(SEG2, ['nhadan', 'calendar', 'calendar-month', 'tong-hop-roi-nuoc', 'tong-hop-nuoc-uong'])],
         ['label'=>'Tour guides', 'link'=>'tourguides', 'active'=>in_array(SEG1, ['tourguides'])],
         ['label'=>'Birthdays of t/guides', 'link'=>'tourguides/birthdays', 'active'=>SEG1 == 'tourguides' && SEG2 == 'birthdays'],
         ['label'=>'Drivers', 'link'=>'drivers', 'active'=>in_array(SEG1, ['drivers'])],
@@ -203,21 +213,16 @@ Yii::$app->params['side_nav']['travel'] = [
         ['label'=>'Tour calendar (Google Drive)', 'link'=>'default/redir?url=https://docs.google.com/spreadsheets/d/1jmjbn7bhe423eYOTV_Pf3vtxgZDnGLhK_zjuDgXlS3g/htmlembed', 'active'=>false],
         ['label'=>'Summary: Water-puppet', 'link'=>'tours/tong-hop-roi-nuoc', 'active'=>SEG1 == 'tours' && SEG2 == 'tong-hop-roi-nuoc'],
         ['label'=>'Summary: Drinking water', 'link'=>'tours/tong-hop-nuoc-uong', 'active'=>SEG1 == 'tours' && SEG2 == 'tong-hop-nuoc-uong'],
-        ['label'=>'Summary: Tour cost savings', 'link'=>'tours/tong-hop-tiet-kiem', 'active'=>SEG1 == 'tours' && SEG2 == 'tong-hop-tiet-kiem'],
         ],
     ],
-    ['icon'=>'people', 'label'=>'Customers', 'active'=>URI == 'users/tags' || in_array(SEG1, ['complaints', 'customers', 'referrals', 'feedbacks', 'qhkh']), 'submenu'=>[
+    ['icon'=>'people', 'label'=>'Customers', 'active'=>URI == 'users/tags' || in_array(SEG1, ['customers', 'referrals', 'feedbacks', 'qhkh']), 'submenu'=>[
         ['label'=>'Customers', 'link'=>'customers', 'active'=>in_array(SEG1, ['customers']) && SEG2 == ''],
         ['label'=>'Customer feedbacks', 'link'=>'feedbacks', 'active'=>in_array(SEG1, ['feedbacks']) && SEG2 == ''],
-        ['label'=>'Complaints', 'link'=>'complaints', 'active'=>in_array(SEG1, ['complaints']) && SEG2 == ''],
         ['label'=>'Referrals', 'link'=>'referrals', 'active'=>in_array(SEG1, ['referrals'])],
         ['label'=>'Customer care tasks', 'link'=>'customers/tasks', 'active'=>SEG2 == 'tasks'],
         ['label'=>'Customers visits', 'link'=>'customers/tasks-ac', 'active'=>SEG2 == 'tasks-ac'],
         ['label'=>'Customers birthdays', 'link'=>'customers/birthdays', 'active'=>in_array(SEG2, ['birthdays'])],
         ['label'=>'CR Fund', 'link'=>'qhkh/quy-qhkh', 'active'=>in_array(SEG1, ['qhkh']) && SEG2 == 'quy-qhkh'],
-        ['label'=>'Tour results', 'link'=>'qhkh/chot-tour', 'active'=>in_array(SEG1, ['qhkh']) && SEG2 == 'chot-tour'],
-        ['label'=>'Types of letters', 'link'=>'qhkh/quy-trinh-thu-mau', 'active'=>in_array(SEG1, ['qhkh']) && SEG2 == 'quy-trinh-thu-mau'],
-        ['label'=>'Service Plus', 'link'=>'qhkh/service-plus', 'active'=>in_array(SEG1, ['qhkh']) && SEG2 == 'service-plus'],
         ['label'=>'User tags', 'link'=>'users/tags', 'active'=>in_array(SEG1, ['users']) && SEG2 == 'tags'],
         ],
     ],
@@ -245,7 +250,7 @@ Yii::$app->params['side_nav']['travel'] = [
         ['label'=>'Events', 'link'=>'events', 'active'=>in_array(SEG1, ['events'])],
         ],
     ],
-    ['icon'=>'wrench', 'label'=>'Manager', 'active'=>in_array(SEG1, ['manager', 'reports']), 'submenu'=>[
+    ['icon'=>'chart', 'label'=>'Manager', 'active'=>in_array(SEG1, ['manager', 'reports']), 'submenu'=>[
         ['label'=>'Manager dashboard', 'link'=>'manager', 'active'=>in_array(SEG1, ['manager']) && SEG2 == ''],
         ['label'=>'Reports', 'link'=>'manager/reports', 'active'=>in_array(SEG1, ['manager']) && SEG2 == 'reports'],
         ],
@@ -360,13 +365,13 @@ Yii::$app->params['side_nav']['org'] = [
 Yii::$app->params['side_nav']['me'] = [
     ['icon'=>'user', 'label'=>'My profile', 'link'=>'me/profile'],
     ['icon'=>'key', 'label'=>'Change password', 'link'=>'me/account'],
-    ['icon'=>'settings', 'label'=>'Preferences', 'link'=>'me/preferences'],
-    ['icon'=>'envelope', 'label'=>'My emails', 'link'=>'mails'],
+    ['icon'=>'cog', 'label'=>'Preferences', 'link'=>'me/preferences'],
+    ['icon'=>'envelope-o', 'label'=>'My emails', 'link'=>'mails'],
     ['icon'=>'file-text-o', 'label'=>'My notes', 'link'=>'notes'],
     ['icon'=>'bar-chart-o', 'label'=>'Seller report', 'link'=>'me/reports'],
     ['icon'=>'tasks', 'label'=>'My tasks', 'link'=>'tasks'],
-    ['-'],
-    ['icon'=>'power', 'label'=>'Log out', 'link'=>'logout'],
+    ['icon'=>'comment-o', 'label'=>'Góp ý (ẩn danh)', 'link'=>'blog/posts/r/111'],
+    ['icon'=>'power-off', 'label'=>'Log out', 'link'=>'logout'],
 ];
 
 Yii::$app->params['side_nav']['b2b'] = [
@@ -437,15 +442,28 @@ Yii::$app->params['side_nav']['mcp'] = [
 
 Yii::$app->params['side_nav']['help'] = [
     ['heading'=>'Help & Support'],
-    ['icon'=>'info', 'label'=>'About this software', 'link'=>'help/about', 'active'=>SEG2 == 'about'],
-    ['icon'=>'question', 'label'=>'FAQ', 'link'=>'help/faq', 'active'=>SEG2 == 'faq'],
-    ['icon'=>'docs', 'label'=>'Documentation', 'link'=>'help/docs', 'active'=>SEG2 == 'docs'],
-    ['icon'=>'list', 'label'=>'Changelog', 'link'=>'help/changelog', 'active'=>SEG2 == 'changelog'],
-    ['icon'=>'map', 'label'=>'Roadmap', 'link'=>'help/roadmap', 'active'=>SEG2 == 'roadmap'],
+    ['icon'=>'info22', 'label'=>'About this software', 'link'=>'help/about', 'active'=>SEG2 == 'about'],
+    ['icon'=>'question3', 'label'=>'FAQ', 'link'=>'help/faq', 'active'=>SEG2 == 'faq'],
+    ['icon'=>'book', 'label'=>'Documentation', 'link'=>'help/docs', 'active'=>SEG2 == 'docs'],
+    ['icon'=>'checkmark', 'label'=>'Changelog', 'link'=>'help/changelog', 'active'=>SEG2 == 'changelog'],
+    ['icon'=>'stats-growth2', 'label'=>'Roadmap', 'link'=>'help/roadmap', 'active'=>SEG2 == 'roadmap'],
     ['-'],
-    ['icon'=>'feed', 'label'=>'Development news', 'link'=>'help/news', 'active'=>SEG2 == 'news'],
+    ['icon'=>'newspaper2', 'label'=>'Development news', 'link'=>'help/news', 'active'=>SEG2 == 'news'],
     ['-'],
-    ['icon'=>'support', 'label'=>'Report a bug', 'link'=>'help/report-a-bug', 'active'=>SEG2 == 'report-a-bug'],
+    ['icon'=>'bug2', 'label'=>'Report a bug', 'link'=>'help/report-a-bug', 'active'=>SEG2 == 'report-a-bug'],
+];
+
+Yii::$app->params['side_nav']['help'] = [
+    ['heading'=>'Help & Support'],
+    ['icon'=>'info22', 'label'=>'About this software', 'link'=>'help/about', 'active'=>SEG2 == 'about'],
+    ['icon'=>'question3', 'label'=>'FAQ', 'link'=>'help/faq', 'active'=>SEG2 == 'faq'],
+    ['icon'=>'book', 'label'=>'Documentation', 'link'=>'help/docs', 'active'=>SEG2 == 'docs'],
+    ['icon'=>'checkmark', 'label'=>'Changelog', 'link'=>'help/changelog', 'active'=>SEG2 == 'changelog'],
+    ['icon'=>'stats-growth2', 'label'=>'Roadmap', 'link'=>'help/roadmap', 'active'=>SEG2 == 'roadmap'],
+    ['-'],
+    ['icon'=>'newspaper2', 'label'=>'Development news', 'link'=>'help/news', 'active'=>SEG2 == 'news'],
+    ['-'],
+    ['icon'=>'bug2', 'label'=>'Report a bug', 'link'=>'help/report-a-bug', 'active'=>SEG2 == 'report-a-bug'],
 ];
 
 

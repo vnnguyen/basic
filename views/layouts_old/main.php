@@ -1,4 +1,4 @@
-<?php
+<?
 /* yap for page design:
 page_layout
 body_class
@@ -18,11 +18,12 @@ x+ after x
 
 use yii\helpers\Html;
 use app\assets\MainAsset;
-
+$baseUrl = Yii::$app->request->baseUrl;
 include('_nav.php');
 include('_css.php');
 include('_js.php');
 include('../config/functions.php');
+
 
 MainAsset::register($this);
 
@@ -40,10 +41,6 @@ if (strpos(Yii::$app->params['page_layout'], 'sli') !== false) {
 if (strpos(Yii::$app->params['page_layout'], 'sri') !== false) {
     Yii::$app->params['body_class'] .= ' sidebar-xs has-detached-right';
 }
-if (strpos(Yii::$app->params['page_layout'], 'sro') !== false) {
-    Yii::$app->params['body_class'] .= ' sidebar-xs sidebar-opposite-visible';
-}
-
 
 // OLD IMS
 Yii::$app->params['page_breadcrumbs'] = Yii::$app->params['page_breadcrumbs'] ?? $this->params['breadcrumb'] ?? null;
@@ -51,15 +48,15 @@ Yii::$app->params['page_actions'] = Yii::$app->params['page_actions'] ?? $this->
 
 $this->beginPage();
 
-if (in_array(USER_ID, [24820])) {
+if (in_array(USER_ID, [24820,34178])) {
     // New orange 13
-    $body_class = 'red-theme size-15';
-} elseif (in_array(USER_ID, [8162, 34596, 40673])) {
+    $body_class = 'red-theme';
+} elseif (in_array(USER_ID, [8162, 34596])) {
     // Black 15
-    $body_class = 'purple-theme size-15';
+    $body_class = 'size-15';
 } elseif (in_array(USER_ID, [1])) {
     // Green 15
-    $body_class = 'green-theme size-15';
+    $body_class = 'purple-theme';
 } elseif (in_array(USER_ID, [1351, 27388, 34595, 39748, 12952, 29296])) {
     // Black 15
     $body_class = 'green-theme size-15';
@@ -71,17 +68,12 @@ if (in_array(USER_ID, [24820])) {
     $body_class = 'lotus font-helvetica size-15';
 }
 
-if (isset($_GET['body_class'])) {
-    $body_class = $_GET['body_class'];
-}
-
 ?><!DOCTYPE html>
-<html lang="<?= Yii::$app->language ?>">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="robots" content="NOINDEX, NOFOLLOW">
     <title><?= Yii::$app->params['page_meta_title'] ?> - Amica Travel IMS</title>
     <?= Html::csrfMetaTags() ?>
     <?= $this->head() ?>
@@ -92,16 +84,10 @@ if (isset($_GET['body_class'])) {
     <!-- Main navbar -->
     <div class="navbar navbar-inverse">
         <div class="navbar-header">
-            <a class="navbar-brand" href="/" ><img src="/assets/img/logo_396x128_c.png" alt="Logo"></a>
+            <a class="navbar-brand" href="/" ><img src="<?=$baseUrl?>/assets/img/logo_161114_w.png" alt="Logo" style="margin-top:0; height:42px;"></a>
             <ul class="nav navbar-nav pull-right visible-xs-block">
                 <? if (strpos(Yii::$app->params['page_layout'], 'sli') !== false || strpos(Yii::$app->params['page_layout'], 'sri') !== false) { ?>
-                <li><a class="sidebar-mobile-detached-toggle"><i class="slicon-arrow-down"></i></a></li>
-                <? } ?>
-                <? if (strpos(Yii::$app->params['page_layout'], 'slo') !== false) { ?>
-                <li><a class="sidebar-mobile-secondary-toggle"><i class="slicon-arrow-down"></i></a></li>
-                <? } ?>
-                <? if (strpos(Yii::$app->params['page_layout'], 'sro') !== false) { ?>
-                <li><a class="sidebar-mobile-opposite-toggle"><i class="slicon-arrow-down"></i></a></li>
+                <li><a class="sidebar-mobile-detached-toggle"><i class="fa fa-chevron-down"></i></a></li>
                 <? } ?>
                 <li><a data-toggle="collapse" data-target="#navbar-mobile"><i class="slicon-options"></i></a></li>
                 <li><a class="sidebar-mobile-main-toggle"><i class="slicon-options-vertical"></i></a></li>
@@ -111,7 +97,7 @@ if (isset($_GET['body_class'])) {
         <div class="navbar-collapse collapse" id="navbar-mobile">
             <ul class="nav navbar-nav">
                 <li><a class="sidebar-control sidebar-main-toggle hidden-xs"><i class="slicon-menu"></i></a></li>
-<?php
+<?
 // SECTIONS
 if (isset(Yii::$app->params['top_nav']['sections']) && count(Yii::$app->params['top_nav']['sections']) > 1) {
 ?>
@@ -123,14 +109,21 @@ if (isset(Yii::$app->params['top_nav']['sections']) && count(Yii::$app->params['
                     <ul class="dropdown-menu" id="dropdown-menu-sections">
                     <? renderDropdownMenu(Yii::$app->params['top_nav']['sections']) ?>
                     </ul>
-                </li><?php
+                </li><?
 } // if sections ?>
                 <li style="min-width:320px;">
                     <form id="qs" action="/search" class="navbar-form navbar-left" style="width:100%;">
                         <div class="form-group has-feedback" style="width:100%;">
+                            <? if (1) { ?>
                             <select id="livesearch" style="width:100%;">
                                 <option value="" selected="selected"><?= Yii::t('nav', 'Search') ?></option>
                             </select>
+                            <? } else { ?>
+                            <input type="search" class="form-control" name="q" id="q" autocomplete="off" placeholder="<?= Yii::t('nav', 'Search') ?>">
+                            <div id="qx" class="form-control-feedback" style="pointer-events:auto; cursor:pointer;">
+                                <i id="qi" class="slicon-magnifier text-size-base"></i>
+                            </div>
+                            <? } ?>
                         </div>
                         <div id="suggest" class="search-suggest"></div>
                     </form>
@@ -140,7 +133,11 @@ if (isset(Yii::$app->params['top_nav']['sections']) && count(Yii::$app->params['
             <?= $this->blocks['nx'] ?? '' ?>
             <ul class="nav navbar-nav navbar-right">
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="<?= Yii::t('nav', 'Links') ?>"><i class="slicon-link"></i></a>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="slicon-link position-left"></i>
+                        <span class="hidden-sm"><?= Yii::t('nav', 'Links') ?></span>
+                        <span class="caret"></span>
+                    </a>
                     <ul class="dropdown-menu" id="dropdown-menu-links">
                     <? foreach (Yii::$app->params['top_nav']['links'] as $item) {
                         echo renderMenuItem($item);
@@ -148,7 +145,11 @@ if (isset(Yii::$app->params['top_nav']['sections']) && count(Yii::$app->params['
                     </ul>
                 </li>
                 <li class="dropdown">
-                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" title="<?= Yii::t('nav', 'Help') ?>"><i class="slicon-question"></i></a>
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                        <i class="slicon-question position-left"></i>
+                        <span class="hidden-sm"><?= Yii::t('nav', 'Help') ?></span>
+                        <span class="caret"></span>
+                    </a>
                     <ul class="dropdown-menu" id="dropdown-menu-help">
                     <? foreach (Yii::$app->params['top_nav']['help'] as $item) {
                         echo renderMenuItem($item);
@@ -156,18 +157,17 @@ if (isset(Yii::$app->params['top_nav']['sections']) && count(Yii::$app->params['
                     </ul>
                 </li>
                 <li class="dropdown">
-<?php
-$langName = 'en';
-$flagName = 'gb';
-foreach (Yii::$app->params['top_nav']['lang'] as $item) {
-    if ($item['code'] == Yii::$app->language) {
-        $langName = $item['name'];
-        $flagName = $item['flag'];
-        break;
-    }
-}
-?>
-                    <a class="dropdown-toggle" data-toggle="dropdown" title="<?= $langName ?>"><span class="flag-icon flag-icon-<?= $flagName ?>"></span></a>
+                    <a class="dropdown-toggle" data-toggle="dropdown"><?
+    foreach (Yii::$app->params['top_nav']['lang'] as $item) {
+        if ($item['code'] == Yii::$app->language) { ?>
+                        <span class="flag-icon flag-icon-<?= $item['flag'] ?>"></span>
+                        <span class="hidden-sm"><?= $item['name'] ?></span>
+                        <span class="caret"></span><?
+            break;
+        }
+    } ?>
+                    </a>
+
                     <ul class="dropdown-menu">
                         <li><a class="english" href="/select/lang/en"><span class="flag-icon flag-icon-us"></span> English</a></li>
                         <li><a class="french" href="/select/lang/fr"><span class="flag-icon flag-icon-fr"></span> Français</a></li>
@@ -176,9 +176,14 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
                 </li>
 
                 <li class="dropdown">
-                    <a class="dropdown-toggle" data-toggle="dropdown" title="<?= Yii::$app->user->identity->nickname ?>"><img class="img-circle" style="display:inline-block; width:28px; height:28px; margin:-5px 0;" src="/timthumb.php?w=100&h=100&src=<?= Yii::$app->user->identity->image ?>" alt="U"></a>
+                    <!-- <a class="dropdown-toggle" data-toggle="dropdown">
+                        <img class="img-circle" style="width:28px; height:28px; margin:-5px 7px -5px 0;" src="/timthumb.php?w=100&h=100&src=<?= Yii::$app->user->identity->image ?>" alt="Avatar">
+                        <span class="hidden-sm"><?= Yii::$app->user->identity->nickname ?></span>
+                        <i class="caret"></i>
+                    </a> -->
+
                     <ul class="dropdown-menu dropdown-menu-right">
-                        <?php
+                        <?
                         foreach (Yii::$app->params['top_nav']['user'] as $item) {
                             echo renderMenuItem($item);
                         }
@@ -198,17 +203,18 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
         <div class="page-content">
             <? if (strpos(Yii::$app->params['page_layout'], '-s') === false) { ?>
             <!-- Main sidebar -->
-            <div class="sidebar sidebar-main">
+            <div class="sidebar sidebar-main sidebar-default">
                 <div class="sidebar-content">
+
                     <!-- User menu -->
                     <div class="sidebar-user">
                         <div class="category-content">
                             <div class="media">
-                                <a href="#" class="media-left"><img src="/timthumb.php?w=100&h=100&src=<?= Yii::$app->user->identity->image ?>" class="img-circle img-sm" alt=""></a>
+
                                 <div class="media-body">
                                     <span class="media-heading text-semibold"><?= Yii::$app->user->identity->nickname ?></span>
                                     <div class="text-size-mini text-muted">
-                                        <?//= Yii::$app->user->identity->member->location ?>
+                                        <?= Yii::$app->user->identity->profileMember->location ?>
                                     </div>
                                 </div>
 
@@ -230,7 +236,7 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
                             <ul class="navigation navigation-main navigation-accordion">
 
                                 <!-- Main -->
-                            <?php
+                            <?
                             if (isset(Yii::$app->params['side_nav'][Yii::$app->params['side_nav_name']])) {
                                 Yii::$app->params['side_nav']['main'] = Yii::$app->params['side_nav'][Yii::$app->params['side_nav_name']];
                                 foreach (Yii::$app->params['side_nav']['main'] as $item) {
@@ -250,10 +256,6 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
             <!-- /main sidebar -->
             <? } // -s ?>
 
-            <? if (strpos(Yii::$app->params['page_layout'], 'slo') !== false) { ?>
-            <?= $this->blocks['slo'] ?? '' ?>
-            <? } // slo ?>
-
             <!-- Main content -->
             <div class="content-wrapper">
                 <?= $this->blocks['h'] ?? '' ?>
@@ -266,7 +268,7 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
                         <div class="page-title">
                             <h1>
                                 <? if (isset(Yii::$app->params['page_icon']) && Yii::$app->params['page_icon'] != '') { ?>
-                                <i class="<?= strpos(Yii::$app->params['page_icon'], 'slicon') === false ? 'fa fa-' : '' ?><?= Yii::$app->params['page_icon'] ?> position-left"></i>
+                                <i class="fa fa-<?= Yii::$app->params['page_icon'] ?> position-left"></i>
                                 <? } ?>
                                 <span class="text-semibold"><?= Yii::$app->params['page_title'] ?></span>
                                 <? if (isset(Yii::$app->params['page_small_title'])) { ?> <span class="text-light text-muted"><?= Yii::$app->params['page_small_title'] ?></span><? } ?>
@@ -286,7 +288,7 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
                         <? if (isset(Yii::$app->params['page_breadcrumbs']) && is_array(Yii::$app->params['page_breadcrumbs'])) { ?>
                         <ul class="breadcrumb">
                             <li><a href="/"><?= Yii::t('nav', 'Home') ?></a></li>
-                            <?php
+                            <?
                             foreach (Yii::$app->params['page_breadcrumbs'] as $item) {
                                 if (!empty($item)) {
                                     if (!isset($item[1]) || true === $item[1]) { ?>
@@ -296,25 +298,25 @@ foreach (Yii::$app->params['top_nav']['lang'] as $item) {
                                         <? $item[1] = '@web/'.$item[1]; ?>
                                     <? } ?>
                             <li<?= isset($item[2]) && $item[2] === true ? ' class="active"' : '' ?>><?= Html::a($item[0], $item[1]) ?></li>
-                                <?php
+                                <?
                                     }
                                 }
                             } ?>
                         </ul>
                         <ul class="breadcrumb-elements">
-<?php
+<?
 if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page_actions'])) {
     foreach (Yii::$app->params['page_actions'] as $iBtnGroup) { ?>
-        <?php
+        <?
         foreach ($iBtnGroup as $iBtn) {
             if (!isset($iBtn['hidden']) || !$iBtn['hidden']) {
                 if (isset($iBtn['submenu']) && is_array($iBtn['submenu'])) { ?>
                     <li style="border-right:1px solid #f3f3f3;">
                         <a style="padding:10px 5px;" href="#" class="dropdown-toggle" data-toggle="dropdown"><span class="caret"></span></a>
-                        <ul class="dropdown-menu dropdown-menu-right"><?php
+                        <ul class="dropdown-menu dropdown-menu-right"><?
                     foreach ($iBtn['submenu'] as $i2Btn) {
                         if ($i2Btn == ['-']) { ?>
-                            <li class="divider"></li><?php
+                            <li class="divider"></li><?
                         } else {
                             if (!isset($i2Btn['hidden']) || !$i2Btn['hidden']) {
                                 $i2BtnIcon = isset($i2Btn['icon']) ? '<i class="fa fa-fw fa-'.$i2Btn['icon'].'"></i> ' : '';
@@ -328,13 +330,13 @@ if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page
                                 if (substr($i2BtnLink, 0, 1) != '#' && substr($i2BtnLink, 0, 5) != '@web/' && strpos($i2BtnLink, '//') === false) {
                                     $i2BtnLink = '@web/'.$i2BtnLink;
                                 } ?>
-                            <li><?= Html::a($i2BtnIcon.$i2BtnLabel, $i2BtnLink, ['class'=>$i2BtnClass, 'title'=>$i2BtnTitle]) ?></li><?php
+                            <li><?= Html::a($i2BtnIcon.$i2BtnLabel, $i2BtnLink, ['class'=>$i2BtnClass, 'title'=>$i2BtnTitle]) ?></li><?
                             }
                         } // if divider
                     } // foreach i2Btn ?>
                         </ul>
                     </li>
-                    <?php
+                    <?
                 } else {
                     $iBtnIcon = isset($iBtn['icon']) ? '<i class="fa fa-fw fa-'.$iBtn['icon'].'"></i> ' : '';
                     $iBtnLabel = isset($iBtn['label']) ? $iBtn['label'] : '';
@@ -369,11 +371,11 @@ if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page
                 <!-- Content area -->
                 <div class="content">
                     <!--[if lt IE 9]><div class="hidden-print alert alert-warning"><i class="fa fa-warning"></i> You are using an <strong>outdated</strong> browser. Please <a rel="external" class="alert-link" href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</div><![endif]-->
-                    <?php
+                    <?
                     foreach(Yii::$app->session->getAllFlashes() as $key=>$message) {
                         if (Yii::$app->session->hasFlash($key)) { ?>
                     <div class="hidden-print alert alert-<?= $key ?>"><?= $message ?></div>
-                    <?php
+                    <?
                         }
                     }
                     ?>
@@ -409,7 +411,7 @@ if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page
                     <?= $this->blocks['f'] ?? '' ?>
                     <? if (strpos(Yii::$app->params['page_layout'], '-f') === false) { ?>
                     <div class="footer text-muted hidden-print">
-                        <?= Yii::$app->name ?> version <?= Yii::$app->version ?> - &copy; 2007-2017 <a href="https://www.amica-travel.com?ref=ims_ft">Amica Travel</a>
+                        <?= Yii::$app->name ?> version <?= Yii::$app->version ?> - &copy; 2007-2016 <a href="https://www.amica-travel.com?ref=ims_ft">Amica Travel</a>
                         <?= $this->blocks['fx'] ?? '' ?>
                     </div>
                     <? } // -f ?>
@@ -418,7 +420,7 @@ if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page
 
             </div>
             <!-- /main content -->
-            <? if (strpos(Yii::$app->params['page_layout'], 'sro') !== false) { ?>
+            <? if (strpos(Yii::$app->params['page_layout'], 'sro') === false) { ?>
             <!-- Opposite sidebar -->
             <?= $this->blocks['sro'] ?? '' ?>
             <!-- /opposite sidebar -->

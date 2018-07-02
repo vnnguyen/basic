@@ -3,8 +3,17 @@ $baseUrl = Yii::getAlias('@www');
 if ($venue['latlng'] != '') {
     $latlng = explode(',', $venue['latlng']);
 }
+
 ?>
-<div class="modal-item-detail modal-dialog" role="document" data-latitude="<?= (isset($latlng))? $latlng[0]:''?>" data-longitude="<?= (isset($latlng))? $latlng[1]:''?>" data-address="">
+<style>
+    .modal-header .close {
+        margin-top: 0;
+        position: absolute;
+        right: -50px;
+        top: -45%;
+    }
+</style>
+<div class="modal-item-detail modal-dialog modal-lg" role="document" data-latitude="<?= (isset($latlng))? $latlng[0]:''?>" data-longitude="<?= (isset($latlng))? $latlng[1]:''?>" data-address="">
     <div class="modal-content">
         <div class="modal-header">
             <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>

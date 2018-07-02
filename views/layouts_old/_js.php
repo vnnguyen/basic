@@ -136,8 +136,9 @@ $('#livesearch').on('select2:select', function (evt) {
     // alert($(this).val());
     // location.href = $(this).val();
 });
+$("#livesearch").select2();
 TXT;
 
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.full.min.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.full.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/assets/jquery.gotop_1.1.2/jquery.gotop.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJs($js);

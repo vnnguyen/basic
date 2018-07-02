@@ -1,17 +1,6 @@
 <?php
 
 $css = <<<'TXT'
-
-.autocomplete-suggestions { border: 1px solid #999; background: #FFF; overflow: auto;}
-.autocomplete-suggestion { padding: 2px 5px; white-space: nowrap; overflow: hidden; }
-.autocomplete-selected { background: #F0F0F0; }
-.autocomplete-suggestions strong { font-weight: normal; color: #3399FF; }
-.autocomplete-group { padding: 2px 5px; }
-.autocomplete-group strong { display: block; border-bottom: 1px solid #000; }
-
-
-span.atwho-inserted {background-color:#D9EEFF; padding:2px; font-weight:500;}
-
 body {overflow-y:scroll;}
 @media(min-width: 769px){
     .sidebar-main {width:235px;}
@@ -39,12 +28,6 @@ body.size-14 .nav-tabs>li {font-size:14px;}
 
 form.panel-search {margin-bottom:16px;}
 /** ? **/
-
-.fa-file-image-o {color:#0078D7}
-.fa-file-word-o {color:#2A5699}
-.fa-file-excel-o {color:#207245}
-.fa-file-pdf-o {color:#FC6249}
-.fa-file-text-o {color:#333}
 
 .col { position: relative; min-height: 1px; padding-right: 15px; padding-left: 15px;}
 
@@ -162,9 +145,18 @@ body.size-15 .nav-tabs>li {font-size:15px;}
 
 /* THEME COLOR */
 body.lotus .navbar-inverse {background-color:#BD499B; border-color:#BD499B;}
-body.lotus .sidebar-main {background-color:#601149}
-body.lotus .sidebar .navigation>li {border-top:1px solid rgba(189,73,155,.1);}
-body.lotus .navigation>li.active>a, body.lotus .navigation>li.active>a:focus, body.lotus .navigation>li.active>a:hover {background-color:#BD499B}
+body.lotus .__sidebar-main {background-color:#601149}
+body.lotus .__sidebar .navigation>li {border-top:1px solid rgba(189,73,155,.1);}
+body.lotus .__navigation>li.active>a, body.lotus .__navigation>li.active>a:focus, body.lotus .__navigation>li.active>a:hover {background-color:#BD499B}
+
+body.l-ame-du-voyage .navbar-inverse {background-color:#e65925; border-color:#e65925;}
+body.l-ame-du-voyage .sidebar-main {background-color:#fff; border-right:1px solid #ddd; color:#333;}
+body.l-ame-du-voyage .navigation li a, body.l-ame-du-voyage .navigation li a {color:#333;}
+
+body.l-ame-du-voyage .sidebar:not(.sidebar-default) .media .media-annotation, body.l-ame-du-voyage .sidebar:not(.sidebar-default) .media .text-muted {color:#999;}
+body.l-ame-du-voyage .sidebar-main .navigation li.disabled>a, body.l-ame-du-voyage .sidebar-main .navigation li.disabled>a:focus, body.l-ame-du-voyage .sidebar-main .navigation li.disabled>a:hover, body.l-ame-du-voyage .sidebar-main .navigation>li ul {background-color:#fff;}
+body.l-ame-du-voyage .sidebar-main .navigation li.active>a, body.l-ame-du-voyage .sidebar-main .navigation li.active>a:focus, body.l-ame-du-voyage .sidebar-main .navigation li.active>a:hover {background-color:#f5f5f5; color:#333;}
+body.l-ame-du-voyage .sidebar-main .navigation>li.active>a, body.l-ame-du-voyage .sidebar-main .navigation>li.active>a:focus, body.l-ame-du-voyage .sidebar-main .navigation>li.active>a:hover {background-color:#e65925; color:#fff;}
 
 body.red-theme .navbar-inverse {background-color:#e53935; border-color:#e53935;}
 body.red-theme .sidebar-main {background-color:#fff; border-right:1px solid #ddd; color:#333;}
@@ -197,12 +189,13 @@ body.blue-theme .sidebar-main .navigation>li.active>a, body.blue-theme .sidebar-
 
 
 body.purple-theme .navbar-inverse {background-color:#62417f; border-color:#62417f;}
-body.purple-theme .navigation li a, body.purple-theme .navigation li a {color:rgba(255,255,255,.7);}
-body.purple-theme .sidebar-main {background-color:#42215f; border-right:1px solid #ddd; color:#fff;}
-body.purple-theme .sidebar-main .navigation li.disabled>a, body.purple-theme .sidebar-main .navigation li.disabled>a:focus, body.purple-theme .sidebar-main .navigation li.disabled>a:hover, body.purple-theme .sidebar-main .navigation>li ul {background-color:#42215f; color:#fff;}
-body.purple-theme .sidebar-main .navigation li.active>a, body.purple-theme .sidebar-main .navigation li.active>a:focus, body.purple-theme .sidebar-main .navigation li.active>a:hover {background-color:#32114f; color:#fff;}
-body.purple-theme .sidebar-main .navigation>li.active>a, body.purple-theme .sidebar-main .navigation>li.active>a:focus, body.purple-theme .sidebar-main .navigation>li.active>a:hover {background-color:#62417f; color:#fff;}
+body.purple-theme .sidebar-main {background-color:#fff; border-right:1px solid #ddd; color:#333;}
+body.purple-theme .navigation li a, body.purple-theme .navigation li a {color:#333;}
+
 body.purple-theme .sidebar:not(.sidebar-default) .media .media-annotation, body.purple-theme .sidebar:not(.sidebar-default) .media .text-muted {color:#999;}
+body.purple-theme .sidebar-main .navigation li.disabled>a, body.purple-theme .sidebar-main .navigation li.disabled>a:focus, body.purple-theme .sidebar-main .navigation li.disabled>a:hover, body.purple-theme .sidebar-main .navigation>li ul {background-color:#fff;}
+body.purple-theme .sidebar-main .navigation li.active>a, body.purple-theme .sidebar-main .navigation li.active>a:focus, body.purple-theme .sidebar-main .navigation li.active>a:hover {background-color:#f5f5f5; color:#333;}
+body.purple-theme .sidebar-main .navigation>li.active>a, body.purple-theme .sidebar-main .navigation>li.active>a:focus, body.purple-theme .sidebar-main .navigation>li.active>a:hover {background-color:#62417f; color:#fff;}
 
 /* AIR DP */
 .datepicker>div{display:block;}
@@ -213,8 +206,11 @@ body.purple-theme .sidebar:not(.sidebar-default) .media .media-annotation, body.
 .-current- {background-color:#f0fff0;}
 
 @media (min-width: 769px) {
-    body.lotus.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#601149}
+    body.lotus.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
     body.lotus.sidebar-xs .sidebar-main .navigation>li>a>span {background-color:#BD499B; border-color:#BD499B; color:#fff;}
+
+    body.l-ame-du-voyage.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
+    body.l-ame-du-voyage.sidebar-xs .sidebar-main .navigation>li>a>span {background-color:#e65925; border-color:#e65925; color:#fff;}
 
     body.red-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
     body.red-theme.sidebar-xs .sidebar-main .navigation>li>a>span {background-color:#e53935; border-color:#e53935; color:#fff;}
@@ -222,10 +218,10 @@ body.purple-theme .sidebar:not(.sidebar-default) .media .media-annotation, body.
     body.green-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
     body.green-theme.sidebar-xs .sidebar-main .navigation>li>a>span {background-color:#00897b; border-color:#00897b; color:#fff;}
 
-    body.blue-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#42215f}
+    body.blue-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
     body.blue-theme.sidebar-xs .sidebar-main .navigation>li>a>span {background-color:#2196f3; border-color:#2196f3; color:#fff;}
 
-    body.purple-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#42215f}
+    body.purple-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
     body.purple-theme.sidebar-xs .sidebar-main .navigation>li>a>span {background-color:#62417f; border-color:#62417f; color:#fff;}
 
     body.size-14 .nav-tabs>li {font-size:14px;}

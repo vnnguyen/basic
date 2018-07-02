@@ -5,7 +5,7 @@ use yii\helpers\Markdown;
 
 <div class="tab-pane" id="t-tours">
     <p>Các tour có sử dụng dịch vụ ở đây (max 100 tour). <?= Html::a('Click vào đây để xem tất cả', '@web/tools/tour-ks?ks='.$theVenue['id'], ['rel'=>'external']) ?></p>
-    <table class="table table-striped table-condensed table-bordered">
+    <table class="table table-striped table-narrow table-bordered">
         <tbody>
             <? foreach ($venueTours as $tour) { ?>
             <tr>

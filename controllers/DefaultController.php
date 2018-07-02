@@ -140,6 +140,7 @@ class DefaultController extends MyController
         $newPayments = Yii::$app->db
             ->createCommand('SELECT p.*, u.name AS updated, t.code AS tour_code, t.id AS tour_id FROM at_payments p, at_bookings b, at_tours t, persons u WHERE u.id=p.updated_by AND b.id=p.booking_id AND t.ct_id=b.product_id AND b.created_by=:id ORDER BY p.updated_at DESC LIMIT 5', [':id'=>Yii::$app->user->id])
             ->queryAll();
+            // $this->layout = 'limitless';
 
         return $this->render('home', [
             'theMessages'=>$theMessages,

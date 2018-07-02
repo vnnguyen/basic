@@ -47,7 +47,7 @@ $config = [
 
 
 
-
+    'layout' => 'limitless',
     'components' => [
         'assetManager' => [
             'bundles' => [
@@ -56,7 +56,6 @@ $config = [
                     'js' => [
                         // "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
                         'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'
-                        // 'http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js'
                     ],
                 ],
             ],
@@ -358,15 +357,15 @@ $config = [
 
     'params' => $params,
 ];
-$config['bootstrap'][] = 'debug';
-$config['modules']['debug'] = [
-    'class' => 'yii\debug\Module',
-    'allowedIPs' => ['*']
-];
-$config['bootstrap'][] = 'gii';
-$config['modules']['gii'] = [
-    'class' => 'yii\gii\Module',
-    'allowedIPs' => ['*']
-];
+// $config['bootstrap'][] = 'debug';
+// $config['modules']['debug'] = [
+//     'class' => 'yii\debug\Module',
+//     'allowedIPs' => ['*']
+// ];
+// $config['bootstrap'][] = 'gii';
+// $config['modules']['gii'] = [
+//     'class' => 'yii\gii\Module',
+//     'allowedIPs' => ['*']
+// ];
 
 return $config;

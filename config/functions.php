@@ -1,4 +1,4 @@
-<?
+<?php
 use yii\helpers\Html;
 
 if (!function_exists('trim00')) {
@@ -26,14 +26,14 @@ if (!function_exists('renderMenuItem')) {
         }
 
         if ($item == ['-'] && $tag == 'li') {
-            return '<li class="divider"></li>';
+            return '<li class="divider menu-divider"></li>';
         }
 
         $html = '';
 
         $aLabel = isset($item['label']) ? $item['label'] : '';
         if (isset($item['icon'])) {
-            $aLabel = '<i class="fa fa-fw fa-'.Html::encode($item['icon']).'"></i> '.Html::encode($aLabel);
+            $aLabel = '<i style="font-size:16px;" class="slicon-'.Html::encode($item['icon']).'"></i> '.Html::encode($aLabel);
         }
         $aLink = isset($item['link']) ? $item['link'] : '';
         if (substr($aLink, 0, 1) != '@' && substr($aLink, 0, 1) != '#' && strpos($aLink, '//') === false) {
@@ -70,6 +70,52 @@ if (!function_exists('renderMenuItem')) {
     }
 }
 
+if (!function_exists('renderBs4MenuItem')) {
+    /*
+     * renders li or a tag of a menu item
+     * returns the HTML tag
+     * item: id, title, class, active, label, (a)target,a title, a id, link, html
+     */
+    function renderBs4MenuItem($item)
+    {
+        if (isset($item['hidden']) && $item['hidden']) {
+            return '';
+        }
+
+        // html = render raw html
+        if (isset($item['html'])) {
+            return $item['html'];
+        }
+
+        if ($item == ['-']) {
+            return '<div class="dropdown-divider"></div>';
+        }
+
+        $html = '';
+
+        $aLabel = isset($item['label']) ? $item['label'] : '';
+        if (isset($item['icon'])) {
+            $aLabel = '<i style="font-size:16px;" class="slicon-'.Html::encode($item['icon']).'"></i> '.Html::encode($aLabel);
+        }
+        $aLink = isset($item['link']) ? $item['link'] : '';
+        if (substr($aLink, 0, 1) != '@' && substr($aLink, 0, 1) != '#' && strpos($aLink, '//') === false) {
+            $aLink = '@web/'.$aLink;
+        }
+        $aArgs = [
+            'a class'=>'dropdown-item',
+        ];
+        foreach (['target', 'a target', 'a class', 'a id', 'a title', 'a rel'] as $arg) {
+            if (isset($item[$arg])) {
+                $aArgs[str_replace('a ', '', $arg)] = Html::encode($item[$arg]);
+            }
+        }
+        $html = Html::a($aLabel, $aLink, $aArgs);
+
+        return $html;
+    }
+}
+
+
 if (!function_exists('renderTopnavDropdown')) {
     function renderTopnavDropdown($menu)
     {
@@ -89,10 +135,10 @@ if (!function_exists('renderTopnavDropdown')) {
 </li>';
         $icon = '';
         if (isset($menu['icon'])) {
-            $icon = '<i class="fa fa-fw fa-'.Html::encode($menu['icon']).'"></i>';
+            $icon = '<i style="font-size:16px;" class="slicon-'.Html::encode($menu['icon']).'"></i>';
         }
         if (isset($menu['icon'])) {
-            $icon = '<i class="fa fa-fw fa-'.Html::encode($menu['icon']).'"></i>';
+            $icon = '<i style="font-size:16px;" class="slicon-'.Html::encode($menu['icon']).'"></i>';
         }
         return str_replace(['$icon'], [$icon], $html);
     }
@@ -108,7 +154,7 @@ if (!function_exists('renderPageActionsButtons')) {
                 $html .= '<div class="btn-group btn-group-sm">';
                 foreach ($iBtnGroup as $iBtn) {
                     if (!isset($iBtn['hidden']) || !$iBtn['hidden']) {
-                        $iBtnIcon = isset($iBtn['icon']) ? '<i class="fa fa-fw fa-'.$iBtn['icon'].'"></i> ' : '';
+                        $iBtnIcon = isset($iBtn['icon']) ? '<i style="font-size:16px;" class="slicon-'.$iBtn['icon'].'"></i> ' : '';
                         $iBtnLabel = isset($iBtn['label']) ? $iBtn['label'] : '';
                         $iBtnTitle = isset($iBtn['title']) ? $iBtn['title'] : '';
                         $iBtnClass = 'btn btn-default btn-sm ';
@@ -130,7 +176,7 @@ if (!function_exists('renderPageActionsButtons')) {
                                     $html .= '<li class="divider"></li>';
                                 } else {
                                     if (!isset($i2Btn['hidden']) || !$i2Btn['hidden']) {
-                                        $i2BtnIcon = isset($i2Btn['icon']) ? '<i class="fa fa-fw fa-'.$i2Btn['icon'].'"></i> ' : '';
+                                        $i2BtnIcon = isset($i2Btn['icon']) ? '<i style="font-size:16px;" class="slicon-fw fa-'.$i2Btn['icon'].'"></i> ' : '';
                                         $i2BtnLabel = isset($i2Btn['label']) ? $i2Btn['label'] : '';
                                         $i2BtnTitle = isset($i2Btn['title']) ? $i2Btn['title'] : '';
                                         $i2BtnClass = isset($i2Btn['class']) ? $i2Btn['class'] : '';
@@ -184,7 +230,7 @@ if (!function_exists('renderMainNavItem')) {
             if ($depth == 1) {
                 $html .= '<li><a href="javascript:;">';
                 if (isset($item['icon'])) {
-                    $html .= '<i class="slicon-'.$item['icon'].'"></i> ';
+                    $html .= '<i style="font-size:16px" class="slicon-'.$item['icon'].'"></i> ';
                 }
                 $html .= '<span>'.Yii::t('nav', $item['label']).'</span>';
                 $html .='</a><ul>';
@@ -196,7 +242,7 @@ if (!function_exists('renderMainNavItem')) {
             } else {
                 $html .= '<li><a href="javascript:;">';
                 if (isset($item['icon'])) {
-                    $html .= '<i class="slicon-'.$item['icon'].'"></i> ';
+                    $html .= '<i style="font-size:16px;" class="slicon-'.$item['icon'].'"></i> ';
                 }
                 $html .= '<span>'.Yii::t('nav', $item['label']).'</span>';
                 $html .='</a><ul>';
@@ -214,7 +260,7 @@ if (!function_exists('renderMainNavItem')) {
             }
 
             if (isset($item['icon'])) {
-                $aLabel = '<i class="slicon-'.Html::encode($item['icon']).'"></i> '.$aLabel;
+                $aLabel = '<i style="font-size:16px;" class="slicon-'.Html::encode($item['icon']).'"></i> '.$aLabel;
             }
             $aLink = isset($item['link']) ? $item['link'] : '';
             if (substr($aLink, 0, 1) != '@' && substr($aLink, 0, 1) != '#' && strpos($aLink, '//') === false) {
@@ -242,6 +288,210 @@ if (!function_exists('renderMainNavItem')) {
                 }
                 if (isset($item['class'])) {
                     $liAttr .= 'class="'.Html::encode($item['class']).'" ';
+                }
+
+                $html = '<li '.$liAttr.'>'.$html.'</li>';
+            }
+
+        }
+        return $html;
+    }
+}
+
+
+if (!function_exists('renderTheAdminMainNavItem')) {
+    function renderTheAdminMainNavItem($item, $depth = 1, $tag = 'li')
+    {
+        if (isset($item['hidden']) && $item['hidden']) {
+            return '';
+        }
+
+        // html = render raw html
+        if (isset($item['html'])) {
+            return $item['html'];
+        }
+
+        if ($item == ['-'] && $tag == 'li') {
+            return '<li class="menu-divider"></li>';
+        }
+
+        if (isset($item['heading']) && $tag == 'li') {
+            return '<li class="menu-category">'.Html::encode($item['heading']).'</li>';
+        }
+
+        $html = '';
+
+        if (isset($item['submenu']) && is_array($item['submenu'])) {
+            if ($depth == 1) {
+                $html .= '<li class="menu-item '.(isset($item['active']) && $item['active'] ? 'active open' : '').'"><a class="menu-link" href="javascript:;">';
+                if (isset($item['icon'])) {
+                    $html .= '<i class="icon slicon-'.$item['icon'].'"></i> ';
+                }
+                $html .= '<span class="title">'.Yii::t('nav', $item['label']).'</span><span class="arrow"></span>';
+                $html .='</a><ul class="menu-submenu">';
+                foreach ($item['submenu'] as $submenuItem) {
+                    $html .= renderTheAdminMainNavItem($submenuItem, $depth + 1);
+                }
+                $html .= '</ul></li>';
+
+            } else {
+                $html .= '<li class="menu-item '.(isset($item['active']) && $item['active'] ? 'active' : '').'"><a class="menu-link" href="javascript:;"><span class="dot"></span>';
+                if (isset($item['icon'])) {
+                    $html .= '<i class="icon slicon-'.$item['icon'].'"></i> ';
+                }
+                $html .= '<span class="title">'.Yii::t('nav', $item['label']).'</span>';
+                $html .='</a><ul class="menu-submenu">';
+                foreach ($item['submenu'] as $submenuItem) {
+                    $html .= renderTheAdminMainNavItem($submenuItem, $depth + 1);
+                }
+                $html .= '</ul></li>';
+            }
+        } else {
+            $aLabel = isset($item['label']) ? Yii::t('nav', $item['label']) : '';
+            if ($depth == 1) {
+                $aLabel = '<span class="title">'.Html::encode($aLabel).'</span>';
+            } else {
+                $aLabel = '<span class="title">'.Html::encode($aLabel).'</span>';
+                // $aLabel = Html::encode($aLabel);
+            }
+
+            if (isset($item['icon'])) {
+                $aLabel = '<i class="icon slicon-'.Html::encode($item['icon']).'"></i> '.$aLabel;
+            }
+
+            if ($depth != 1) {
+                $aLabel = '<span class="dot"></span>'.$aLabel;
+            }
+
+            $aLink = isset($item['link']) ? $item['link'] : '';
+            if (substr($aLink, 0, 1) != '@' && substr($aLink, 0, 1) != '#' && strpos($aLink, '//') === false) {
+                $aLink = '@web/'.$aLink;
+            }
+            $item['a class'] = 'menu-link';
+            $aArgs = [];
+            foreach (['target', 'a target', 'a class', 'a id', 'a title', 'a rel'] as $arg) {
+                if (isset($item[$arg])) {
+                    $aArgs[str_replace('a ', '', $arg)] = Html::encode($item[$arg]);
+                }
+            }
+            $html = Html::a($aLabel, $aLink, $aArgs);
+
+            if ($tag == 'li') {
+                $item['class'] = isset($item['class']) ? $item['class'].' menu-item' : 'menu-item';
+                if (isset($item['id'])) {
+                    $liAttr .= 'id="'.Html::encode($item['id']).'" ';
+                }
+                if (isset($item['title'])) {
+                    $liAttr .= 'title="'.Html::encode($item['title']).'" ';
+                }
+                // Active = class="active"
+                if (isset($item['active']) && $item['active']) {
+                    $item['class'] = isset($item['class']) ? $item['class'].' active' : 'active';
+                }
+                if (isset($item['class'])) {
+                    $liAttr = 'class="'.Html::encode($item['class']).'" ';
+                }
+
+                $html = '<li '.$liAttr.'>'.$html.'</li>';
+            }
+
+        }
+        return $html;
+    }
+}
+
+// Limitless 2
+if (!function_exists('renderLimitlessMainNavItem')) {
+    function renderLimitlessMainNavItem($item, $depth = 1, $tag = 'li')
+    {
+        if (isset($item['hidden']) && $item['hidden']) {
+            return '';
+        }
+
+        // html = render raw html
+        if (isset($item['html'])) {
+            return $item['html'];
+        }
+
+        if ($item == ['-'] && $tag == 'li') {
+            return '<li class="nav-item-divider"></li>';
+        }
+
+        if (isset($item['heading']) && $tag == 'li') {
+            return '<li class="nav-item-header"><div class="text-uppercase font-size-xs line-height-xs">'.Html::encode($item['heading']).'</div></li>';
+        }
+
+        $html = '';
+
+        if (isset($item['submenu']) && is_array($item['submenu'])) {
+            if ($depth == 1) {
+                $html .= '<li class="nav-item nav-item-submenu '.(isset($item['active']) && $item['active'] ? 'active open' : '').'"><a class="nav-link" href="javascript:;">';
+                if (isset($item['icon'])) {
+                    $html .= '<i class="icon slicon-'.$item['icon'].'"></i> ';
+                }
+                $html .= '<span class="title">'.Yii::t('nav', $item['label']).'</span><span class="arrow"></span>';
+                $html .='</a><ul class="nav nav-group-sub" data-submenu-title="'.Yii::t('nav', $item['label']).'">';
+                foreach ($item['submenu'] as $submenuItem) {
+                    $html .= renderLimitlessMainNavItem($submenuItem, $depth + 1);
+                }
+                $html .= '</ul></li>';
+
+            } else {
+                $html .= '<li class="nav-item '.(isset($item['active']) && $item['active'] ? 'active' : '').'"><a class="nav-link" href="javascript:;">';
+                if (isset($item['icon'])) {
+                    $html .= '<i class="icon slicon-'.$item['icon'].'"></i> ';
+                }
+                $html .= '<span class="title">'.Yii::t('nav', $item['label']).'</span>';
+                $html .='</a><ul class="menu-submenu">';
+                foreach ($item['submenu'] as $submenuItem) {
+                    $html .= renderLimitlessMainNavItem($submenuItem, $depth + 1);
+                }
+                $html .= '</ul></li>';
+            }
+        } else {
+            $aLabel = isset($item['label']) ? Yii::t('nav', $item['label']) : '';
+            if ($depth == 1) {
+                $aLabel = '<span class="title">'.Html::encode($aLabel).'</span>';
+            } else {
+                $aLabel = '<span class="title">'.Html::encode($aLabel).'</span>';
+                // $aLabel = Html::encode($aLabel);
+            }
+
+            if (isset($item['icon'])) {
+                $aLabel = '<i class="icon slicon-'.Html::encode($item['icon']).'"></i> '.$aLabel;
+            }
+
+            if ($depth != 1) {
+                $aLabel = '<span class="dot"></span>'.$aLabel;
+            }
+
+            $aLink = isset($item['link']) ? $item['link'] : '';
+            if (substr($aLink, 0, 1) != '@' && substr($aLink, 0, 1) != '#' && strpos($aLink, '//') === false) {
+                $aLink = '@web/'.$aLink;
+            }
+            $item['a class'] = 'nav-link';
+            $aArgs = [];
+            foreach (['target', 'a target', 'a class', 'a id', 'a title', 'a rel'] as $arg) {
+                if (isset($item[$arg])) {
+                    $aArgs[str_replace('a ', '', $arg)] = Html::encode($item[$arg]);
+                }
+            }
+            $html = Html::a($aLabel, $aLink, $aArgs);
+
+            if ($tag == 'li') {
+                $item['class'] = isset($item['class']) ? $item['class'].' nav-item' : 'nav-item';
+                if (isset($item['id'])) {
+                    $liAttr .= 'id="'.Html::encode($item['id']).'" ';
+                }
+                if (isset($item['title'])) {
+                    $liAttr .= 'title="'.Html::encode($item['title']).'" ';
+                }
+                // Active = class="active"
+                if (isset($item['active']) && $item['active']) {
+                    $item['class'] = isset($item['class']) ? $item['class'].' active' : 'active';
+                }
+                if (isset($item['class'])) {
+                    $liAttr = 'class="'.Html::encode($item['class']).'" ';
                 }
 
                 $html = '<li '.$liAttr.'>'.$html.'</li>';

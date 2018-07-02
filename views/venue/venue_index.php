@@ -1,192 +1,266 @@
-<?
+<?php
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
-use yii\widgets\LinkPager;
+// use yii\widgets\LinkPager;
+use app\widgets\LinkPager;
 use yii\widgets\ActiveForm;
 use yii\widgets\ActiveField;
 
+include('_venue_inc.php');
 
-$this->title = 'Venues';
-$this->params['breadcrumb'] = [
-	['Venues', 'venues'],
+Yii::$app->params['page_layout'] = '-t';
+Yii::$app->params['body_class'] = 'sidebar-xs';
+Yii::$app->params['page_title'] = 'Hotels & Homestays';
+Yii::$app->params['page_breadcrumbs'] = [
+    ['Hotels & Homestays', 'venues'],
 ];
 $this->params['actions'] = [
-	[
-		['icon'=>'plus', 'label'=>'Mới', 'link'=>'venues/c', 'active'=>SEG2 == 'c'],
-	],
+    [
+        ['icon'=>'plus', 'label'=>'Mới', 'link'=>'venues/c', 'active'=>SEG2 == 'c'],
+    ],
 ];
 
 $typeList = [
-	// ''=>'',
-	'all'=>'All types',
-	'hotel'=>'Hotels',
-	'home'=>'Local homes',
-	'cruise'=>'Cruise vessels',
-	'restaurant'=>'Restaurants',
-	'sightseeing'=>'Sightseeing spots',
-	'train'=>'Night trains',
-	'other'=>'Other',
+    'all'=>'All types',
+    'hotel'=>'Hotels',
+    'home'=>'Local homes',
+    'cruise'=>'Cruise vessels',
+    'restaurant'=>'Restaurants',
+    'sightseeing'=>'Sightseeing spots',
+    'train'=>'Night trains',
+    'other'=>'Other',
 ];
 
 $statusList = [
-	'all'=>'All status',
-	'on'=>'On',
-	'off'=>'Off',
-	'draft'=>'Draft',
-	'deleted'=>'Deleted',
+    'all'=>'All status',
+    'on'=>'On',
+    'off'=>'Off',
+    'draft'=>'Draft',
+    'deleted'=>'Deleted',
 ];
-// options over view
-$classification_s = [''=>Yii::t('ov', 'Select classification'), Yii::t('ov', 'Standard'), Yii::t('ov', 'Superior'), Yii::t('ov', 'Deluxe'), Yii::t('ov', 'Luxury')];
 
-$architecture_style_s = [''=>Yii::t('ov', 'Select architecture'), Yii::t('ov', 'Small Building'), Yii::t('ov', 'Big Building'), Yii::t('ov', 'Colonial style'), Yii::t('ov', 'Tradition house'), Yii::t('ov', 'Bungalows'), Yii::t('ov', 'Atypical'),];
-$property_type_s = [''=>Yii::t('ov', 'Select property type'), Yii::t('ov', 'hotel'), Yii::t('ov', 'apartments'), Yii::t('ov', 'villas'), Yii::t('ov', 'guest houses'), Yii::t('ov', 'farm stays'), Yii::t('ov', 'resorts'), Yii::t('ov', 'campsites'), Yii::t('ov', 'hostels'), Yii::t('ov', 'homestays'), Yii::t('ov', 'campsites'), Yii::t('ov', 'motels'), Yii::t('ov', 'lodges')
+$venueStraList = [
+    ''=>'All hotels',
+    's'=>'Strategic hotels',
+    'r'=>'Recommended hotels',
+    'sr'=>'Strategic & Recommended',
+    'h'=>'Homestays',
 ];
-$style_s = [Yii::t('ov', 'Charming'), Yii::t('ov', 'Boutique'), Yii::t('ov', 'Character'), Yii::t('ov', 'International'), Yii::t('ov', 'No style'), ];
-$facilities_s = [Yii::t('ov', 'Lift'), Yii::t('ov', 'Indoor Swimming pool'), Yii::t('ov', 'Outdoor Swimming pool'), Yii::t('ov', 'Garden'), Yii::t('ov', 'Private beach'), Yii::t('ov', 'Spa'), Yii::t('ov', 'Massage sauna'), Yii::t('ov', 'Bicycle or motorbike'), Yii::t('ov', 'Restaurant to recommend'), Yii::t('ov', 'Breakfast International buffet'), Yii::t('ov', 'Gym/ Fitness centre'), Yii::t('ov', 'Conference room'), Yii::t('ov', 'Disabled Facilities'), Yii::t('ov', 'Eco - Responsible Approach'), Yii::t('ov', 'Room service'), Yii::t('ov', 'Free wifi'), Yii::t('ov', 'Airport shuttle'), Yii::t('ov', 'Laundry service'), Yii::t('ov', 'Terrace'), Yii::t('ov', 'Pet allowed'), Yii::t('ov', 'Non-smoking room'), Yii::t('ov', 'Family rooms'), Yii::t('ov', 'Baby cot'), Yii::t('ov', 'Air conditioning'), Yii::t('ov', 'Bath tub'), Yii::t('ov', 'Balcony'), Yii::t('ov', 'Internet computers'), Yii::t('ov', 'Coffee and tea facilities'), Yii::t('ov', 'Electric kettle'), Yii::t('ov', 'iron'), Yii::t('ov', 'hair dresser'), Yii::t('ov', 'Electric fan'), Yii::t('ov', 'refrigerator'), Yii::t('ov', 'Massage'), Yii::t('ov', 'Sauna'), Yii::t('ov', 'Babysitter upon request'), Yii::t('ov','Kid’s pool'), Yii::t('ov','Meeting/ banquet facilities'), Yii::t('ov','Balcony'), Yii::t('ov','Telephone'), Yii::t('ov','TV'), Yii::t('ov','Airport drop off'), Yii::t('ov','Airport pick up'), Yii::t('ov','Children’s playground'), Yii::t('ov','BBQ facilities'), Yii::t('ov','Garden'), Yii::t('ov','Special diet menu'), Yii::t('ov','Baby sitting/ child service'), Yii::t('ov','The staff speaks English'),
-Yii::t('ov','The staff speaks French'),];
-$recommendedForList_s = ['Couple', 'Family', 'Group', 'Honeymoon', 'Demanding travelers', 'Old people', 'Young people', ];
-// end options
-sort($facilities_s);
-$classification = [];
-foreach ($classification_s as $key => $value) {
-	if ($key === '') {$classification[$key] = $value; continue; }
-	$classification['cla_'.$key] = $value;
+
+function url_to_domain($url)
+{
+    $host = @parse_url($url, PHP_URL_HOST);
+    // If the URL can't be parsed, use the original URL
+    // Change to "return false" if you don't want that
+    if (!$host)
+        $host = $url;
+    // The "www." prefix isn't really needed if you're just using
+    // this to display the domain to the user
+    if (substr($host, 0, 4) == "www.")
+        $host = substr($host, 4);
+    // You might also want to limit the length if screen space is limited
+    if (strlen($host) > 50)
+        $host = substr($host, 0, 47) . '...';
+    return $host;
 }
-$architecture_style = [];
-foreach ($architecture_style_s as $key => $value) {
-	if ($key === '') {$architecture_style[$key] = $value; continue; }
-	$architecture_style['arc_'.$key] = $value;
-}
-$property_type = [];
-foreach ($property_type_s as $key => $value) {
-	if ($key === '') {$property_type[$key] = $value; continue; }
-	$property_type['pro_'.$key] = $value;
-}
-$style = [];
-foreach ($style_s as $key => $value) {
-	if ($key === '') {$style[$key] = $value; continue; }
-	$style['sty_'.$key] = $value;
-}
-$facilities = [];
-foreach ($facilities_s as $key => $value) {
-	if ($key === '') {$facilities[$key] = $value; continue; }
-	$facilities['fac_'.$key] = $value;
-}
-$recommendedForList = [];
-foreach ($recommendedForList_s as $key => $value) {
-	if ($key === '') {$recommendedForList[$key] = $value; continue; }
-	$recommendedForList['rec_'.$key] = $value;
-}
+
 ?>
-<style>
-	.date_hover{color: #f3f3f3;}
-</style>
 <div class="col-md-12">
-	<form method="get" action="" class="form-inline well well-sm">
-		<?= Html::dropdownList('type', $getType, $typeList, ['class'=>'form-control']) ?>
-		<?= Html::dropdownList('destination_id', $getDestinationId, ArrayHelper::map($allDestinations, 'id', 'name_en'), ['class'=>'form-control', 'prompt'=>'All destinations']) ?>
-		<?= Html::dropdownList('status', $getStatus, $statusList, ['class'=>'form-control']) ?>
-		<?= Html::textInput('name', $getName, ['class'=>'form-control', 'placeholder'=>'Search name']) ?>
-		<div class="clearfix"></div>
-		<?= Html::dropdownList('classification', $getClassification, $classification, ['class'=>'form-control']) ?>
-		<?= Html::dropdownList('architecture_style', $getArchitecture_style, $architecture_style, ['class'=>'form-control']) ?>
-		<?= Html::dropdownList('property_type', $getProperty_type, $property_type, ['class'=>'form-control']) ?>
-		<?= Html::dropdownList('style', $getStyle, $style, ['class'=>'form-control multiselect_style', 'multiple'=>'multiple']) ?>
-		<?= Html::dropdownList('facilities', $getFacilities, $facilities, ['class'=>'form-control multiselect_facilities', 'multiple'=>'multiple']) ?>
-		<?= Html::dropdownList('recommended', $getRecommended, $recommendedForList, ['class'=>'form-control multiselect_recommended', 'multiple'=>'multiple']) ?>
-		<?= Html::textInput('price_range', $getPrice_range, ['class'=>'form-control', 'placeholder'=>'Search price']) ?>
+    <form method="get" action="" class="form-inline mb-1em">
+        <?= Html::dropDownList('stra', $stra, $venueStraList, ['class'=>'form-control']) ?>
+        <?= Html::dropdownList('dest', $dest, ArrayHelper::map($allDestinations, 'id', 'name_en'), ['class'=>'form-control', 'prompt'=>'All destinations']) ?>
+        <?= Html::dropdownList('type', $type, $venueTypeList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Type -')]) ?>
+        <?= Html::dropdownList('class', $class, $venueClassiList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Hạng -')]) ?>
+        <?= Html::dropdownList('style', $style, $venueStyleList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Kiểu -')]) ?>
+        <?= Html::textInput('price', $price, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Price, eg. 45 or 45-55')]) ?>
+        <?= Html::dropdownList('faci', $faci, $venueFaciList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Tiện nghi -')]) ?>
+        <?= Html::dropdownList('recc', $recc, $venueReccList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Khuyên dùng cho -')]) ?>
+        <?= Html::textInput('search', $search, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Tags')]) ?>
+        <?= Html::textInput('name', $name, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Name')]) ?>
+        <?= Html::submitButton(Yii::t('x', 'Go'), ['class'=>'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('x', 'Reset'), '/venues?stra=sr') ?>
+    </form>
+    <?php if (empty($theVenues)) { ?><p><?= Yii::t('x', 'No data found.') ?></p><?php } else { ?>
+    <div class="table-responsive panel panel-body no-padding">
+        <table class="table table-bordered table-narrow table-striped">
+            <thead>
+                <tr>
+                    <th width="15"></th>
+                    <th colspan="2">Name</th>
+                    <?php if ($dest == '') { ?>
+                    <th width="">Địa điểm</th>
+                    <?php } ?>
+                    <th width="80" class="text-center">Class</th>
+                    <th width="50" class="text-center">Price</th>
+                    <th>Tags</th>
+                    <th><?= Yii::t('x', 'Contract') ?></th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                foreach ($theVenues as $venue) {
+                    $newTags = explode(';|', $venue['new_tags']);
+
+                    $tags = explode(' ', $venue['search']);
+
+                    // Stars
+                    $venueStar = '';
+                    $venueRates = [];
+                    $venueTags = [];
+                    $venueContracts = [];
+                    $venueTripAdv = '';
+                    $venueLocations = [];
 
 
+                    // Rates
+                    foreach ($newTags as $tag) {
+                        if (in_array($tag, ['s_1s', 's_2s', 's_3s', 's_4s', 's_5s'])) {
+                            $venueStar = substr($tag, 2, 1);
+                        }
+                    }
+                    foreach ($tags as $tag) {
+                        if (substr($tag, 0, '2') == 'rf') {
+                            $venueRates[] = substr($tag, 2);
+                        } elseif (substr($tag, 0, '2') == 'hd') {
+                            $venueContracts[] = (int)substr($tag, 2) >= (int)date('Y') ? '<span style="color:blue;">'.substr($tag, 2).'</span>' : substr($tag, 2);
+                        } elseif (substr($tag, 0, '2') == 'tr' && $tag != 'trekking') {
+                            $venueTripAdv = substr($tag, 2);
+                        } else {
+                            if ($tag == 'charm') {
+                                $tag = '<span style="color:blue">charming</span>';
+                            } elseif ($tag == 'not') {
+                                $tag = '<s style="color:red">not OK</s>';
+                            } elseif ($tag == 'see') {
+                                $tag = 'đợi khảo sát';
+                            } elseif ($tag == 'far') {
+                                $tag = 'xa trung tâm';
+                            }
 
+                            if (substr($tag, 0, 1) == '@') $tag = '';
+                            if ($tag == 're' || $tag == 'ks') $tag = '';
+                            if (str_replace('_', '', fURL::makeFriendly($venue['name'], '_')) == $tag) $tag = '';
+                            if (trim($tag) != '')
+                                $venueTags[] = $tag;
+                        }
+                    }
 
+                    foreach ($newTags as $tag) {
+                        $tag = '';
+                        if (in_array($tag, ['1s', '2s', '3s', '4s', '5s'])) {
+                            $venueStar = substr($tag, 0, 1);
+                        } elseif (substr($tag, 0, '2') == 'tr' && $tag != 'trekking') {
+                            $venueTripAdv = substr($tag, 2);
+                        } elseif ($tag == 'sr_s') {
+                            $tag = '<span class="text-pink">strategic</span>';
+                        } elseif ($tag == 'sr_r') {
+                            $tag = '<span style="color:green">recommended+</span>';
+                        }
+                        if ($tag != '') {
+                            $venueTags[] = $tag;
+                        }
+                    }
 
+                    if (strpos($venue['new_tags'], 'sr_s') !== false) {
+                        $venueTags[] = '<span class="text-pink">strategic</span>';
+                    }
+                    if (strpos($venue['new_tags'], 'sr_r') !== false) {
+                        $venueTags[] = '<span style="color:green">recommended</span>';
+                    }
+                    ?>
+                <tr>
+                    <td><?= Html::a('<i class="fa fa-edit"></i>', '/venues/u/'.$venue['id'], ['class'=>'text-muted']) ?></td>
+                    <td class="no-padding-right no-border-right" width="90">
+                        <?php
+                        if ($venue['image'] == '') {
+                            if ($venue['images'] != '') {
+                                if (substr($venue['images'], 0, 1) != '<') {
+                                    $venue['image'] = explode(';|', $venue['images'])[0];
+                                } else {
+                                    $venue['images'] = str_replace(['<img src="', '">'], [';|'], $venue['images']);
+                                    $venue['image'] = explode(';|', $venue['images'])[0];
+                                    $venue['image'] = '/assets/img/placeholder.jpg';
+                                }
+                            } else {
+                                $venue['image'] = '/assets/img/placeholder.jpg';
+                            }
+                        }
+                        ?>
+                        <a data-fancybox="<?= $venue['id'] ?>" href="<?= $venue['image'] ?>"><div style="height:60px; width:90px; background:url(<?= $venue['image'] ?>) center center no-repeat; background-size:cover;"></div></a>
+                    </td>
+                    <td class="text-nowrap no-padding-left no-border-left">
+                        <?= Html::a($venue['name'], '/venues/r/'.$venue['id'], ['class'=>'text-bold text-black']) ?>
+                        <?php if ($venue['stype'] == 'home') { ?><span class="label-info label">Homestay</span><?php } ?>
+                        <?= (int)$venueStar == 0 ? '' : str_repeat('<i class="small fa fa-star text-warning"></i>', $venueStar) ?>
+                        <?php if ($venue['about'] != '') { ?><span class="small">(formerly <em><?= $venue['about'] ?></em>)</span><?php } ?>
+                        <?php
+                        foreach ($venue['metas'] as $meta) {
+                            if ($meta['name'] == 'address') { ?>
+                        <div class="small"><i class="text-muted fa fa-home"></i> <?= $meta['value'] ?></div><?php
+                                break;
+                            }
+                        }
+                        ?>
+                        <div class="small"><?php
+                        foreach ($venue['metas'] as $meta) {
+                            if ($meta['name'] == 'tel' || $meta['name'] == 'mobile') { ?>
+                        <i class="text-muted fa fa-phone"></i> <?= $meta['value'] ?><?php
+                                break;
+                            }
+                        }
 
+                        foreach ($venue['metas'] as $meta) {
+                            if ($meta['name'] == 'website') {
+                                echo ' <i class="fa fa-globe"></i> ', Html::a(url_to_domain($meta['value']), 'http://'.str_replace('http://', '', $meta['value']), ['title'=>'Website', 'rel'=>'external']);
+                                break;
+                            }
+                        }
 
-
-
-		<?= Html::submitButton('Go', ['class'=>'btn btn-primary']) ?>
-		<?= Html::a('Reset', 'venues') ?>
-	</form>
-	<? if (empty($theVenues)) { ?><p>No data found</p><? } else { ?>
-	<div class="table-responsive">
-		<table class="table table-bordered table-condensed table-striped">
-			<thead>
-				<tr>
-					<th width="50">ID</th>
-					<th width="">Name</th>
-					<th width="">Địa điểm</th>
-					<th width="">Info</th>
-					<th width="40"></th>
-				</tr>
-			</thead>
-			<tbody>
-				<? foreach ($theVenues as $li) { ?>
-				<tr>
-					<td class="text-muted text-center"><?= $li['id'] ?></td>
-					<td>
-						<? if ($li['stype'] == 'home') { ?><i class="text-danger fa fa-home"></i><? } ?>
-						<? if ($li['stype'] == 'hotel') { ?><i class="fa fa-buiding-o"></i><? } ?>
-						<?=Html::a($li['name'], 'venues/r/'.$li['id'])?>
-					</td>
-					<td><?= $li['destination']['name_vi'] ?></td>
-					<td><?= substr($li['info'], 0, 200) ?></td>
-					<td class="muted td-n">
-						<a class="text-muted" title="<?=Yii::t('mn', 'Edit')?>" href="<?=DIR?>venues/u/<?=$li['id']?>"><i class="fa fa-edit"></i></a>
-						<a class="text-muted" title="<?=Yii::t('mn', 'Delete')?>" href="<?=DIR?>venues/d/<?=$li['id']?>"><i class="fa fa-trash-o"></i></a>
-					</td>
-				</tr>
-				<? } ?>
-			</tbody>
-		</table>
-	</div>
-	<? if ($pages->totalCount > $pages->pageSize) { ?>
-	<div class="text-center">
-	<?= LinkPager::widget([
-		'pagination' => $pages,
-		'firstPageLabel' => '<<',
-		'prevPageLabel' => '<',
-		'nextPageLabel' => '>',
-		'lastPageLabel' => '>>',
-	]);
-	?>
-	</div>
-	<? } ?>
-	<? } ?>
+                        ?>
+                        </div>
+                    </td>
+                    <?php if ($dest == '') { ?>
+                    <td><?= $venue['destination']['name_vi'] ?></td>
+                    <?php } ?>
+                    <td class="text-center">
+                        <?php
+                        foreach ($newTags as $newTag) { ?>
+                            <?php if (array_key_exists($newTag, $venueClassiList)) { ?>
+                            <?= $venueClassiList[$newTag] ?>
+                            <?php break; } ?>
+                        <?php } ?>
+                    </td>
+                    <td class="text-center">
+                        <?php
+                        if ($venue['new_pricemin'] != 0) {
+                            echo $venue['new_pricemin'];
+                        }
+                        if ($venue['new_pricemax'] != 0 && $venue['new_pricemax'] > $venue['new_pricemin']) {
+                            echo ' - ', $venue['new_pricemax'];
+                        }
+                        ?>
+                    </td>
+                    <td><?= implode(', ', $venueTags) ?></td>
+                    <td class="text-center"><?=implode(', ', $venueContracts)?></td>
+                </tr>
+                <?php } ?>
+            </tbody>
+        </table>
+    </div>
+    <?php if ($pagination->totalCount > $pagination->pageSize) { ?>
+    <div class="text-center">
+    <?= LinkPager::widget([
+        'pagination' => $pagination,
+        'firstPageLabel' => '<<',
+        'prevPageLabel' => '<',
+        'nextPageLabel' => '>',
+        'lastPageLabel' => '>>',
+    ]);
+    ?>
+    </div>
+    <?php } ?>
+    <?php } ?>
 </div>
-
-
-
 <?php
-$this->registerJsFile('assets_limitless/js/plugins/forms/selects/bootstrap_multiselect.js', ['depends' => 'yii\web\JqueryAsset']);
-$this->registerJsFile('assets_limitless/js/plugins/forms/styling/uniform.min.js', ['depends' => 'app\assets\MainAsset']);
-$this->registerJsFile('assets_limitless/js/plugins/forms/selects/bootstrap_multiselect.js', ['depends' => 'yii\web\JqueryAsset']);
-$this->registerJsFile('assets_limitless/js/plugins/forms/selects/bootstrap_multiselect.js', ['depends' => 'yii\web\JqueryAsset']);
-?>
-<?php
-$js = <<<TXT
-$('.multiselect_style').multiselect({
-    nonSelectedText: 'Select_style',
-    onChange: function() {
-        $.uniform.update();
-    }
-});
-$('.multiselect_facilities').multiselect({
-    nonSelectedText: 'Select_facilities',
-    onChange: function() {
-        $.uniform.update();
-    }
-});
-$('.multiselect_recommended').multiselect({
-    nonSelectedText: 'Select_recommended',
-    onChange: function() {
-        $.uniform.update();
-    }
-});
-
-// multiselect_facilities
-// multiselect_recommended
-TXT;
-$js = str_replace(['Select_style', 'Select_facilities', 'Select_recommended'], [Yii::t('ov', 'select style'),Yii::t('ov', 'select facilities'), Yii::t('ov', 'select recommended')], $js);
-$this->registerJs($js);
-
-?>
+$this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js', ['depends'=>'yii\web\JqueryAsset']);
+// $this->registerJs($js);

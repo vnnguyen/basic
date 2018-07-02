@@ -10,7 +10,7 @@ $this->title = 'Over view';
 $this->params['breadcrumb'] = [
 	['Venues', 'venues'],
 ];
-Yii::$app->params['body_class'] = 'sidebar-xs';
+// Yii::$app->params['body_class'] = 'sidebar-xs';
 $this->params['actions'] = [
 	[
 		['icon'=>'plus', 'label'=>'Mới', 'link'=>'venues/c', 'active'=>SEG2 == 'c'],

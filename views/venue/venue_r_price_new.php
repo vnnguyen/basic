@@ -139,22 +139,21 @@ $('#seldate_new').datepicker({
 cutCol();
 function cutCol()
 {
- 
-$.each($('.t_cutcol'), function(t_i, table){
-     $(table).find('tr th').each(function(i) {
-        //select all tds in this column
-        var tds = $(this).parents('table')
-             .find('tr td:nth-child(' + (i + 1) + ')');
-        if(tds.is(':empty')) {
-            //hide header
-            $(this).remove();
-            // $(this).hide();
-            //hide cells
-            tds.remove();
-            // tds.hide();
-        } 
+    $.each($('.t_cutcol'), function(t_i, table){
+         $(table).find('tr th').each(function(i) {
+            //select all tds in this column
+            var tds = $(this).parents('table')
+                 .find('tr td:nth-child(' + (i + 1) + ')');
+            if(tds.is(':empty')) {
+                //hide header
+                $(this).remove();
+                // $(this).hide();
+                //hide cells
+                tds.remove();
+                // tds.hide();
+            } 
+        });
     });
-});
 
 
 
@@ -183,6 +182,12 @@ $.each($('.t_cutcol'), function(t_i, table){
 				if(c_i >= max_col){
 					$(col).remove();
 				}
+                // var content = $(this).text();
+                // if(content.length > 0){
+                //     console.log('okkkkkk');
+                // }
+                // var re = /\<td\>\[.+\]\<\/td\>/;
+                //         row = row.replace(re, '');
 			});
 		});
 	});

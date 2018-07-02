@@ -1,8 +1,14 @@
 <?php
 namespace common\models;
 
+use Yii;
+
 class Venue extends MyActiveRecord
 {
+    public 
+        $new_o, $new_p, // New overview, new price
+        $vstr, $vstar,
+        $vclassi, $varchi, $vtype, $vstyle, $vdistc, $vdistb, $vdista, $vdistcmt, $vpricerange, $vfaci, $vreccfor;
 
     public static function tableName()
     {
@@ -18,42 +24,63 @@ class Venue extends MyActiveRecord
     public function rules()
     {
         return [
-            [['name', 'search', 'abbr', 'about', 'latlng', 'info', 'link_agoda', 'link_booking', 'link_tripadvisor', 'cruise_meta', 'stype'], 'trim'],
-            [['name', 'destination_id', 'stype', 'abbr', 'seacrh'], 'required'],
-            [['name', 'abbr'], 'unique'],
-            [['supplier_id'], 'integer'],
-            [['link_agoda', 'link_booking', 'link_tripadvisor', 'image'], 'url'],
+            [[
+                'new_o', 'new_p',
+                'name', 'search', 'abbr', 'about', 'latlng', 'info', 'link_agoda', 'link_booking', 'link_tripadvisor', 'cruise_meta', 'stype', 'images', 'new_pricetable',
+                'vstr', 'vstar',
+                'vclassi', 'varchi', 'vtype', 'vstyle', 'vdistc', 'vdistb', 'vdista', 'vdistcmt', 'vpricerange', 'vfaci', 'vreccfor',
+            ], 'trim'],
+            [[
+                'name', 'destination_id', 'stype', 'abbr', 'seacrh',
+            ], 'required'],
+            // [[
+            //     'name', 'abbr'
+            // ], 'unique'],
+            [[
+                'supplier_id'
+            ], 'integer'],
+            [[
+                'link_agoda', 'link_booking', 'link_tripadvisor', 'image'
+            ], 'url'],
         ];
     }
 
     public function scenarios()
     {
         return [
-            'venues_c'=>['name', 'stype', 'destination_id'],
-            'venues_u'=>[
-                'name', 'search', 'abbr', 'about', 'supplier_id', 'latlng', 'info', 'info_facilities', 'image', 'destination_id', 'link_booking', 'link_tripadvisor', 'link_agoda',
-                'cruise_meta', 'stype',
-            ],
+            'venue/c'=>['name', 'stype', 'destination_id'],
             'venue/u'=>[
-                'abbr',
+                'new_o', 'new_p',
+                'supplier_id', 'destination_id', 'name', 'about',
+                'vtype', 'latlng', 
+                'vstr', 'vstar',
+                'vclassi', 'varchi', 'vstyle', 'vdistc', 'vdistb', 'vdista', 'vdistcmt', 'vpricerange', 'vfaci', 'vreccfor',
+                'info', 'new_pricetable', 'images',
+                'image', 'link_booking', 'link_tripadvisor', 'link_agoda',
+                'new_tags',
             ],
             'venues_u-promo'=>['info_pricing'],
+            'venues_u-pricetable'=>['new_pricetable'],
             'venues_uu'=>[],
             'huan_venue_u'=>['name', 'destination_id', 'stype', 'abbr', 'about'],
-            'venue_u_ovv'=> ['over_view_options']
         ];
     }
 
     public function getMetas()
     {
         return $this->hasMany(Meta::className(), ['rid' => 'id'])
-            ->where(['rtype'=>'venue']);
-            // ->orderBy('k');
+            ->where(['rtype'=>'venue'])
+            ->orderBy('name');
     }
 
     public function getDestination()
     {
         return $this->hasOne(Destination::className(), ['id' => 'destination_id']);
+    }
+
+    public function getGiao()
+    {
+        return $this->hasOne(User2::className(), ['id' => 'giao_user_id']);
     }
 
     public function getCreatedBy()
@@ -81,9 +108,19 @@ class Venue extends MyActiveRecord
         return $this->hasOne(Ncc::className(), ['id' => 'ncc_id']);
     }
 
+    public function getTmp()
+    {
+        return $this->hasOne(VenueTmp::className(), ['venue_id' => 'id']);
+    }
+
     public function getCpt()
     {
         return $this->hasMany(Cpt::className(), ['venue_id' => 'id']);
+    }
+
+    public function getMessages()
+    {
+        return $this->hasMany(Message::className(), ['rid' => 'id'])->andWhere(['rtype'=>'venue']);
     }
 
     public function getStats()

@@ -3,7 +3,7 @@ use yii\helpers\Html;
 use yii\helpers\Markdown;
 use yii\helpers\FileHelper;
 
-Yii::$app->params['body_class'] = 'sidebar-xs';
+Yii::$app->params['body_class'] = 'bg-white sidebar-xs';
 Yii::$app->params['page_layout'] = '-t';
 Yii::$app->params['page_title'] = $theVenue['name'];
 
@@ -149,165 +149,194 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min
 $this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css', ['depends'=>'yii\web\JqueryAsset']);
 
 ?>
+<style>
+.flex-container {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  height: 200px;
+  
+  -ms-box-orient: horizontal;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -moz-flex;
+  display: -webkit-flex;
+  display: flex;
+  
+  -webkit-justify-content: space-around;
+  justify-content: space-around;
+  -webkit-flex-flow: row wrap;
+  flex-flow: row wrap;
+  -webkit-align-items: stretch;
+  align-items: stretch;
+}
 
-<ul class="nav nav-tabs nav-tabs-bottom">
-    <li class="active"><a href="#t-overview" data-toggle="tab">Overview</a></li>
-    <li><a href="#t-faci" data-toggle="tab">Facilities</a></li>
-    <li><a href="#t-notes" data-toggle="tab">Files & notes</a></li>
-    <li><a href="#t-prices" data-toggle="tab">Prices</a></li>
-    <? if (!empty($theVenue['dvo'])) { ?>
-    <li><a href="#t-promo" data-toggle="tab">Promo</a></li>
-    <? } ?>
-    <li><a href="#t-media" data-toggle="tab">Media</a></li>
-    <li><a href="#t-tours" data-toggle="tab">Tours</a></li>
-    <li><a href="#t-fb" data-toggle="tab">Feedback</a></li>
-</ul>
+.header,
+.footer  { flex: 1 100%; }
+.sidebar { flex: 1; }
+.main    { flex: 2; }
 
+.flex-item {
+background:#ffc;
+padding: 10px;
+width: 100px;
+border: 1px solid rgba(0,0,0,.1);
+/*color: white;*/
+}
+</style>
+<div class="col-sm-4 col-sm-push-8" style="padding-left:10px; border-left:1px solid #eee;">
+    <p>
+        <span class="text-bold text-uppercase"><?= $theVenue['name'] ?></span>
+        <?php if (strpos($theVenue['search'], ' str ') !== false) { ?><span class="text-bold text-pink">strategic</span><?php } ?>
+        <?php if (strpos($theVenue['search'], ' re ') !== false) { ?><span class="text-bold text-primary">recommended</span><?php } ?>
+    </p>
+    <?php
+    if ($theVenue['image'] == '') {
+        if ($theVenue['images_booking'] != '') {
+            $pos = strpos($theVenue['images_booking'], '">');
+            if (false !== $pos) {
+                $img = substr($theVenue['images_booking'], 0, $pos + 2);
+                $img = str_replace('src=', 'class="img-responsive" src=', $img);
+                echo $img;
+            } else {
+                $imgs = explode(';|', $theVenue['images_booking']);
+                if (isset($imgs[0]) && $imgs[0] != '') {
+                    $theVenue['image'] = $imgs[0];
+                }
+            }
 
-<div class="col-md-12">
-    <div class="panel panel-body">
-            <div class="tab-content">
-                <div class="tab-pane active" id="t-overview">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div style="margin-bottom:1em;">
-                                View this on: 
-                                <? if ($theVenue['link_tripadvisor'] != '') { ?><?= Html::a(Html::img(DIR.'assets/img/logo-tripadvisor.jpg', ['style'=>'height:20px; margin-right:16px;']), $theVenue['link_tripadvisor'], ['rel'=>'external', 'title'=>'Hotel on TripAdvisor.com']) ?><? } ?>
-                                <? if ($theVenue['link_booking'] != '') { ?><?= Html::a(Html::img(DIR.'assets/img/logo-booking.jpg', ['style'=>'height:20px; margin-right:16px;']), $theVenue['link_booking'], ['rel'=>'external', 'title'=>'Hotel on Booking.com']) ?><? } ?>
-                                <? if ($theVenue['link_agoda'] != '') { ?><?= Html::a(Html::img(DIR.'assets/img/logo-agoda.jpg', ['style'=>'height:20px; margin-right:16px;']), $theVenue['link_agoda'], ['rel'=>'external', 'title'=>'Hotel on Agoda.com']) ?><? } ?>
-                                <?= Html::a(Html::img('https://www.google.com.vn/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png', ['style'=>'height:20px; margin-right:16px;']), 'https://www.google.com.vn/search?hl=vi&q='.urlencode($theVenue['name']), ['rel'=>'external', 'title'=>'Search on Google.com']) ?>
-                            </div>
-                            <? if ($theVenue['hotel_meta'] != '') { ?>
-                            <!--p><a rel="external" href="<?= $theVenue['link_tripadvisor'] ?>"><img class="img-responsive img-thumbnail" src="https://my.amicatravel.com/files/r/24783"></a></p-->
-                            <table class="table table-striped table-condensed table-bordered">
-                                <thead></thead>
-                                <tbody>
-                                    <tr>
-                                        <th>Tags</th><td><?= str_replace(['str ', 're '], ['<span class="text-pink">strategic</span> ', '<span class="text-success">recommended</span> ', ], $theVenue['search']) ?></td>
-                                    </tr>
-                                    <?
-                                    $data = unserialize($theVenue['hotel_meta']);
-                                    foreach ($data as $k=>$v) {
-                                         if ($k != 'image2') { 
-                                    ?>
-                                    <tr>
-                                        <th><?= ucfirst($k) ?></th>
-                                        <td><?= nl2br($v) ?></td>
-                                    </tr>
-                                    <?
-                                        }
-                                    }
-                                    ?>                  
-                                </tbody>
-                            </table>
-                            <? } ?>
-                            <div><?= Markdown::process($theVenue['info']) ?></div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="panel-group" id="accordion">
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h6 class="panel-title"><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse1">Contact information</a></h6>
-                                    </div>
-                                    <div id="collapse1" class="panel-collapse collapse in">
-                                        <div class="panel-body" style="padding:0">
-                                            <?
-                                            if ($theVenue['image'] == '') {
-                                                if ($theVenue['images_booking'] != '') {
-                                                    $pos = strpos($theVenue['images_booking'], '">');
-                                                    if (false !== $pos) {
-                                                        $img = substr($theVenue['images_booking'], 0, $pos + 2);
-                                                        $img = str_replace('src=', 'class="img-responsive" src=', $img);
-                                                        echo $img;
-                                                    }
-                                                }
-                                            } else { 
-                                                echo Html::img($theVenue['image'], ['class'=>'img-responsive']);
-                                            }
-                                            ?>
-                                        </div>
-                                        <div class="table-responsive">
-                                            <table class="table table-condensed">
-                                                <? foreach ($venueMetas as $li) { ?>
-                                                <tr>
-                                                    <th><?= ucfirst($li['name']) ?></th>
-                                                    <td>
-                                                        <?
-                                                        if ($li['name'] == 'website') {
-                                                            if (substr($li['value'], 0, 7) != 'http://' && substr($li['value'], 0, 8) != 'https://') {
-                                                                $li['value'] = 'http://'.$li['value'];
-                                                            }
-                                                            echo Html::a($li['value'], $li['value'], ['target'=>'_blank']);
-                                                        } else {
-                                                            echo $li['value'];
-                                                        }
-                                                        ?>
-                                                        <?= $li['note'] != '' ? '<em>'.$li['note'].'</em>' : '' ?>
-                                                    </td>
-                                                </tr>
-                                                <? } ?>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                                <? if ($theVenue['latlng'] != '') { ?>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h6 class="panel-title"><a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse2">Location Map</a></h6>
-                                    </div>
-                                    <div id="collapse2" class="panel-collapse collapse">
-                                        <div><a target="_blank" href="https://www.google.com/maps/search/<?= urlencode($theVenue['name']) ?>+Hotel/@<?= $theVenue['latlng'] ?>,16z"><img class="img-responsive" src="https://maps.googleapis.com/maps/api/staticmap?markers=color:blue%7Clabel:V%7C<?= $theVenue['latlng'] ?>&center=<?= $theVenue['latlng'] ?>&zoom=16&scale=2&size=480x300&sensor=true"></a></div>
-                                        <div class="panel-body">
-                                            <a target="_blank" href="https://www.google.com/maps/search/<?= urlencode($theVenue['name']) ?>+Hotel/@<?= $theVenue['latlng'] ?>,16z">Google Maps</a>
-                                            -
-                                            <a target="_blank" href="http://maps.vietbando.com/maps/?t=1&st=0&sk=<?= urlencode($theVenue['name']) ?>&l=16&kv=<?= $theVenue['latlng'] ?>">VietBando</a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <? } ?>
-                                <? if ($venueSupplier) { ?>
-                                <div class="panel panel-default">
-                                    <div class="panel-heading">
-                                        <h6 class="panel-title">
-                                            <a class="accordion-toggle" data-toggle="collapse" data-parent="#accordion" href="#collapse3">Supplier: <?= $venueSupplier['name'] ?></a>
-                                        </h6>
-                                    </div>
-                                    <div id="collapse3" class="panel-collapse collapse">
-                                        <div class="panel-body">
-                                            <p><strong><?= $venueSupplier['name'] ?></strong>
-                                                <br><?= $venueSupplier['name_full'] ?>
-                                            </p>
-                                            <p><strong>Tax info:</strong><br><?= nl2br($venueSupplier['tax_info']) ?></p>
-                                            <p><strong>Bank info:</strong><br><?= nl2br($venueSupplier['bank_info']) ?></p>
-                                            <p><?= Html::a('View supplier', '@web/suppliers/r/'.$theVenue['company_id']) ?></p>
-                                            <? if (count($venueSupplier['venues']) > 1) { ?>
-                                            <hr>
-                                            <p><strong>All venues by this supplier</strong></p>
-                                            <? foreach ($venueSupplier['venues'] as $venue) { ?>
-                                            <div class="mb-10">
-                                                <? if ($venue['image'] != '') { ?>
-                                                <img src="<?= $venue['image'] ?>" class="float:left;" style="width:50%; margin:0 1em 1em 0;">
-                                                <?= Html::a($venue['name'], '/venues/r/'.$venue['id']) ?>
-                                                <? } ?>
-                                            </div>
-                                            <? } ?>
-                                            <? } ?>
-                                        </div>
-                                    </div>
-                                </div>
-                                <? } ?>
-                            </div>
-                        </div>
-                    </div>
+        }
+    }
+    
+    echo Html::a(Html::img($theVenue['image'], ['class'=>'img-responsive']), $theVenue['image'], ['data-fancybox'=>'gallery', 'title'=>'View image gallery']);
+    ?>
+
+    <table class="table table-narrow" style="border-bottom:1px solid #ddd;">
+        <?php if ($theVenue['latlng'] != '') { ?>
+        <tr>
+            <th style="padding-left:0!important">Map</th>
+            <td style="padding-right:0!important"><a href="javascript:;" onclick="$('.view_map').toggle()"><span class="view_map">View map</span><span class="view_map" style="display:none;">Hide map</span></a></td>
+        </tr>
+        <tr style="display:none;" class="view_map">
+            <td colspan="2" style="padding:0!important;">
+                <p><a target="_blank" href="https://www.google.com/maps/search/<?= urlencode($theVenue['name']) ?>+Hotel/@<?= $theVenue['latlng'] ?>,16z"><img class="img-responsive" src="https://maps.googleapis.com/maps/api/staticmap?markers=color:blue%7Clabel:V%7C<?= $theVenue['latlng'] ?>&center=<?= $theVenue['latlng'] ?>&zoom=16&scale=2&size=480x300&sensor=true"></a></p>
+                <p class="text-center">
+                    <a target="_blank" href="https://www.google.com/maps/search/<?= urlencode($theVenue['name']) ?>+Hotel/@<?= $theVenue['latlng'] ?>,16z">Google Maps</a>
+                    -
+                    <a target="_blank" href="http://maps.vietbando.com/maps/?t=1&st=0&sk=<?= urlencode($theVenue['name']) ?>&l=16&kv=<?= $theVenue['latlng'] ?>">VietBando</a>
+                </p>
+            </td>
+        </tr>
+        <?php } ?>
+        <? foreach ($venueMetas as $li) { ?>
+        <tr>
+            <th style="padding-left:0!important"><?= ucfirst($li['name']) ?></th>
+            <td style="padding-right:0!important">
+                <?
+                if ($li['name'] == 'website') {
+                    if (substr($li['value'], 0, 7) != 'http://' && substr($li['value'], 0, 8) != 'https://') {
+                        $li['value'] = 'http://'.$li['value'];
+                    }
+                    echo Html::a($li['value'], $li['value'], ['target'=>'_blank']);
+                } else {
+                    echo $li['value'];
+                }
+                ?>
+                <?= $li['note'] != '' ? '<em>'.$li['note'].'</em>' : '' ?>
+            </td>
+        </tr>
+        <? } ?>
+        <tr>
+            <th style="padding-left:0!important">View on</th>
+            <td style="padding-right:0!important">
+<? if ($theVenue['link_tripadvisor'] != '') { ?><?= Html::a(Html::img(DIR.'assets/img/logo-tripadvisor.jpg', ['style'=>'height:20px; margin-right:16px;']), $theVenue['link_tripadvisor'], ['rel'=>'external', 'title'=>'Hotel on TripAdvisor.com']) ?><? } ?>
+<? if ($theVenue['link_booking'] != '') { ?><?= Html::a(Html::img(DIR.'assets/img/logo-booking.jpg', ['style'=>'height:20px; margin-right:16px;']), $theVenue['link_booking'], ['rel'=>'external', 'title'=>'Hotel on Booking.com']) ?><? } ?>
+<? if ($theVenue['link_agoda'] != '') { ?><?= Html::a(Html::img(DIR.'assets/img/logo-agoda.jpg', ['style'=>'height:20px; margin-right:16px;']), $theVenue['link_agoda'], ['rel'=>'external', 'title'=>'Hotel on Agoda.com']) ?><? } ?>
+<?= Html::a(Html::img('https://www.google.com.vn/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png', ['style'=>'height:20px; margin-right:16px;']), 'https://www.google.com.vn/search?hl=vi&q='.urlencode($theVenue['name']), ['rel'=>'external', 'title'=>'Search on Google.com']) ?>
+            </td>
+        </tr>
+        <?php if ($venueSupplier) { ?>
+        <tr>
+            <th style="padding-left:0!important">Supplier</th>
+            <td style="padding-right:0!important">
+                <?= $venueSupplier['name'] ?>
+                (<a href="javascript:;" onclick="$('.view_supplier').toggle()">
+                <span class="view_supplier">More</span>
+                <span class="view_supplier" style="display:none;">Less</span>
+                </a>)
+            </td>
+        </tr>
+        <tr class="view_supplier" style="display:none;">
+            <td colspan="2" style="padding-left:0!important; padding-right:0!important">
+                <p><strong><?= $venueSupplier['name'] ?></strong>
+                    <br><?= $venueSupplier['name_full'] ?>
+                </p>
+                <p><strong>Tax info:</strong><br><?= nl2br($venueSupplier['tax_info']) ?></p>
+                <p><strong>Bank info:</strong><br><?= nl2br($venueSupplier['bank_info']) ?></p>
+                <p><?= Html::a('View supplier', '@web/suppliers/r/'.$theVenue['company_id']) ?></p>
+                <? if (count($venueSupplier['venues']) > 1) { ?>
+                <hr>
+                <p><strong>All venues by this supplier</strong></p>
+                <? foreach ($venueSupplier['venues'] as $venue) { ?>
+                <div class="mb-10">
+                    <? if ($venue['image'] != '') { ?>
+                    <img src="<?= $venue['image'] ?>" class="float:left;" style="width:50%; margin:0 1em 1em 0;">
+                    <?= Html::a($venue['name'], '/venues/r/'.$venue['id']) ?>
+                    <? } ?>
                 </div>
-            <? include('venue_r__faci.php') ?>
-            <? include('venue_r__notes.php') ?>
-            <? include('venue_r__prices.php') ?>
-            <? include('venue_r__promo.php') ?>
-            <? include('venue_r__media.php') ?>
-            <? include('venue_r__fb.php') ?>
-            <? include('venue_r__tours.php') ?>
-        </div>                
+                <? } ?>
+                <? } ?>
+            </td>
+        </tr>
+        <?php } ?>
+    </table>
+</div>
+
+<div class="col-sm-8 col-sm-pull-4">
+    <ul class="tab-menu list-inline">
+        <li><a class="tab cursor-pointer text-uppercase text-bold text-pink" href="t-overview"><i class="fa fa-caret-right"></i> Overview</a></li>
+        <li><a class="tab cursor-pointer text-uppercase" href="t-notes"><i class="fa fa-caret-right"></i> Files & Notes</a></li>
+        <li><a class="tab cursor-pointer text-uppercase" href="t-prices"><i class="fa fa-caret-right"></i> Price</a></li>
+        <?php if (!empty($theVenue['dvo'])) { ?>
+        <li><a class="tab cursor-pointer text-uppercase" href="t-oldprices"><i class="fa fa-caret-right"></i> Price (old)</a></li>
+        <?php } ?>
+        <li><a class="tab cursor-pointer text-uppercase" href="t-media"><i class="fa fa-caret-right"></i> Photos</a></li>
+        <li><a class="cursor-pointer text-uppercase" href="/tools/tour-ks?ks=<?= $theVenue['id'] ?>" target="_blank"><i class="fa fa-caret-right"></i> Tours</a> <i style="font-size:80%" class="fa fa-external-link text-muted"></i></li>
+        <li><a class="cursor-pointer text-uppercase" href="/feedbacks?venue_id=<?= $theVenue['id'] ?>&what=<?= $theVenue['name'] ?>" target="_blank"><i class="fa fa-caret-right"></i> Feedback</a> <i style="font-size:80%" class="fa fa-external-link text-muted"></i></li>
+    </ul>
+    <div class="tab-content">
+        <div class="tab-pane active" id="t-overview" >
+            <? if ($theVenue['hotel_meta'] != '') { ?>
+            <!--p><a rel="external" href="<?= $theVenue['link_tripadvisor'] ?>"><img class="img-responsive img-thumbnail" src="https://my.amicatravel.com/files/r/24783"></a></p-->
+            <table class="table table-striped table-condensed table-bordered">
+                <thead></thead>
+                <tbody>
+                    <tr>
+                        <th>Tags</th><td><?= str_replace(['str ', 're '], ['<span class="text-pink">strategic</span> ', '<span class="text-success">recommended</span> ', ], $theVenue['search']) ?></td>
+                    </tr>
+                    <?
+                    $data = unserialize($theVenue['hotel_meta']);
+                    foreach ($data as $k=>$v) {
+                         if ($k != 'image2') { 
+                    ?>
+                    <tr>
+                        <th><?= ucfirst($k) ?></th>
+                        <td><?= nl2br($v) ?></td>
+                    </tr>
+                    <?
+                        }
+                    }
+                    ?>                  
+                </tbody>
+            </table>
+            <? } ?>
+            <div><?= Markdown::process($theVenue['info']) ?></div>
+        </div>
+        <? include('venue_r__notes.php') ?>
+        <? include('venue_r__prices.php') ?>
+        <? include('venue_r__oldprices.php') ?>
+        <? include('venue_r__media.php') ?>
     </div>
 </div>
 
@@ -317,7 +346,19 @@ $this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.cs
 </style>
 <?
 $js = <<<'TXT'
-$('a.fancybox').fancybox();
+$('.tab-menu li a.tab').on('click', function(e){
+    e.preventDefault()
+    $('.tab-menu li a.tab').removeClass('text-bold text-pink')
+    $(this).addClass('text-bold text-pink')
+    $('.tab-pane.active').removeClass('active').hide()
+    $('#' + $(this).attr('href')).addClass('active').show()
+})
+
+$.fancybox.defaults.thumbs = {
+    autoStart   : true,   // Display thumbnails on opening
+    hideOnClose : true     // Hide thumbnail grid when closing animation starts
+};
+
 $('a.from-dt').on('click', function(){
     $('a.from-dt').removeClass('fw-b');
     $(this).addClass('fw-b');
@@ -343,12 +384,6 @@ $('#t-prices').on('click', 'a.dv_d', function(event){
     .fail(function() {
         alert('Error deleting DV!');
     });
-});
-
-
-Mousetrap.bind('p', function() {
-    $('a[href="#t-prices"]').tab('show');
-    $('a[href="#t-newprices"]').tab('show');
 });
 
 $.fn.datepicker.language['vi'] = {
@@ -506,6 +541,55 @@ $('#selme').datepicker({
         }
     }
 });
+
+////////period//////////////
+$('[name="ranger_dt"]').change(function(){
+    console.log('event change');
+    var arr_dt = $(this).children("option:selected").text().split('-');
+    var date_selected = arr_dt[0].trim();
+    $('#selme').val(date_selected);
+    var venue_id = $('#table_dv').data('venue-id');
+    $.ajax({
+        method: "GET",
+        url: "/venues/list_dv",
+        data: { venue_id: venue_id, date_selected:date_selected},
+        dataType: 'json'
+    })
+    .done(function(result) {
+        if (result.err && result.err != undefined) { $('#list_dv').empty(); return;}
+        var dvc = dvc_current = result['dvc'];
+        var venue = dvc['venue'];
+        if (dvc.dvd.length == 0) {
+            console.log("dvc[dvd] = null"); return;
+        }
+        current_dvd = dvc.dvd.def.split(';');
+        if (id_dvc != dvc.id) {
+            $('.note_display').html(dvc.body);
+            id_dvc = dvc.id
+        }
+        $('.note_display').html(dvc.body);
+        $('#list_dv').empty();
+        jQuery.each(venue['dv'], function(i, dv){
+            var html = '<tr> <td><a href="/dv/r/'+dv.id+'" target="_blank">'+dv.name+'</a></td> <td class=""> <span class="masterTooltip" title="'+dvc.dvd.def+'">'+dvc.dvd.code+'</span><a class="text-danger dv_d" href="#" data-id="'+dv.id+'"></a> </td> <td class="content_price text-right"> </td> </tr>';
+            $('#list_dv').append(html);
+            jQuery.each(dv['cp'], function(k, cp){
+                if (cp.period == dvc.dvd.code) {
+                    var curren = new Number(cp.price).format(2);
+                    var curren_arr = curren.split('.');
+                    if (parseInt(curren_arr[1]) == 0 ) {
+                        curren = curren_arr[0];
+                    }
+                    var td_html = '<div><span class="pull-left text-muted">'+cp.conds+'</span> <a href="#">'+curren+'</a> <span class="text-muted"> '+cp.currency+'</span></div>';
+                    $('#list_dv').find('tr:last td.content_price').append(td_html);
+                }
+            });
+        });
+
+    })
+    .fail(function() {
+        alert( "Error" );
+    });
+});
 ////////tooltip//////////////
 $(document).on({
     mouseenter: function(){// Hover over code
@@ -537,7 +621,8 @@ Number.prototype.format = function(n, x) {
 TXT;
 
 $js = str_replace(['{$LANG}'], [Yii::$app->language], $js);
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.pack.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJs($js);
 
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/js/datepicker.min.js', ['depends'=>'yii\web\JqueryAsset']);
