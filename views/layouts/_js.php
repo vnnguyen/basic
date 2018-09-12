@@ -2,6 +2,15 @@
 
 $js = <<<'TXT'
 
+
+
+$('.panel').addClass('card');
+$('.panel-heading').addClass('card-header');
+$('.panel-body').addClass('card-body');
+
+
+
+
 // https://github.com/euank/node-parse-numeric-range
 
 function parsePart(str) {
@@ -32,6 +41,7 @@ function parsePart(str) {
   }
   return [];
 }
+
 
 function parseRange(str) {
   var parts = str.split(',');

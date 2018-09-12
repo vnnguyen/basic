@@ -23,11 +23,13 @@ class MainAsset extends AssetBundle
         'css/colors.min.css',
     ];
     public $js = [
-        'js/main/bootstrap.bundle.min.js',
+        // 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js',
+        'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js',
+        // 'js/main/bootstrap.bundle.min.js',
         'js/plugins/loaders/blockui.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.min.js',
         'js/main/app.js',
-        'js/plugins/ui/nicescroll.min.js',
-        'js/plugins/notifications/pnotify.min.js',
+        // 'js/plugins/ui/nicescroll.min.js',
+        // 'js/plugins/notifications/pnotify.min.js',
     ];
 }

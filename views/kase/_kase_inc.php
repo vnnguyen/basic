@@ -5,12 +5,12 @@ yap('page_icon', 'briefcase');
 yap('page_breadcrumbs', [
     ['Cases', 'cases'],
 ]);
+
 Yii::$app->params['page_actions'] = [
     [
         ['icon'=>'plus', 'title'=>'New case', 'link'=>'cases/c', 'active'=>SEG2 == 'c'],
     ],
 ];
-
 
 if (isset($theCase['id'])) {
     Yii::$app->params['page_actions'][] = [
@@ -71,7 +71,7 @@ $caseWebReferralList = array(
 );
 
 // How they found us
-$caseHowFoundList = array(
+$kaseHowFoundList = array(
     'web'=>'Web search/ad/link',
     'print'=>'Book/Print',
     'tv'=>'TV/Radio',
@@ -97,12 +97,12 @@ $caseHowContactedList = [
             'web/link/360'=>'Blog 360',
             'web/link/facebook'=>'Facebook',
             'web/link/other'=>'Other',
-        'web/ad'=>'Ad online',
-            'web/ad/facebook'=>'Facebook',
-            'web/ad/voyageforum'=>'VoyageForum',
-            'web/ad/routard'=>'Routard',
-            'web/ad/sitevietnam'=>'Site-Vietnam',
-            'web/ad/other'=>'Other',
+        'web/adonline'=>'Ad online',
+            'web/adonline/facebook'=>'Facebook',
+            'web/adonline/voyageforum'=>'VoyageForum',
+            'web/adonline/routard'=>'Routard',
+            'web/adonline/sitevietnam'=>'Site-Vietnam',
+            'web/adonline/other'=>'Other',
         'web/email'=>'Mailing',
         'web/direct'=>'Direct access',
 
@@ -124,28 +124,41 @@ foreach ($caseHowContactedList as $k=>$v) {
     $caseHowContactedListFormatted[$k] = $v;
 }
 
-$caseHowFoundList = [
+$_kaseHowFoundList = [
     'returning'=>'Returning',
         'returning/customer'=>'Returning customer',
-        'returning/contact'=>'Returning contact (not a customer)',
     'new'=>'New',
+        'new/returning/contact'=>'Returning contact (not a customer)',
         'new/nref'=>'Not referred',
             'new/nref/web'=>'Web',
             'new/nref/print'=>'Book/Print',
             'new/nref/event'=>'Event/Seminar',
+            'new/nref/expat'=>'Expats in Vietnam',
             'new/nref/other'=>'Other', // travel agent, by chance
         'new/ref'=>'Referred',
             'new/ref/customer'=>'Referred by one of Amica\'s customer',
             'new/ref/amica'=>'Referred by one of Amica\'s staff',
             'new/ref/org'=>'Referred by an organization or one of its members', // Ca nhan, to chuc
+            'new/ref/expat'=>'By an expat in Vietnam',
             'new/ref/other'=>'Referred from other source',
 ];
 
-$caseHowFoundListFormatted = [];
-foreach ($caseHowFoundList as $k=>$v) {
+$kaseHowFoundList = [
+    'returning'=>Yii::t('x', 'Returning customer'),
+    'new'=>Yii::t('x', 'New customer'),
+    'referred'=>Yii::t('x', 'Referred customer'),
+        'referred/customer'=>Yii::t('x', 'Referred by one of Amica\'s customers'),
+        'referred/amica'=>Yii::t('x', 'Referred by one of Amica\'s staff'),
+        'referred/org'=>Yii::t('x', 'Referred by an organization or one of its members'), // Ca nhan, to chuc
+        'referred/expat'=>Yii::t('x', 'Referred by an expat in Vietnam'),
+        'referred/other'=>Yii::t('x', 'Referred from other source'),
+];
+
+$kaseHowFoundListFormatted = [];
+foreach ($kaseHowFoundList as $k=>$v) {
     $cnt = count(explode('/', $k));
     $v = str_repeat(' --- ', $cnt - 1). $v;
-    $caseHowFoundListFormatted[$k] = $v;
+    $kaseHowFoundListFormatted[$k] = $v;
 }
 
 
@@ -223,6 +236,7 @@ $anaQuestions['a_160730'] = [
 $kaseTravelTypeList = [
     'Family'=>'Family',
     'Couple'=>'Couple',
+    'Friends'=>'Friends',
     'Group'=>'Group',
     'Solo'=>'Solo',
     'Business'=>'Business',
@@ -370,4 +384,36 @@ $kaseFormuleList = [
     "Le monde rural aux portes d’Angkor"=>"Le monde rural aux portes d’Angkor",
     "Montagnes sacrés du nord laos"=>"Montagnes sacrés du nord laos",
 
+];
+
+$kaseReqTourThemeList = [
+    'Découverte des sites incontournables' => 'Découverte des sites incontournables',
+    'Immersion dans la vie locale' => 'Immersion dans la vie locale',
+    'Randonnées et treks' => 'Randonnées et treks',
+    'Balades à vélo' => 'Balades à vélo',
+    'Cours de cuisine et autres découvertes culinaires' => 'Cours de cuisine et autres découvertes culinaires',
+    'Détente' => 'Détente',
+    'Séjour balnéaire' => 'Séjour balnéaire',
+    'Croisière' => 'Croisière',
+    'Artisanat local' => 'Artisanat local',
+    'Bien-être et massages' => 'Bien-être et massages',
+    'Retour aux sources' => 'Retour aux sources',
+    'Voyage en amoureux' => 'Voyage en amoureux',
+];
+
+$kaseChannelList = [
+    'k1'=>'K1',
+    'k2'=>'K2',
+    'k3'=>'K3',
+    'k4'=>'K4',
+    'k5'=>'K5',
+    'k6'=>'K6',
+    'k7'=>'K7',
+    'k8'=>'K8',
+];
+
+$kaseSourceList = [
+    't1'=>'New customer',
+    't2'=>'Referred customer',
+    't3'=>'Returning customer',
 ];

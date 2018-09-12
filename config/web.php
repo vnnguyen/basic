@@ -27,7 +27,7 @@ define('DIR', '/');
 $_REQUEST_URI = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'); define('URI', DIR == '/' ? $_REQUEST_URI : substr($_REQUEST_URI, strlen(trim(DIR, '/').'/'))); $_URI_SEGMENTS = explode('/', URI); define('SEGS', empty($_URI_SEGMENTS) ? 0 : count($_URI_SEGMENTS)); for ($i = 1; $i <= 9; $i ++) define('SEG'.$i, isset($_URI_SEGMENTS[$i - 1]) ? $_URI_SEGMENTS[$i - 1] : '');
 
 
-
+yii::setAlias('@web', 'localhost/basic/web');
 // Yii::setAlias('@web', 'http://amica.dev');
 
 $params = array_merge(
@@ -42,7 +42,7 @@ $config = [
     'basePath' => dirname(__DIR__),
     'vendorPath' => __DIR__ . '../vendor',
     'aliases'=>[
-        '@www'=>'http://amica.xyz',
+        '@www'=>'amica.xyz',
     ],
 
 
@@ -55,7 +55,8 @@ $config = [
                     'sourcePath' => null,
                     'js' => [
                         // "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
-                        'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'
+                        "https://code.jquery.com/jquery-3.3.1.min.js"
+                        // 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'
                     ],
                 ],
             ],

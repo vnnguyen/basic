@@ -511,7 +511,7 @@ class ReportController extends MyController
             'how_found'=>$how_found,
             'how_contacted'=>$how_contacted,
 
-            'prospect'=>$prospect,
+            'prospect'=>$prospect, 
             'device'=>$device,
             'site'=>$site,
 

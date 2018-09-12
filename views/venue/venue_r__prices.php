@@ -9,6 +9,7 @@ table.table-pricenew.table.table-narrow {width:auto!important}
 .table-pricenew.table-narrow tr>th, .table-pricenew.table-narrow tr>td {padding:2px 9px!important;}
 .table-pricenew tr>th {background-color:#fffff3!important;}
 .money {font-weight: 600; text-align: right;}
+.hide {display: none}
 </style>
 <div class="col-md-12">
     <p>Select date of stay <input id="seldate_new" type="text" style="width:150px" data-today-button="<?= NOW ?>" data-venue-id="<?= $theVenue['id']?>" class="form-control" name="" value=""></p>
@@ -224,31 +225,13 @@ cutCol();
 function cutCol()
 {
     $.each($('.t_cutcol'), function(t_i, table){
-         $(table).find('tr th').each(function(i) {
-            if($(this).text() == ''){
-                //select all tds in this column
-                var tds = $(this).parents('table')
-                 .find('tr td:nth-child(' + (i + 1) + ')');
-                if(tds.is(':empty')) {
-                    //hide header
-                    // $(this).remove();
-                    $(this).hide();
-                    //hide cells
-                    // tds.remove();
-                    tds.hide();
-                } 
-            }
-        });
-    });
-
-    $.each($('.t_cutcol'), function(t_i, table){
         var cnt_col = [];
         var Rows = $(table).find('tr');
         $.each(Rows, function(r_i, row){
             cnt_col[r_i] = 0;
             $(row).find('td,th').each(function(c_i, col){
-                if($(col).text().length > 0 ){
-                    cnt_col[r_i] ++;
+                if($(col).text().trim() != '' ){
+                    cnt_col[r_i] += $(col).prop('colspan');
                 }
             });
         });
@@ -259,9 +242,14 @@ function cutCol()
         }
 
         $.each(Rows, function(r_i, row){
+            var n_col = 0;
             $(row).find('td, th').each(function(c_i, col){
-                if(c_i >= max_col){
-                    $(col).remove();
+                n_col += $(this).prop('colspan');
+                if(n_col > max_col){
+                    $(col).hide();
+                }
+                if($(this).text() != ''){
+                    $(this).show();
                 }
 
                 var content = $(this).text();

@@ -10,7 +10,7 @@ class TourGuide2 extends MyActiveRecord
 
     public function getGuide()
     {
-        return $this->hasOne(User::className(), ['id'=>'guide_user_id']);
+        return $this->hasOne(Person::className(), ['id'=>'guide_user_id']);
     }
 
     public function getTour()

@@ -10,7 +10,7 @@ class TourDriver extends MyActiveRecord
 
     public function getDriver()
     {
-        return $this->hasOne(User::className(), ['id'=>'driver_user_id']);
+        return $this->hasOne(Person::className(), ['id'=>'driver_user_id']);
     }
 
     public function getTour()

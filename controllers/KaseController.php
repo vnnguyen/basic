@@ -167,194 +167,304 @@ class KaseController extends MyController
         }
     }
 
-    public function actionIndex($source = '', $contacted = '', $found = '')
+    public function actionIndex(
+        $view = 'created',
+        $year = '',
+        $month = '',
+
+        $name = '',
+        $status = '',
+        $deal_status = '',
+        $priority = '',
+        $language = '',
+        $owner_id = '',
+        $cofr = '',
+
+        $campaign_id = '',
+        $company_id = '',
+
+        $how_found = '', $how_contacted = '',
+        $device = '', $site = '',
+        $kx = '', $tx = '',
+        $prospect = '',
+
+        $source = '', $contacted = '', $found = '',
+
+        $nationality = '',
+        $age = '',
+        $paxcount = '',
+        array $req_countries = [],
+        $req_countries_select = 'any',
+
+        $req_start = '',
+        $req_date = 'start',
+        $req_year = '',
+        $req_month = '',
+        $daycount = '',
+        $budget = '',
+        $budget_currency = 'USD',
+
+        $req_travel_type = '',
+        $req_theme = '',
+        $req_tour = '',
+        $req_extension = '',
+        $test = ''
+        )
     {
-        $getProspect = Yii::$app->request->get('prospect', 'all');
-        $getDevice = Yii::$app->request->get('device', 'all');
-        $getSite = Yii::$app->request->get('site', 'all');
-        $getCa = Yii::$app->request->get('ca', 'created');
-        $getMonth = Yii::$app->request->get('month', 'all');
-        $getStatus = Yii::$app->request->get('status', 'all');
-        $getSaleStatus = Yii::$app->request->get('sale_status', 'all');
-        $getOwnerId = Yii::$app->request->get('owner_id', 'all');
-        $getCampaignId = Yii::$app->request->get('campaign_id', 'all');
-        $getName = Yii::$app->request->get('name', '');
-        $getPriority = Yii::$app->request->get('is_priority', 'all');
-        $getCompany = Yii::$app->request->get('company', 'all');
-        $getLanguage = Yii::$app->request->get('language', 'all');
 
+        $query = Kase::find()
+            ->where(['is_b2b'=>'no']);
 
+        if ($prospect != '' || $device != '' || $site != '' || $req_travel_type != '' || $req_theme != '' || $req_tour != '' || $req_extension != '' || $kx != '') {
+            $query->innerJoinWith('stats');
+        } else {
+            $query->innerJoinWith('stats');
+            // $query->joinWith('stats'); TODO
+        }
 
-
-        $getNumberPax = Yii::$app->request->get('number_pax', '');
-        $getNumberDay = Yii::$app->request->get('number_day', '');
-        $getDestinations = Yii::$app->request->get('destination', '');
-        $getFromDate = Yii::$app->request->get('from_date', '');
-
-        $query = Kase::find()->where(['is_b2b'=>'no']);
-
-        if (in_array($getProspect, [1,2,3,4,5]) || $getSite != 'all' || $getDevice != 'all') {
+        if (in_array($prospect, [1,2,3,4,5]) || $site != '' || $device != '') {
             $cond = [];
-            if ($getProspect != 'all') {
-                $cond['prospect'] = $getProspect;
+            if ($prospect != '') {
+                $cond['prospect'] = $prospect;
             }
-            if ($getSite != 'all') {
-                $cond['pa_from_site'] = $getSite;
+            if ($site != '') {
+                $cond['pa_from_site'] = $site;
             }
-            if ($getDevice != 'all') {
-                $cond['request_device'] = $getDevice;
+            if ($device != '') {
+                $cond['request_device'] = $device;
             }
-            $query->innerJoinwith('stats')->onCondition($cond);
+            $query->andWhere($cond);
         }
 
-        if ($getMonth != 'all') {
-            if ($getCa == 'created') {
-                $query->andWhere('SUBSTRING(created_at, 1, 7)=:month', [':month'=>$getMonth]);
-            } elseif ($getCa == 'assigned') {
-                $query->andWhere('SUBSTRING(ao, 1, 7)=:month', [':month'=>$getMonth]);
+        if ($year != '') {
+            if ($view == 'created') {
+                $dateField = 'created_at';
+            } elseif ($view == 'assigned') {
+                $dateField = 'ao';
             } else {
-                $query->andWhere('SUBSTRING(closed, 1, 7)=:month', [':month'=>$getMonth]);
+                $dateField = 'closed';
+            }
+            if ($month == '') {
+                $query->andWhere('YEAR('.$dateField.')=:y', [':y'=>$year]);
+            } else {
+                $query->andWhere('YEAR('.$dateField.')=:y AND MONTH('.$dateField.')=:m', [':y'=>$year, ':m'=>$month]);
             }
         }
-        if ($getStatus != 'all') $query->andWhere(['status'=>$getStatus]);
-        if ($getSaleStatus != 'all') $query->andWhere(['deal_status'=>$getSaleStatus]);
-        if ($getPriority != 'all') $query->andWhere(['is_priority'=>$getPriority]);
-        if ($getLanguage != 'all') $query->andWhere(['language'=>$getLanguage]);
-        if ($getOwnerId != 'all') {
-            if (substr($getOwnerId, 0, 5) == 'cofr-') {
-                $query->andWhere(['cofr'=>(int)substr($getOwnerId, 5)]);
-            } else {
-                $query->andWhere(['owner_id'=>(int)$getOwnerId]);
-            }
+
+        if ($name != '') {
+            $query->andWhere(['like', 'name', $name]);
         }
-        if ($getCampaignId == 'yes') {
+        if ($status != '') {
+            $query->andWhere(['status'=>$status]);
+        }
+        if ($deal_status != '') {
+            $query->andWhere(['deal_status'=>$deal_status]);
+        }
+        if ($priority != '') {
+            $query->andWhere(['priority'=>$priority]);
+        }
+        if ($language != '') {
+            $query->andWhere(['language'=>$language]);
+        }
+        if ($owner_id == 'none') {
+            $query->andWhere('owner_id IS NULL');
+        } elseif ($owner_id == 'all') {
+            $query->andWhere('owner_id IS NOT NULL');
+        } elseif ($owner_id != '') {
+            if (substr($owner_id, 0, 5) == 'cofr-') {
+                $query->andWhere(['cofr'=>(int)substr($owner_id, 5)]);
+            } else {
+                $query->andWhere(['owner_id'=>(int)$owner_id]);
+            }           
+        }
+        if ($cofr != '') {
+            $query->andWhere(['cofr'=>(int)$cofr]);
+        }
+        if ($campaign_id == 'yes') {
             $query->andWhere('campaign_id!=0');
         } else {
-            if ($getCampaignId != 'all') $query->andWhere(['campaign_id'=>$getCampaignId]);
+            if ($campaign_id != '') {
+                $query->andWhere(['campaign_id'=>$campaign_id]);
+            }
         }
-        if ($found != '') {
-            $query->andWhere(['how_found'=>$found]);
+
+        // Channel
+        if ($kx != '') {
+            $query->andWhere(['kx'=>$kx]);
         }
-        if ($contacted == 'unknown') {
+        // Customer type
+        // if ($tx != '') {
+        //     if ($tx == 't2') {
+        //         // Returning
+        //         $query->andWhere(['how_found'=>'returning/customer']);
+        //     } elseif ($tx == 't3') {
+        //         // New and referred
+        //         $query->andWhere('SUBSTRING(how_found, 1, 8)="referred"');
+        //     } else {
+        //         // New and not referred
+        //         $query->andWhere('how_found!="returning/customer" AND SUBSTRING(how_found, 1, 8)!="referred"');
+        //     }
+        // }
+
+        if ($how_found != '') {
+            $query->andWhere('LOCATE(:found, how_found)=1', [':found'=>$how_found]);
+        }
+        if ($how_contacted == 'unknown') {
             $query->andWhere(['how_contacted'=>'']);
         } else {
-            if ($contacted != '') {
-                if ($contacted == 'web-direct') {
+            if ($how_contacted != '') {
+                if ($how_contacted == 'web-direct') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere(['web_referral'=>'direct']);
-                } elseif ($contacted == 'link') {
+                } elseif ($how_contacted == 'link') {
                     $query->andWhere(['web_referral'=>'link']);
-                } elseif ($contacted == 'social') {
+                } elseif ($how_contacted == 'social') {
                     $query->andWhere(['web_referral'=>'social']);
-                } elseif ($contacted == 'web-search') {
+                } elseif ($how_contacted == 'web-search') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere('SUBSTRING(web_referral, 1, 6)="search"');
-                } elseif ($contacted == 'web-search-amica') {
+                } elseif ($how_contacted == 'web-search-amica') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere('SUBSTRING(web_referral, 1, 6)="search"')->andWhere(['like', 'web_keyword', 'amica']);
-                } elseif ($contacted == 'web-adsense') {
+                } elseif ($how_contacted == 'web-adsense') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere(['web_referral'=>'ad/adsense']);
-                } elseif ($contacted == 'web-bingad') {
+                } elseif ($how_contacted == 'web-bingad') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere(['web_referral'=>'ad/bing']);
-                } elseif ($contacted == 'web-otherad') {
+                } elseif ($how_contacted == 'web-otherad') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere(['web_referral'=>'ad/other']);
-                } elseif ($contacted == 'web-adwords') {
+                } elseif ($how_contacted == 'web-adwords') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere(['web_referral'=>'ad/adwords']);
-                } elseif ($contacted == 'web-adwords-amica') {
+                } elseif ($how_contacted == 'web-adwords-amica') {
                     $query->andWhere(['how_contacted'=>'web'])->andWhere(['web_referral'=>'ad/adwords'])->andWhere(['like', 'web_keyword', 'amica']);
-                } elseif ($contacted == 'web-trip-connexion') {
+                } elseif ($how_contacted == 'web-trip-connexion') {
                     $query->andWhere(['web_referral'=>'ad/trip-connexion']);
                 } else {
-                    $query->andWhere(['how_contacted'=>$contacted]);
-                }
-            }
-        }
-        if ($getName != '') $query->andWhere(['like', 'name', $getName]);
-        if ($getDestinations != '' || $getFromDate != '' || $getNumberDay != '') {
-            $query->innerJoinWith('stats');
-            if ($getDestinations != '') {
-                $arr_des = explode(',', $getDestinations);
-                foreach ($arr_des as $des) {
-                    $des = trim($des);
-                    if ($des == '') continue;
-                    $query->andWhere(['like', 'pa_destinations', $des]);
-
-                }
-            }
-            if ($getFromDate != '') {
-                $getFromDate = trim($getFromDate);
-                if (strlen($getFromDate) == 4) {
-                    $query->andWhere(['tour_start_year' => $getFromDate]);
-                } else {
-                    if (strlen($getFromDate) != 7) {
-                        $getFromDate = date('Y-m', strtotime($getFromDate));
-                    }
-                    $query->andWhere(['SUBSTRING(pa_start_date, 1, 7)' => date('Y-m', strtotime($getFromDate))]);
-                }
-            }
-            if ($getNumberDay != '') {
-                $arr_s = explode('-', $getNumberDay);
-                if (count($arr_s) == 1) {
-                    $arr_s[] = $arr_s[0];
-                }
-                switch (count($arr_s)) {
-                    case 2:
-                        $query->andWhere('
-                            CASE
-                                WHEN pa_days_max > 0
-                                    THEN pa_days_max >= :minDay AND pa_days_min <= :maxDay
-                                ELSE
-                                    pa_days_min >=:minDay AND pa_days_min <=:maxDay
-                            END', [':minDay' => $arr_s[0], ':maxDay' => $arr_s[1]]);
-                        break;
-                }
-            }
-            if ($getNumberPax != '') {
-                $arr_s = explode('-', $getNumberPax);
-                if (count($arr_s) == 1) {
-                    $arr_s[] = $arr_s[0];
-                }
-                switch (count($arr_s)) {
-                    case 1:
-                        $query->andWhere('
-                            CASE
-                                WHEN pa_pax_max > 0
-                                    THEN pa_pax_max >= :numPax AND pa_pax_min <= :numPax
-                                ELSE pa_pax_min =:numPax
-                            END', [':numPax' => $getNumberPax]);
-                        break;
-                    case 2:
-                        $s_pax = explode('-', $getNumberPax);
-                        $query->andWhere('
-                            CASE
-                                WHEN pa_pax_max > 0
-                                    THEN
-                                        pa_pax_max >= :minPax AND pa_pax_min <= :maxPax
-                                ELSE
-                                    pa_pax_min >=:minPax AND pa_pax_min <=:maxPax
-                            END', [':minPax' => $arr_s[0], ':maxPax' => $arr_s[1]]);
-                        break;
+                    $query->andWhere(['how_contacted'=>$how_contacted]);
                 }
             }
         }
 
+        if ($paxcount != '') {
+            $pax = explode('-', $paxcount);
+            $pax[0] = (int)$pax[0];
+            if (!isset($pax[1])) {
+                $pax[1] = $pax[0];
+            }
+            $query->andWhere(['!=', 'pax_count', '']);
+            $query->andWhere('pax_count_min<=:max AND pax_count_min>=:min', [':min'=>$pax[0], ':max'=>$pax[1]]);
+        }
 
-        /*if ($getProspect != 'all') {
-            $query->innerJoinWith('stats')->onCondition();
-                $getProspect = Yii::$app->request->get('prospect');
-                    if ((int)$getProspect != 0) {
-                        return $query->andWhere(['prospect'=>$getProspect]);
+        if ($daycount != '') {
+            $day = explode('-', $daycount);
+            $day[0] = (int)$day[0];
+            if (!isset($day[1])) {
+                $day[1] = $day[0];
+            }
+            $query->andWhere(['!=', 'day_count', '']);
+            $query->andWhere('day_count_min<=:max AND day_count_min>=:min', [':min'=>$day[0], ':max'=>$day[1]]);
+        }
+
+        if ($req_year != '') {
+            if ($req_date == 'start') {
+                $query->andWhere('YEAR(tour_start_date)=:year', [':year'=>$req_year]);
+                if ($req_month != '') {
+                    $query->andWhere('MONTH(tour_start_date)=:month', [':month'=>$req_month]);
+                }
+            } else {
+                // TODO END DATE HERE
+                $query->andWhere('YEAR(tour_end_date)=:year', [':year'=>$req_year]);
+                if ($req_month != '') {
+                    $query->andWhere('MONTH(tour_end_date)=:month', [':month'=>$req_month]);
+                }
+            }
+        }
+
+        if (isset($req_countries) && is_array($req_countries) && !empty($req_countries)) {
+            if ($req_countries_select == 'all' || $req_countries_select == 'only') {
+                foreach ($req_countries as $dest) {
+                    $query->andWhere('LOCATE("'.$dest.'", req_countries)!=0');//, [':dest'=>$dest]);
+                }
+                if ($req_countries_select == 'only') {
+                    $query->andWhere('LENGTH(req_countries)=:len', [':len'=> 2 * count($req_countries) + count($req_countries) - 1]);//, [':dest'=>$dest]);
+                }
+            } elseif ($req_countries_select == 'any') {
+                $orConditions = '(';
+                foreach ($req_countries as $dest) {
+                    if ($orConditions != '(') {
+                        $orConditions .= ' OR ';
                     }
+                    $orConditions .= 'LOCATE("'.$dest.'", req_countries)!=0';
+                }
+                $orConditions .= ')';
+                $query->andWhere($orConditions);
+            } else {
+                // Exact
+                asort($req_countries);
+                $destList = implode('|', $req_countries);
+                $query->andWhere(['req_countries'=>$destList]);
+            }
+        }
 
-        }*/
+        $paxAgeGroupList = [
+            '0_1'=>'<2',
+            '2_11'=>'2-11',
+            '12_17'=>'12-17',
+            '18_25'=>'18-25',
+            '26_34'=>'26-34',
+            '35_50'=>'35-50',
+            '51_60'=>'51-60',
+            '61_70'=>'61-70',
+            '71_up'=>'>70',
+        ];
+        if ($age != '' && in_array($age, array_keys($paxAgeGroupList))) {
+            $query->andWhere('group_age_'.$age.'!=0');
+        }
+
+        if ($nationality != '  ' && strlen($nationality) == 2) {
+            $query->andWhere('LOCATE(:n, group_nationalities)!=0', [':n'=>$nationality]);
+        }
+
+        if ($req_travel_type != '') {
+            $query->andWhere(['req_travel_type'=>$req_travel_type]);
+        }
+        if ($req_theme != '') {
+            $query->andWhere('LOCATE(:n, req_themes)!=0', [':n'=>$req_theme]);
+        }
+        if ($req_tour != '') {
+            $query->andWhere('LOCATE(:n, req_tour)!=0', [':n'=>$req_tour]);
+        }
+        if ($req_extension != '') {
+            $query->andWhere('LOCATE(:n, req_extensions)!=0', [':n'=>$req_extension]);
+        }
+
+        // Visiting countries
+        // if ($req_countries != '') {
+        //     $reqCountryList = explode(',', $req_countries);
+        //     foreach ($reqCountryList as $reqCountry) {
+        //         $query->andWhere('LOCATE(:c, req_countries)!=0', [':c'=>$reqCountry]);
+        //     }
+        // }
+
+        // 170918 Ngo Hang muon xem nhung HS chua duoc edit request
+        if (isset($_GET['editrequest'])) {
+            $year = $_GET['year'] ?? 2017;
+            if (!in_array($year, [2016, 2017])) {
+                $year = 2017;
+            }
+            $query = Kase::find()
+                ->innerJoinWith('stats')
+                ->where(['is_b2b'=>'no', 'deal_status'=>['lost', 'pending'], 'req_countries'=>''])
+                ->andWhere('YEAR(created_at)=:year', [':year'=>$year]);
+        }
 
         $countQuery = clone $query;
-        $pages = new Pagination([
+        $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
             'pageSize'=>25,
         ]);
+
         $theCases = $query
             ->select(['id', 'name', 'status', 'ref', 'is_priority', 'deal_status', 'opened', 'owner_id', 'created_at', 'ao', 'how_found', 'web_referral', 'web_keyword', 'campaign_id', 'how_contacted', 'owner_id', 'company_id', 'info', 'closed_note'])
             ->orderBy('created_at DESC')
-            ->offset($pages->offset)
-            ->limit($pages->limit)
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
             ->with([
                 'stats',
                 'owner'=>function($query) {
@@ -371,38 +481,65 @@ class KaseController extends MyController
             ->all();
 
         // List of months
-        $monthList = Yii::$app->db->createCommand('SELECT SUBSTRING(created_at, 1, 7) AS ym FROM at_cases GROUP BY ym ORDER BY ym DESC ')->queryAll();
-        $ownerList = Yii::$app->db->createCommand('SELECT u.id, u.lname, u.email FROM at_cases c, persons u WHERE u.id=c.owner_id GROUP BY u.id ORDER BY u.lname, u.fname')->queryAll();
+        $yearList = Yii::$app->db->createCommand('SELECT YEAR(created_at) AS y FROM at_cases GROUP BY y ORDER BY y DESC')->queryAll();
+        for ($m = 1; $m <= 12; $m ++) {
+            $monthList[$m] = $m;
+        }
+        $ownerList = Yii::$app->db->createCommand('SELECT u.id, u.lname, u.email, u.status FROM at_cases c, users u WHERE u.id=c.owner_id GROUP BY u.id ORDER BY u.lname, u.fname')->queryAll();
         $campaignList = Yii::$app->db->createCommand('SELECT c.id, c.name, c.start_dt FROM at_campaigns c ORDER BY c.start_dt DESC')->queryAll();
         $companyList = Yii::$app->db->createCommand('SELECT c.id, c.name FROM at_cases k, at_companies c WHERE k.company_id=c.id GROUP BY k.company_id ORDER BY c.name')->queryAll();
-        // var_dump($theCases);die;
+
         return $this->render('kase_index', [
-            'pages'=>$pages,
+            'pagination'=>$pagination,
             'theCases'=>$theCases,
-            'getProspect'=>$getProspect,
-            'getDevice'=>$getDevice,
-            'getSite'=>$getSite,
-            'getCa'=>$getCa,
-            'getMonth'=>$getMonth,
-            'monthList'=>$monthList,
-            'getOwnerId'=>$getOwnerId,
+            'view'=>$view,
+
+            'view'=>$view,
+            'year'=>$year,
+            'month'=>$month,
+
+            'name'=>$name,
+            'status'=>$status,
+            'deal_status'=>$deal_status,
+            'priority'=>$priority,
+            'owner_id'=>$owner_id,
+            'cofr'=>$cofr,
+            'language'=>$language,
+
+            'how_found'=>$how_found,
+            'how_contacted'=>$how_contacted,
+
+            'prospect'=>$prospect,
+            'device'=>$device,
+            'site'=>$site,
+            'kx'=>$kx,
+            'tx'=>$tx,
+
             'ownerList'=>$ownerList,
-            'getCampaignId'=>$getCampaignId,
+            'campaign_id'=>$campaign_id,
             'campaignList'=>$campaignList,
-            'getStatus'=>$getStatus,
-            'getSaleStatus'=>$getSaleStatus,
-            'found'=>$found,
-            'contacted'=>$contacted,
-            'getName'=>$getName,
-            'getCompany'=>$getCompany,
-            'getPriority'=>$getPriority,
-            'getLanguage'=>$getLanguage,
-            'companyList'=>$companyList,
+            'company_id'=>$company_id,
             'source'=>$source,
-            'getNumberPax' => $getNumberPax,
-            'getNumberDay' => $getNumberDay,
-            'getReq_countries' => $getDestinations,
-            'getFromDate' => $getFromDate,
+
+            'nationality'=>$nationality,
+            'age'=>$age,
+            'paxcount'=>$paxcount,
+            'req_countries'=>$req_countries,
+            'req_countries_select'=>$req_countries_select,
+            'req_date'=>$req_date,
+            'req_year'=>$req_year,
+            'req_month'=>$req_month,
+            'daycount'=>$daycount,
+            'budget'=>$budget,
+            'budget_currency'=>$budget_currency,
+
+            'req_travel_type'=>$req_travel_type,
+            'req_theme'=>$req_theme,
+            'req_tour'=>$req_tour,
+            'req_extension'=>$req_extension,
+
+            'yearList'=>$yearList,
+            'monthList'=>$monthList,
         ]);
     }
 
@@ -1456,8 +1593,8 @@ TXT;
             ])
             ->asArray()
             ->one();
-
         if (!$theCase) {
+            var_dump($theCase);die;
             throw new HttpException(404, 'Case not found');
         }
 
@@ -1703,17 +1840,18 @@ TXT;
                 foreach ($toList as $id=>$user) {
                     $args[] = ['to', $user['email'], $user['lname'], $user['fname']];
                 }
-                $this->mgIt(
-                    $subject,
-                    '//mg/note_added',
-                    [
-                        'toList'=>$toList,
-                        'theNote'=>$theNote,
-                        'relUrl'=>$relUrl,
-                        'body'=>$body,
-                    ],
-                    $args
-                );
+                var_dump($toList);die;
+                // $this->mgIt(
+                //     $subject,
+                //     '//mg/note_added',
+                //     [
+                //         'toList'=>$toList,
+                //         'theNote'=>$theNote,
+                //         'relUrl'=>$relUrl,
+                //         'body'=>$body,
+                //     ],
+                //     $args
+                // );
             }
 
             return $this->redirect('@web/cases/r/'.$theCase['id']);

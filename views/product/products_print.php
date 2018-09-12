@@ -1,7 +1,7 @@
 <?
 use yii\helpers\Markdown;
 
-require_once('/var/www/vendor/textile/php-textile/Parser.php');
+// require_once('/var/www/vendor/textile/php-textile/Parser.php');
 $parser = new \Netcarver\Textile\Parser();
 
 $dayIdList = explode(',', $theProduct['day_ids']);

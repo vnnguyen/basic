@@ -168,7 +168,7 @@ INSERT INTO at_products (rtype, rid)
             'metaData'=>$metaData,
         ]);
     }
-
+ 
     // Price table, 160915
     public function actionPt($id = 0)
     {

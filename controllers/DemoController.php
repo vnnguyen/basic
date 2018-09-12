@@ -48,6 +48,806 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 class DemoController extends MyController
 {
+
+
+    //fb qhkh
+    public function actionFb_qhkh(){
+        return $this->renderPartial('fb_qhkh', []);
+    }
+
+    //List Reports of Sell
+    public function actionReport_index($year = '')
+    {
+        if ($year == '') {
+            $year = intval(date('Y', strtotime(NOW)));
+        }
+        $indexList1 = [
+            'c_total'=>Yii::t('re', 'Số hồ sơ mới được giao xử lí trong tháng'),
+            'b_total'=>Yii::t('re', 'Số tours bán thêm được trong tháng'),
+            'day_total'=>Yii::t('re', 'Số ngày tours bán thêm'),
+            'pax_total'=>Yii::t('re', 'Số pax bán thêm'),
+            'dt_total'=>Yii::t('re', 'Tổng doanh thu bán thêm trong tháng'),
+            'cp_total'=>Yii::t('re', 'Tổng Giá vốn tours bán thêm trong tháng'),
+            'lg_total'=>Yii::t('re', 'Tổng lãi gộp tours bán thêm trong tháng'),
+            'pc_total'=>Yii::t('re', 'Tỷ lệ lãi gộp (đối với các tours bán thêm)'),
+        ];
+        $indexList2 = [
+            'c_end_dt_total'=>Yii::t('re', 'Số hồ sơ theo tháng thực hiện'),
+            'c_lost_total'=>Yii::t('re', 'Số hồ sơ đã đóng'),
+            'c_won_total'=>Yii::t('re', 'Số tours (hồ sơ) bán được'),
+            'c_won_pc_total'=>Yii::t('re', 'Tỷ lệ thành công đã đạt được'),
+            'c_pax_total'=>Yii::t('re', 'Tổng số lượng khách'),
+            'c_day_total'=>Yii::t('re', 'Tổng số ngày tours'),
+            'c_dt_total'=>Yii::t('re', 'Tổng doanh số'),
+            'c_cp_total'=>Yii::t('re', 'Tổng giá vốn'),
+            'c_laigop_total'=>Yii::t('re', 'Tổng Lãi Gộp'),
+            'c_ltdt_total'=>Yii::t('re', 'Tổng Lãi Gộp/Doanh Thu'),
+            'c_lgcp_total'=>Yii::t('re', 'Tổng Lãi Gộp/Giá vốn'),
+        ];
+
+        $links_howfound = [
+            //khack cu
+            'returning' => 'https://my.amicatravel.com/reports/b2c-conversion-rate?view=created&how_found=returning&owner_id='.USER_ID.'&year='.$year,
+            'returning_tourend' => 'https://my.amicatravel.com/reports/b2c-conversion-rate?view=tourend&how_found=returning&owner_id='.USER_ID.'&year='.$year,
+            //khack moi
+            'new' => 'https://my.amicatravel.com/reports/b2c-conversion-rate?view=created&how_found=new&owner_id='.USER_ID.'&year='.$year,
+            'new_tourend' => 'https://my.amicatravel.com/reports/b2c-conversion-rate?view=tourend&how_found=new&owner_id='.USER_ID.'&year='.$year,
+            //khack gioi thieu
+            'referred' => 'https://my.amicatravel.com/reports/b2c-conversion-rate?view=created&how_found=referred&owner_id='.USER_ID.'&year='.$year,
+            'referred_tourend' => 'https://my.amicatravel.com/reports/b2c-conversion-rate?view=tourend&how_found=referred&owner_id='.USER_ID.'&year='.$year,
+        ];
+        $links_howcontacted = [
+            'web/adwords/google' => 'link&year='.$year,
+            'web/adwords/google_tourend' => 'link&year='.$year,
+
+            'web/adwords/bing' => 'link&year='.$year,
+            'web/adwords/bing_tourend' => 'link&year='.$year,
+
+            'web/adwords/other' => 'link&year='.$year,
+            'web/adwords/other_tourend' => 'link&year='.$year,
+
+            'web/search/google' => 'link&year='.$year,
+            'web/search/google_tourend' => 'link&year='.$year,
+
+            'web/search/bing' => 'link&year='.$year,
+            'web/search/bing_tourend' => 'link&year='.$year,
+
+            'web/search/yahoo' => 'link&year='.$year,
+            'web/search/yahoo_tourend' => 'link&year='.$year,
+
+            'web/search/other' => 'link&year='.$year,
+            'web/search/other_tourend' => 'link&year='.$year,
+
+
+            'web/link' => 'link&year='.$year,////////
+            'web/link_tourend' => 'link&year='.$year,
+
+            'web/link/360' => 'link&year='.$year,
+            'web/link/360_tourend' => 'link&year='.$year,
+
+            'web/link/facebook' => 'link&year='.$year,
+            'web/link/facebook_tourend' => 'link&year='.$year,
+
+            'web/link/other' => 'link&year='.$year,
+            'web/link/other_tourend' => 'link&year='.$year,
+
+            'web/adonline' => 'link&year='.$year,
+            'web/adonline_tourend' => 'link&year='.$year,
+
+            'web/adonline/facebook' => 'link&year='.$year,
+            'web/adonline/facebook_tourend' => 'link&year='.$year,
+
+            'web/adonline/voyageforum' => 'link&year='.$year,
+            'web/adonline/voyageforum_tourend' => 'link&year='.$year,
+
+            'web/adonline/routard' => 'link&year='.$year,
+            'web/adonline/routard_tourend' => 'link&year='.$year,
+
+            'web/adonline/sitevietnam' => 'link&year='.$year,
+            'web/adonline/sitevietnam_tourend' => 'link&year='.$year,
+
+            'web/adonline/other' => 'link&year='.$year,
+            'web/adonline/other_tourend' => 'link&year='.$year,
+
+            'web/email' => 'link&year='.$year,
+            'web/email_tourend' => 'link&year='.$year,
+
+            'web/direct' => 'link&year='.$year,
+            'web/direct_tourend' => 'link&year='.$year,
+
+            'nweb' => 'link&year='.$year,
+            'nweb_tourend' => 'link&year='.$year,
+
+            'nweb/email' => 'link&year='.$year,
+            'nweb/email_tourend' => 'link&year='.$year,
+
+            'nweb/email/tripconn' => 'link&year='.$year,
+            'nweb/email/tripconn_tourend' => 'link&year='.$year,
+
+            'nweb/email/other' => 'link&year='.$year,
+            'nweb/email/other_tourend' => 'link&year='.$year,
+
+            'nweb/walk-in' => 'link&year='.$year,
+            'nweb/walk-in_tourend' => 'link&year='.$year,
+
+            'nweb/other' => 'link&year='.$year,
+            'nweb/other_tourend' => 'link&year='.$year,
+
+            'agent' => 'link&year='.$year,
+            'agent_tourend' => 'link&year='.$year,
+
+        ];
+        $links_prospect = [
+            '1' => 'link&year='.$year,
+            '1_tourend' => 'link&year='.$year,
+
+            '2' => 'link&year='.$year,
+            '2_tourend' => 'link&year='.$year,
+
+            '3' => 'link&year='.$year,
+            '3_tourend' => 'link&year='.$year,
+
+            '4' => 'link&year='.$year,
+            '4_tourend' => 'link&year='.$year,
+
+            '5' => 'link&year='.$year,
+            '5_tourend' => 'link&year='.$year,
+        ];
+        $links_day_count = [
+            '1-4' => 'link&year='.$year,
+            '1-4_tourend' => 'link&year='.$year,
+
+            '5-10' => 'link&year='.$year,
+            '5-10_tourend' => 'link&year='.$year,
+
+            '11-15' => 'link&year='.$year,
+            '11-15_tourend' => 'link&year='.$year,
+
+            '16-20' => 'link&year='.$year,
+            '16-20_tourend' => 'link&year='.$year,
+
+            '21-100' => 'link&year='.$year,
+            '21-100_tourend' => 'link&year='.$year,
+        ];
+        $links_pax_count = [
+            '1' => 'link&year='.$year,
+            '1_tourend' => 'link&year='.$year,
+
+            '2' => 'link&year='.$year,
+            '2_tourend' => 'link&year='.$year,
+
+            '3' => 'link&year='.$year,
+            '3_tourend' => 'link&year='.$year,
+
+            '4-5' => 'link&year='.$year,
+            '4-5_tourend' => 'link&year='.$year,
+
+            '6-8' => 'link&year='.$year,
+            '6-8_tourend' => 'link&year='.$year,
+
+            '9-50' => 'link&year='.$year,
+            '9-50_tourend' => 'link&year='.$year,
+        ];
+        $links_req_travel = [
+            'Family' => 'link&year='.$year,
+            'Family_tourend' => 'link&year='.$year,
+
+            'Couple' => 'link&year='.$year,
+            'Couple_tourend' => 'link&year='.$year,
+
+            'Friends' => 'link&year='.$year,
+            'Friends_tourend' => 'link&year='.$year,
+
+            'Group' => 'link&year='.$year,
+            'Group_tourend' => 'link&year='.$year,
+
+            'Business' => 'link&year='.$year,
+            'Business_tourend' => 'link&year='.$year,
+
+            'Other' => 'link&year='.$year,
+            'Other_tourend' => 'link&year='.$year,
+        ];
+        $link_destinations = [
+            'vn' => 'link&year='.$year,
+            'vn_tourend' => 'link&year='.$year,
+            'la' => 'link&year='.$year,
+            'la_tourend' => 'link&year='.$year,
+            'kh' => 'link&year='.$year,
+            'kh_tourend' => 'link&year='.$year,
+            'vn|kh' => 'link&year='.$year,
+            'vn|kh_tourend' => 'link&year='.$year,
+            'la|kh' => 'link&year='.$year,
+            'la|kh_tourend' => 'link&year='.$year,
+            'vn|la' => 'link&year='.$year,
+            'vn|la_tourend' => 'link&year='.$year,
+            'th|la' => 'link&year='.$year,
+            'th|la_tourend' => 'link&year='.$year,
+            'th|kh' => 'link&year='.$year,
+            'th|kh_tourend' => 'link&year='.$year,
+            'vn|kh|mm' => 'link&year='.$year,
+            'vn|kh|mm_tourend' => 'link&year='.$year,
+            'vn|la|kh' => 'link&year='.$year,
+            'vn|la|kh_tourend' => 'link&year='.$year,
+            'vn|mm ' => 'link&year='.$year,
+            'vn|mm_tourend' => 'link&year='.$year,
+            'kh|mm' => 'link&year='.$year,
+            'kh|mm_tourend' => 'link&year='.$year,
+            'la|mm' => 'link&year='.$year,
+            'la|mm_tourend' => 'link&year='.$year,
+            'vn|la|mm' => 'link&year='.$year,
+            'vn|la|mm_tourend' => 'link&year='.$year,
+            'la|kh|mm' => 'link&year='.$year,
+            'la|kh|mm_tourend' => 'link&year='.$year,
+            'mm' => 'link&year='.$year,
+            'mm_tourend' => 'link&year='.$year,
+            'th' => 'link&year='.$year,
+            'th_tourend' => 'link&year='.$year,
+        ];
+        $link_france_ids = [
+            '13' => 'link&year='.$year,
+            '13_tourend' => 'link&year='.$year,
+            '5246' => 'link&year='.$year,
+            '5246_tourend' => 'link&year='.$year,
+        ];
+
+        $totalCases = [];
+        $totalCasesEndDate = [];
+        $totalCasesLostEndDate = [];
+        $totalCasesWonEndDate = [];
+        $totalCasesWonPc = [];
+        $cases_ao = Kase::find()
+                ->with([
+                    'owner'=>function($query) {
+                        return $query->select(['id', 'name']);
+                    },
+                ])
+                ->where('is_b2b = "no" AND owner_id=4829')//USER_ID/4829
+                ->andWhere(['YEAR(ao)' => $year])
+                ->innerJoinWith('stats')->asArray()->all();
+        if (!$cases_ao) {
+            // throw new HttpException(403,"Not found any case ao");
+        }
+        $cases_t_end = Kase::find()->select(['*'])
+                ->with([
+                    'bookings',
+                    'bookings.product',
+                    'bookings.payments',
+                    'bookings.report',
+                ])
+                ->where(['is_b2b' => "no", 'YEAR(tour_end_date)' => $year, 'owner_id' => 4829])//USER_ID/4829
+                ->innerJoinWith('stats')->asArray()->all();
+        if (!$cases_t_end) {
+            // throw new HttpException(403,"Not found any case end date");
+        }
+
+        $totalDoanhThu_c = [];
+        $totalChiPhi_c = [];
+        $totalLaiGop_c = [];
+        $totalPc_c_dt = [];
+        $totalPc_c_cp = [];
+        $totalDay_c = [];
+        $totalPax_c = [];
+
+
+        //count table 3->10
+        $totalCases_howFound = [];
+        $totalCases_howcontacted = [];
+        $totalCases_prospect = [];
+        $totalCases_dayCount = [];
+        $totalCases_paxCount = [];
+        $totalCases_reqTravelType = [];
+        $totalCases_end_date = [];
+        $totalCases_destination = [];
+        $totalCases_cofr_france = [];
+
+        //total count
+        $totalCases_statusInMonth = [];
+
+        $rates = 1.14;
+        
+
+        $cofr_ids = [];
+        foreach ($cases_ao as $case) {
+            $m = intVal(date('m',strtotime($case['ao'])));
+            $totalCases[$year][$m][] = $case['id'];
+            // how found
+            $category_howfound = $case['how_found'];
+            if (strpos($category_howfound, 'referred') !== false ) {
+                $category_howfound = 'referred';
+            }
+            $totalCases_howFound[$year][$m][$category_howfound][] = $case['id'];
+            $k_stype = 'how_found:'.$category_howfound;
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            //how contacted
+            $category_howcontacted = $case['how_contacted'];
+            $totalCases_howcontacted[$year][$m][$category_howcontacted][] = $case['id'];
+            $k_stype = 'how_contacted:'.$category_howcontacted;
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            //how contacted
+            $category_prospect = $case['stats']['prospect'];
+            $totalCases_prospect[$year][$m][$category_prospect][] = $case['id'];
+            $k_stype = 'prospect:'.$category_prospect;
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            //days tour
+            if (isset($case['stats']['day_count']) && $case['stats']['day_count'] != '') {
+                foreach ($links_day_count as $key => $value) {
+                    if (strpos($key, '_') !== false) {
+                        continue;
+                    }
+                    $day = explode('-', $key);
+                    if ($day[0] <= $case['stats']['day_count_max'] && $day[1] >= $case['stats']['day_count_min']) {
+                        $totalCases_dayCount[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'day_count:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+            }
+            //pax tour
+            if (isset($case['stats']['pax_count']) && $case['stats']['pax_count'] != '') {
+                foreach ($links_pax_count as $key => $value) {
+                    if (strpos($key, '_') !== false) {
+                        continue;
+                    }
+                    $pax = explode('-', $key);
+                    if (count($pax) == 1) {
+                        if ($pax[0] <= $case['stats']['pax_count_max'] && $pax[0] >= $case['stats']['pax_count_min']) {
+                           $totalCases_paxCount[$year][$m][$key][] = $case['id'].' / '.$case['stats']['pax_count'];
+                           $k_stype = 'pax_count:'.$key;
+                            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                        }
+                    } else {
+                        if ($pax[0] <= $case['stats']['pax_count_max'] && $pax[1] >= $case['stats']['pax_count_min']) {
+                           $totalCases_paxCount[$year][$m][$key][] = $case['id'].' / '.$case['stats']['pax_count'];
+                           $k_stype = 'pax_count:'.$key;
+                            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                        }
+                    }
+                }
+            }
+            //request travel type
+            if (isset($case['stats']['req_travel_type'])) {//
+                $req_trave = $case['stats']['req_travel_type'];
+                if ($req_trave == '') {
+                    $req_trave = 'Other';
+                }
+                foreach ($links_req_travel as $key => $value) {
+                    if (strpos($key, '_') !== false) {
+                        continue;
+                    }
+                    if (strpos($req_trave, $key) !== false) {
+                        $totalCases_reqTravelType[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'req_travel_type:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+            }
+            //theo điểm đến
+            if (isset($case['stats']['req_countries'])) {//
+                $req_countries_str = strtolower(str_replace([' ', ','], ['','|'],$case['stats']['req_countries']));
+
+                foreach ($link_destinations as $key => $value) {
+                    if (strpos($key, '_') !== false) {
+                        continue;
+                    }
+                    $arr_des = explode('|', strtolower($key));
+                    $req_countries_arr = array_unique(explode('|', $req_countries_str));
+                    $valid = (count( $arr_des ) == count( $req_countries_arr ) && !array_diff( $arr_des , $req_countries_arr ) ? true : false);
+                    if ($valid) {
+                        $totalCases_destination[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'req_countries:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+            }
+            // theo nguoi tư vấn
+            if ($case['cofr'] > 0) {
+                foreach ($link_france_ids as $key => $value) {
+                    if (strpos($key, '_') !== false) {
+                        continue;
+                    }
+                    if ($key == $case['cofr']) {
+                        $totalCases_cofr_france[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'cofr:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                        // get owner info
+                        $cofr_ids[] = $case['cofr'];
+                    }
+                }
+
+            }
+
+            //theo thang ket thuc
+            if (date('Y',strtotime($case['stats']['tour_end_date'])) == $year) {
+                $month_end_dt = intVal(date('m',strtotime($case['stats']['tour_end_date'])));
+                $totalCases_end_date[$year][$m][$month_end_dt][] = $case['id'];
+                $k_stype = 'tour_end_date:'.$month_end_dt;
+                $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            }
+
+
+        }
+        //case end date
+        foreach ($cases_t_end as $case) {
+            $y = $year;
+            $m = intVal(date('m',strtotime($case['tour_end_date'])));
+            $totalCasesEndDate[$y][$m][] = $case['id'];
+            $k_stype = 'total_tour_end_date:';
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            // how found tour end
+            $category_howfound = $case['how_found'];
+            if (strpos($category_howfound, 'referred') !== false ) {
+                $category_howfound = 'referred';
+            }
+            $totalCases_howFound[$y][$m][$category_howfound . '_tourend'][] = $case['id'];
+            $k_stype = 'how_found:'.$category_howfound . '_tourend';
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            //how contacted tour end
+            $category_howcontacted = $case['how_contacted'];
+            $totalCases_howcontacted[$year][$m][$category_howcontacted . '_tourend'][] = $case['id'];
+            $k_stype = 'how_contacted:'.$category_howcontacted . '_tourend';
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+            //prospect tour end
+            $category_prospect = $case['stats']['prospect'];
+            $totalCases_prospect[$year][$m][$category_prospect . '_tourend'][] = $case['id'];
+            $k_stype = 'prospect:'.$category_prospect . '_tourend';
+            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+
+
+            //days tour
+            if (isset($case['stats']['day_count']) && $case['stats']['day_count'] != '') {
+                foreach ($links_day_count as $key => $value) {
+                    if (strpos($key, '_') === false) {
+                        continue;
+                    }
+                    $r_key = str_replace('_tourend', '', $key);
+                    $day = explode('-', $r_key);
+                    if ($day[0] <= $case['stats']['day_count_max'] && $day[1] >= $case['stats']['day_count_min']) {
+                       $totalCases_dayCount[$year][$m][$key][] = $case['id'];
+                       $k_stype = 'day_count:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+            }
+
+            //pax tour
+            if (isset($case['stats']['pax_count']) && $case['stats']['pax_count'] != '') {
+                foreach ($links_pax_count as $key => $value) {
+                    if (strpos($key, '_') === false) {
+                        continue;
+                    }
+                    $r_key = str_replace('_tourend', '', $key);
+                    $pax = explode('-', $r_key);
+                    if (count($pax) == 1) {
+                        if ($pax[0] <= $case['stats']['pax_count_max'] && $pax[0] >= $case['stats']['pax_count_min']) {
+                           $totalCases_paxCount[$year][$m][$key][] = $case['id'].' / '.$case['stats']['pax_count'];
+                           $k_stype = 'pax_count:'.$key;
+                            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                        }
+                    } else {
+                        if ($pax[0] <= $case['stats']['pax_count_max'] && $pax[1] >= $case['stats']['pax_count_min']) {
+                            $totalCases_paxCount[$year][$m][$key][] = $case['id'].' / '.$case['stats']['pax_count'];
+                            $k_stype = 'pax_count:'.$key;
+                            $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                        }
+                    }
+                }
+            }
+
+            //request travel type
+            if (isset($case['stats']['req_travel_type'])) {//
+                $req_trave = $case['stats']['req_travel_type'];
+                if ($req_trave == '') {
+                    $req_trave = 'Other';
+                }
+                foreach ($links_req_travel as $key => $value) {
+                    if (strpos($key, '_') === false) {
+                        continue;
+                    }
+                    $r_key = str_replace('_tourend', '', $key);
+                    if (strpos($req_trave, $r_key) !== false) {
+                        $totalCases_reqTravelType[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'req_travel_type:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+            }
+
+            //theo điểm đến
+            if (isset($case['stats']['req_countries'])) {
+                $req_countries_str = strtolower(str_replace([' ', ','], ['','|'],$case['stats']['req_countries']));
+
+                foreach ($link_destinations as $key => $value) {
+                    if (strpos($key, '_') === false) {
+                        continue;
+                    }
+                    $r_key = str_replace('_tourend', '', $key);
+                    $arr_des = explode('|', strtolower($r_key));
+                    $req_countries_arr = array_unique(explode('|', $req_countries_str));
+                    $valid = (count( $arr_des ) == count( $req_countries_arr ) && !array_diff( $arr_des , $req_countries_arr ) ? true : false);
+                    if ($valid) {
+                        $totalCases_destination[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'req_countries:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+            }
+
+            // theo nguoi tư vấn
+            if ($case['cofr'] > 0) {
+                foreach ($link_france_ids as $key => $value) {
+                    if (strpos($key, '_') === false) {
+                        continue;
+                    }
+                    $r_key = str_replace('_tourend', '', $key);
+                    if ($r_key == $case['cofr']) {
+                        $totalCases_cofr_france[$year][$m][$key][] = $case['id'];
+                        $k_stype = 'cofr:'.$key;
+                        $totalCases_statusInMonth[$year][$m][$k_stype][$case['deal_status']][] = $case['id'];
+                    }
+                }
+
+            }
+
+
+            if ($case['deal_status'] == 'lost') {
+                $totalCasesLostEndDate[$y][$m][] = $case['id'];
+            }
+            if ($case['deal_status'] == 'won') {
+                $totalCasesWonEndDate[$y][$m][] = $case['id'];
+                if ($case['bookings'] ) {
+                    foreach ($case['bookings'] as $booking) {
+                        if ($booking['status'] == 'won' && $booking['payments']) {
+                            foreach ($booking['payments'] as $payment) {
+                                if (intval($payment['amount']) > 0) {
+                                    $totalCasesWonPc[$y][$m][] = $case['id'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    foreach ($case['bookings'] as $booking) {
+                        if ($booking['report']) {
+                            $ngay = $booking['report']['day_count'];
+                            $pax = $booking['report']['pax_count'];
+                            if ($booking['report']['price_unit'] == 'USD') {
+                                $doanhThu = $booking['report']['price'] / $rates;
+                                $chiPhi = $booking['report']['cost'] / $rates;
+                            } else {
+                                $doanhThu = $booking['report']['price'];
+                                $chiPhi = $booking['report']['cost'];
+                            }
+                            $totalDoanhThu_c[$y][$m][] = $doanhThu;
+                            $totalChiPhi_c[$y][$m][] = $chiPhi;
+                            $totalLaiGop_c[$y][$m][] = $laiGop = $doanhThu - $chiPhi;
+                            $totalPc_c_dt[$y][$m][] = $doanhThu == 0 ? 0 : 100 * $laiGop / $doanhThu;
+                            $totalPc_c_cp[$y][$m][] = $doanhThu == 0 ? 0 : 100 * $laiGop / $chiPhi;
+                            $totalDay_c[$y][$m][] = $ngay;
+                            $totalPax_c[$y][$m][] = $pax;
+                        }
+                    }
+                }
+            }
+        }
+        $bookings = Booking::find()
+            ->select([
+                'at_bookings.created_by', 'at_bookings.updated_by', 
+                'at_bookings.id', 'at_bookings.pax', 'at_bookings.currency', 'at_bookings.status_dt', 'at_bookings.case_id', 'at_bookings.product_id', 'at_bookings.updated_by', 'at_bookings.note',
+                'start_date'=>'at_ct.day_from', 'end_date'=>new \yii\db\Expression('IF(day_count=0, day_from, DATE_ADD(day_from, INTERVAL at_ct.day_count-1 DAY))')])
+            ->innerJoinWith(['product'])
+            ->innerJoinWith(['case'])
+            ->andWhere([
+                'at_bookings.status'=>'won',
+                'at_ct.op_status'=>'op',
+                'YEAR(at_bookings.status_dt)'=> $year,
+                ])->with([
+                'report',
+                'product',
+                'case'=>function($query) {
+                    return $query->select(['id', 'name', 'owner_id', 'is_b2b']);
+                },
+                'case.owner'=>function($query) {
+                    return $query->select(['id', 'name']);
+                }
+                ])
+                ->andWhere(['at_cases.owner_id' => 4829])
+                ->asArray() ->all();
+        if (!$bookings) {
+            // throw new HttpException(403,"Not found any booking");
+        }
+        $totalBookings = [];
+        $totalDoanhThu = [];
+        $totalChiPhi = [];
+        $totalLaiGop = [];
+        $totalPc = [];
+        $totalDay = [];
+        $totalPax = [];
+        
+        foreach ($bookings as $booking) {
+            $y = intVal($year);
+            $m = intVal(date('m',strtotime($booking['status_dt'])));
+            $totalBookings[$y][$m][]  = $booking['id'];
+            if ($booking['report'] && $booking['product']['op_status'] != 'canceled') {
+                $ngay = $booking['report']['day_count'];
+                $pax = $booking['report']['pax_count'];
+                if ($booking['report']['price_unit'] == 'USD') {
+                    $doanhThu = $booking['report']['price'] / $rates;
+                    $chiPhi = $booking['report']['cost'] / $rates;
+                } else {
+                    $doanhThu = $booking['report']['price'];
+                    $chiPhi = $booking['report']['cost'];
+                }
+                $totalDoanhThu[$y][$m][] = $doanhThu;
+                $totalChiPhi[$y][$m][] = $chiPhi;
+                $totalLaiGop[$y][$m][] = $laiGop = $doanhThu - $chiPhi;
+                $totalPc[$y][$m][] = $doanhThu == 0 ? 0 : 100 * $laiGop / $doanhThu;
+                $totalDay[$y][$m][] = $ngay;
+                $totalPax[$y][$m][] = $pax;
+            }
+        }
+        $cntInMonth = [];
+        for ($mo = 1; $mo <= 12 ; $mo++) {
+            //count case
+            $total_cnt_case = (isset($totalCases[$year][$mo]))? $totalCases[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_total'] = count($total_cnt_case);
+            //count booking
+            $total_cnt_booking = (isset($totalBookings[$year][$mo]))? $totalBookings[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['b_total'] = count($total_cnt_booking);
+            // doanh thu
+            $total_dt = (isset($totalDoanhThu[$year][$mo]))? $totalDoanhThu[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['dt_total'] = number_format(array_sum($total_dt), 0) . ' <span class="text-muted">EUR</span>';
+            // chi phi
+            $total_cp = (isset($totalChiPhi[$year][$mo]))? $totalChiPhi[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['cp_total'] = number_format(array_sum($total_cp), 0). ' <span class="text-muted">EUR</span>';;
+            //lai gop
+            $total_lg = (isset($totalLaiGop[$year][$mo]))? $totalLaiGop[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['lg_total'] = number_format(array_sum($total_lg), 0). ' <span class="text-muted">EUR</span>';;
+            
+            // ty le lai gop
+            $total_pc = (isset($totalPc[$year][$mo]))? $totalPc[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['pc_total'] = number_format(array_sum($total_pc), 0);
+            // tong so ngay
+            $total_day = (isset($totalDay[$year][$mo]))? $totalDay[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['day_total'] = array_sum($total_day);
+            // tong to pax
+            $total_pax = (isset($totalPax[$year][$mo]))? $totalPax[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['pax_total'] = array_sum($total_pax);
+
+
+
+
+            // tong ho so theo thang ket thuc
+            $total_case_end_dt = (isset($totalCasesEndDate[$year][$mo]))? $totalCasesEndDate[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_end_dt_total'] = count($total_case_end_dt);
+            // Ho so lost
+            $total_c_lost = (isset($totalCasesLostEndDate[$year][$mo]))? $totalCasesLostEndDate[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_lost_total'] = count($total_c_lost);
+            // Ho so won
+            $total_c_won = (isset($totalCasesWonEndDate[$year][$mo]))? $totalCasesWonEndDate[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_won_total'] = count($total_c_won);
+            // ty le ho so won
+            $total_c_won_pc = (isset($totalCasesWonPc[$year][$mo]))? $totalCasesWonPc[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_won_pc_total'] = count($total_c_won_pc);
+            //paxs cases won
+            $total_c_pax = (isset($totalPax_c[$year][$mo]))? $totalPax_c[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_pax_total'] = array_sum($total_c_pax);
+            // days cases won
+            $total_c_day = (isset($totalDay_c[$year][$mo]))? $totalDay_c[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_day_total'] = array_sum($total_c_day);
+            // doanh thu case won
+            $total_c_dt = (isset($totalDoanhThu_c[$year][$mo]))? $totalDoanhThu_c[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_dt_total'] = number_format(array_sum($total_c_dt), 0). ' <span class="text-muted">EUR</span>';
+            // chi phi case won
+            $total_c_cp = (isset($totalChiPhi_c[$year][$mo]))? $totalChiPhi_c[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_cp_total'] = number_format(array_sum($total_c_cp), 0). ' <span class="text-muted">EUR</span>';
+            // lai gop case won
+            $total_c_laiGop = (isset($totalLaiGop_c[$year][$mo]))? $totalLaiGop_c[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_laigop_total'] = number_format(array_sum($total_c_laiGop), 0). ' <span class="text-muted">EUR</span>';
+            // lai gop case won
+            $total_c_laiGop_dt = (isset($totalPc_c_dt[$year][$mo]))? $totalPc_c_dt[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_ltdt_total'] = number_format(array_sum($total_c_laiGop_dt), 0);
+            // lai gop case won
+            $total_c_laiGop_cp = (isset($totalPc_c_cp[$year][$mo]))? $totalPc_c_cp[$year][$mo]: [];
+            $cntInMonth[$year][$mo]['c_lgcp_total'] = number_format(array_sum($total_c_laiGop_cp), 0);
+
+
+            // phan loai khach
+            foreach ($links_howfound as $key => $name) {
+                $cntInMonth[$year][$mo][$key] = 0;
+                if (!isset($totalCases_howFound[$year][$mo][$key])) {
+                     $totalCases_howFound[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo][$key] = count($totalCases_howFound[$year][$mo][$key]);
+            }
+            // phan loai nguon liên hệ
+            foreach ($links_howcontacted as $key => $name) {
+                $cntInMonth[$year][$mo][$key] = 0;
+                if (!isset($totalCases_howcontacted[$year][$mo][$key])) {
+                     $totalCases_howcontacted[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo][$key] = count($totalCases_howcontacted[$year][$mo][$key]);
+            }
+            // phan loai prospect
+            foreach ($links_prospect as $key => $name) {
+                $cntInMonth[$year][$mo]['prospect_' . $key] = 0;
+                if (!isset($totalCases_prospect[$year][$mo][$key])) {
+                     $totalCases_prospect[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo]['prospect_' . $key] = count($totalCases_prospect[$year][$mo][$key]);
+            }
+            // phan loai day tour
+            foreach ($links_day_count as $key => $name) {
+                $cntInMonth[$year][$mo][$key] = 0;
+                if (!isset($totalCases_dayCount[$year][$mo][$key])) {
+                     $totalCases_dayCount[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo][$key] = count($totalCases_dayCount[$year][$mo][$key]);
+            }
+            // phan loai pax tour
+            foreach ($links_pax_count as $key => $name) {
+                $cntInMonth[$year][$mo]['pax_' . $key] = 0;
+                if (!isset($totalCases_paxCount[$year][$mo][$key])) {
+                     $totalCases_paxCount[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo]['pax_' . $key] = count($totalCases_paxCount[$year][$mo][$key]);
+            }
+            // phan loai khach
+            foreach ($links_req_travel as $key => $name) {
+                $cntInMonth[$year][$mo][$key] = 0;
+                if (!isset($totalCases_reqTravelType[$year][$mo][$key])) {
+                     $totalCases_reqTravelType[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo][$key] = count($totalCases_reqTravelType[$year][$mo][$key]);
+            }
+            // phan loai theo tháng kêt thúc
+           for ($m_end = 1; $m_end <= 12 ; $m_end++) {
+                $cntInMonth[$year][$mo]['tour_end_mo_' . $m_end] = 0;
+                if (!isset($totalCases_end_date[$year][$mo][$m_end])) {
+                     $totalCases_end_date[$year][$mo][$m_end] = [];
+                }
+                $cntInMonth[$year][$mo]['tour_end_mo_' . $m_end] = count($totalCases_end_date[$year][$mo][$m_end]);
+            }
+            // theo điêm đến
+            foreach ($link_destinations as $key => $value) {
+                $cntInMonth[$year][$m][$key] = 0;
+                if (!isset($totalCases_destination[$year][$mo][$key])) {
+                     $totalCases_destination[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo][$key] = count($totalCases_destination[$year][$mo][$key]);
+            }
+            //theo tư vấn pháp
+            //
+            foreach ($link_france_ids as $key => $value) {
+                $cntInMonth[$year][$m][$key] = 0;
+                if (!isset($totalCases_cofr_france[$year][$mo][$key])) {
+                     $totalCases_cofr_france[$year][$mo][$key] = [];
+                }
+                $cntInMonth[$year][$mo][$key] = count($totalCases_cofr_france[$year][$mo][$key]);
+            }
+        }
+        $cofrList = Person::find()->select('id, nickname')->where(['id' => array_unique($cofr_ids)])->indexBy('id')->asArray()->all();
+        return $this->render('reports_index', [
+            'indexList1' => $indexList1,
+            'indexList2' => $indexList2,
+            'year'=>$year,
+            'result' => $cntInMonth,
+            'links_howfound' => $links_howfound,
+            'links_howcontacted' => $links_howcontacted,
+            'links_prospect' => $links_prospect,
+            'links_day_count' => $links_day_count,
+            'links_pax_count' => $links_pax_count,
+            'links_req_travel' => $links_req_travel,
+            'link_destinations' => $link_destinations,
+            'link_france_ids' => $link_france_ids,
+            'totalCases_statusInMonth' => $totalCases_statusInMonth,
+            'cofrList' => $cofrList
+        ]);
+    }
+
+
+
+
+
+
     public function actionOver_view($id = 0)
     {
         $theVenue = Venue::findOne($id);

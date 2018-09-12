@@ -25,7 +25,7 @@ $info = $_GET;
 ?>
 <div class="col-md-12">
 	<div class ="search">
-		<div id="wrap_search" class="hidden">
+		<div id="wrap_search" class="d-none">
 			<form method="get" action="" class="form-horizontal panel-search">
 				<div class="col-md-12">
 					<div class="form-group">
@@ -220,7 +220,7 @@ $info = $_GET;
 		</div>
 		<div class="clearfix"></div>
 		<p><strong>CASE IN MONTH VIEW</strong></p>
-		<ul class="nav nav-tabs mb-1em click_tab" data-tabs="tabs" id="btn-group">
+		<ul class="nav nav-tabs mb-1em click_tab" data-tabs="tabs" id="btn-group"> 
 			<? for ($yr = $minYear; $yr <= $maxYear; $yr ++) { ?>
 			<li class="<?= $yr == date('Y') ? 'active' : ''?>"><a data-toggle="tab" href="#year<?= $yr ?>"><?= $yr ?></a></li>
 			<? } ?>

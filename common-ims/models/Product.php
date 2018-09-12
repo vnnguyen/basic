@@ -103,6 +103,10 @@ class Product extends MyActiveRecord
     {
         return $this->hasMany(TourGuide2::className(), ['tour_id'=>'id']);
     }
+    public function getDrivers()
+    {
+        return $this->hasMany(TourDriver::className(), ['tour_id'=>'id']);
+    }
 
     public function getMetas()
     {
