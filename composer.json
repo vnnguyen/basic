@@ -1,9 +1,10 @@
 {
 	"require": {
-		"php": ">=5.4.0",
-		"yiisoft/yii2": "~2.0.14",
+        "php": ">=5.4.0",
+        "yidas/yii2-bower-asset": "~2.0.5",
+        "yiisoft/yii2": "~2.0.8",
+        "yiisoft/yii2-bootstrap": "~2.1.0@dev",
 		"yiisoft/yii2-authclient": "~2.0.0",
-		"yiisoft/yii2-bootstrap": "~2.1.0@dev",
 		"yiisoft/yii2-debug": "~2.0.0",
 		"yiisoft/yii2-imagine": "~2.0.0",
 		"yiisoft/yii2-swiftmailer": "~2.0.0",
@@ -21,16 +22,22 @@
 
 		"creocoder/yii2-nested-sets": "^0.9.0",
 		"creocoder/yii2-taggable": "^2.0",
-		"phpoffice/phpexcel": "^1.8",
-		"moonlandsoft/yii2-phpexcel": "*",
 		"kartik-v/yii2-widget-fileinput": "@dev",
 		"phpoffice/phpspreadsheet": "^1.1",
 		"mpdf/mpdf": "^7.0"
 	},
-	"extra": {
-		"asset-installer-paths": {
-			"npm-asset-library": "vendor/npm",
-			"bower-asset-library": "vendor/bower"
-		}
-	}
+	"scripts": {
+        "post-package-install": [
+             "yidas\\yii2BowerAsset\\Installer::clone"
+        ],
+        "post-package-update": [
+             "yidas\\yii2BowerAsset\\Installer::clone"
+        ]
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
 }

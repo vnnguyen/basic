@@ -90,7 +90,7 @@ if ($action == 'edit') {
                         <li>Giá xe miền Bắc (VND) sẽ dùng trong trang in ở bước tiếp theo</li>
                         <li>Ở bảng chi tiết dưới đây, click <i class="fa fa-plus"></i> để copy dòng xuống dưới (vd trường hợp một ngày có nhiều mức giá)</li>
                         <li>Trường hợp đơn vị tính là "chặng" thì ĐH tự nhập giá của chặng.</li>
-                    </ul>                    
+                    </ul>
                 </div>
                 <div class="col-md-6">
                     <? if (empty($theLichxes)) { ?>
@@ -335,11 +335,11 @@ foreach ($dayIdList as $id) {
                                 if (substr($day['body'], 0, 1) == '<') {
                                     echo $day['body'];
                                 } else {
-                                    echo $parser->parse($day['body']);
+                                    //echo $parser->parse($day['body']);
                                 }
                                 ?>
                                 </div>
-                            </div>    
+                            </div>
                         </td>
                     </tr>
                 <?
@@ -362,6 +362,7 @@ foreach ($kmTable as $line) {
 $js .= PHP_EOL.'];';
 
 $js .= <<<'TXT'
+console.log(kmTable);
 var autocompleteOptions = {
     minLength: 0,
     source: kmTable,

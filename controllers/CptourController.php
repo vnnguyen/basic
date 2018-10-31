@@ -3,7 +3,7 @@
 namespace app\controllers;
 
 use Yii;
-use app\models\CpTour;
+use common\models\CpTour;
 use common\models\Venue;
 use app\models\Dv;
 use app\models\Cp;
@@ -24,6 +24,7 @@ class CptourController extends MyController
 {
     public function actionCost($id = 0)
     {
+        // die('ok');
         $theTour = Product::find()->where(['id' => $id])->with(['days'])->one();
         if (!$theTour) {
             throw new HttpException(404, "Product not found");
@@ -48,6 +49,7 @@ class CptourController extends MyController
         if (Yii::$app->request->isAjax) {
             $tour_id = $_POST['tour_id'];
             $venue_id = $_POST['venue_id'];
+            $_POST['use_day'] = str_replace(' ', '', $_POST['use_day']);
             foreach ($_POST['cpt_id'] as $k => $cpt_id) {
                 if ($cpt_id == '') {
                     $model = new CpTour;
@@ -57,7 +59,7 @@ class CptourController extends MyController
                     $model->qty = $_POST['qty'][$k];
                     $model->plusminus = $_POST['plusminus'][$k];
                     $model->currency = $_POST['currency'][$k];
-                    $model->use_day = $_POST['use_day'][$k];
+                    $model->use_dt = $_POST['use_day'][$k];
                     $model->num_day = $_POST['num_day'][$k];
                     $model->price = str_replace(',', '', $_POST['price'][$k]);
                     if (!$model->save(false)) {
@@ -73,7 +75,7 @@ class CptourController extends MyController
                     $cpt_updated->qty = $_POST['qty'][$k];
                     $cpt_updated->plusminus = $_POST['plusminus'][$k];
                     $cpt_updated->currency = $_POST['currency'][$k];
-                    $cpt_updated->use_day = $_POST['use_day'][$k];
+                    $cpt_updated->use_dt = $_POST['use_day'][$k];
                     $cpt_updated->num_day = $_POST['num_day'][$k];
                     $cpt_updated->price = str_replace(',', '', $_POST['price'][$k]);
                     // save and add or update options
@@ -151,20 +153,45 @@ class CptourController extends MyController
         }
         return json_encode(['err' => 'delete fail!']);
     }
-    public function actionSearch_ncc($q,$page){
+    public function actionSearch_ncc($search, $page, $pageSize = 20){
         if (Yii::$app->request->isAjax) {
-            $data_ncc = $query = Venue::find()->andWhere(['LIKE', 'name', $q]);
-            $resultCount = 200;
-            $offset = ($page - 1) * $resultCount;
-            $data_ncc = $data_ncc->offset($offset)->limit($resultCount)->asArray()->all();
+            $query = Venue::find()->andWhere(['LIKE', 'name', $search]);
+            $data_ncc = clone $query;
             $count = count($query->all());
+            $resultCount = $pageSize;
+            $offset = $page* $resultCount;//($page - 1) * $resultCount;
+            $data_ncc = $data_ncc->offset($offset)->limit($resultCount)->asArray()->all();
+
             $endCount = $offset + $resultCount;
             $morePages = $count > $endCount;
             $results = [
-              "items" => $data_ncc,
-              'total_count' => $count
+              "suggestions" => $data_ncc,
+              'total' => $count,
+              'search' => $search
             ];
-            echo json_encode($results);
+            return json_encode($results);
+        }
+    }
+    public function actionSearch_ncc_fb($q, $p, $s){
+        if (Yii::$app->request->isAjax) {
+            // var_dump($_GET);die;
+            $query = Venue::find()->andWhere(['LIKE', 'name', $q]);
+            $data_ncc = clone $query;
+            $count = count($query->asArray()->all());
+            $resultCount = $s;
+            $offset = ($p - 1) * $resultCount;//($page - 1) * $resultCount;
+            $data_ncc = $data_ncc->offset($offset)->limit($resultCount)->asArray()->all();
+            foreach ($data_ncc as $key => $ncc) {
+                //https://secure.gravatar.com/avatar/679185b8d4c3ad74555f48ca99fa86bf?d=wavatar
+                if ($ncc['image'] == '') {
+                    $data_ncc[$key]['image'] = 'https://secure.gravatar.com/avatar/679185b8d4c3ad74555f48ca99fa86bf?d=wavatar';
+                }
+            }
+            $results = [
+              "results" => $data_ncc,
+              "total" => $count
+            ];
+            return json_encode($results);
         }
     }
 
@@ -186,17 +213,13 @@ class CptourController extends MyController
             ->with(['venue'])
             ->where(['id' => $cpt_id])
             ->one();
+
+
         $venue = $cpt['venue'];
+        // var_dump($venue);die;
         if ($cpt == null) {
             return json_encode(['err' => 'cpt null']);
         }
-        $cpts = CpTour::find()
-            ->with([
-                'dv',
-            ])
-            ->where(['venue_id' => $venue['id']])
-            ->orderBy('use_day')
-            ->all();
         $query_dv = Dv::find()
             ->with([
                 'cp',
@@ -204,7 +227,7 @@ class CptourController extends MyController
             ->where(['venue_id' => $venue['id']])->andWhere('status != "deleted"');
         $dv = $query_dv->andWhere(['is_dependent' => 'no'])->asArray()->all();
         return json_encode([
-            'cpts' => ArrayHelper::toArray($cpts),
+            'cpt' => ArrayHelper::toArray($cpt),
             'venue' => ArrayHelper::toArray($venue),
             'dvs' => $dv
         ]);
@@ -295,6 +318,58 @@ class CptourController extends MyController
             } else {
                 return json_encode(['err' => 'dvc is null']);
             }
+        }
+    }
+
+    public function actionCpt_ajax()
+    {
+        if (Yii::$app->request->isAjax) {
+            $_POST['dt_from'] = str_replace(' - ', '-', $_POST['dt_from']);
+            $stype_cp = $_POST['stype_data'];
+            if ($_POST['cpt_id'] == '') {
+                $model = new CpTour;
+                //$ncc = $_POST['cptour-ncc_id']
+                $model->tour_id = $_POST['tour_id'];
+                $model->dv_name = $_POST['services'];
+                // $model->style = $_POST['style'];
+                $model->use_dt = $_POST['dt_from'];
+                $model->qty = $_POST['qty'];
+                $model->price = $_POST['price'];
+                // $model->currency = $_POST['currency'];
+                $model->stype_cp = $stype_cp;
+                //$model->amount = $_POST['amount'];
+                if (!$model->save(false)) {
+                    return json_encode(['err' => $model->errors]);
+                }
+            } else {
+                $cpt_updated = CpTour::findOne($_POST['cpt_id']);
+                if ($cpt_updated == null) {
+                    return json_encode(['err' => 'cpt not found']);
+                }
+                $cpt_updated->dv_name = $_POST['services'];
+                // $cpt_updated->style = $_POST['style'];
+                $cpt_updated->use_dt = $_POST['dt_from'];
+                $cpt_updated->qty = $_POST['qty'];
+                $cpt_updated->price = $_POST['price'];
+                // $cpt_updated->currency = $_POST['currency'];
+                // save and add or update options
+                if (!$cpt_updated->save(false)) {
+                    return json_encode(['err' => $cpt_updated->errors]);
+                }
+            }
+            //return all days and cpts
+            $cpts = CpTour::find()
+                ->with([
+                    'venue',
+                    'dv'
+                ])
+                ->where([
+                    'tour_id' => $_POST['tour_id'],
+                    'stype_cp' => $stype_cp])->asArray()->all();
+            return json_encode([
+                'cpts' => $cpts,
+                // 'days' => ArrayHelper::toArray($allDays),
+                ]);
         }
     }
 }

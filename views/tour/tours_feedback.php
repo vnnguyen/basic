@@ -2,18 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="ROBOTS" content="NOINDEX, NOFOLLOW">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>QUESTIONNAIRE DE SATISFACTION</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.2/css/bootstrap.min.css" integrity="sha384-Smlep5jCw/wG7hdkwQ/Z5nLIefveQRIY9nfy6xoR1uRYBtpZgI6339F5dgvm/e9B" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.2.0/css/all.css" integrity="sha384-hWVjflwFxL6sNzntih27bfxkr27PmbbK/iSvJ+a4+0owXq79v+lsFkW54bOGbiDQ" crossorigin="anonymous">
 
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/4.4.9/css/fileinput.min.css" media="all" rel="stylesheet" type="text/css" />
     <?php
-use yii\helpers\Html;
+        use yii\helpers\Html;
 
-$version = $versions['20072018'];
+        $version = $versions['20072018'];
 
-?>
+    ?>
     <!-- font face -->
     <style>
         /* latin */
@@ -217,22 +219,23 @@ $version = $versions['20072018'];
 
         .wrap-name {padding: 8px 4px; }
         #header-fixed {position: fixed; top: 0px; display:none; background-color:white; }
+
         /*.wrap-table h4 {font: "LatoLatin-Bold", sans-serif;}*/
         .wrap-table {padding-bottom: 40px;}
         .wrap-table h4 span {   display: inline-block; }
         .wrap-table h4 span:first-letter {text-transform:uppercase;}
         .text-left span {display: inline-block;}
         .wrap-table h4 span.require:after {content: " *"; color: #e75a26; }
-
+        #header_fix tbody tr:first-child td:first-child span.require:after{ content: " *"; color: #e75a26; }
         /*h5 span {text-transform:lowercase;}*/
         h5 span:first-letter {text-transform:uppercase;}
-        .text-left span {display: block}
+        .text-left span:not(.require) {display: block}
         .span-fix {padding-left: 20%;}
 
         .question .option {margin-bottom: 13px;}
         .question .option:last-child {margin-bottom: 0;}
         .question .option label { margin-right: 0.6rem; font-color: #b1b1b1; line-height: 15.5px}
-        .wrap-row label:after {content: " *"; color: #e75a26; }
+        .wrap-row .question label:after {content: " *"; color: #e75a26; }
 
         .table td label {margin-right: 0;}
 
@@ -339,18 +342,29 @@ $version = $versions['20072018'];
                 justify-content: left;
                 align-items: center;
             }
+            th.fix-width ~ th {padding: 8px;}
         }
         @media (max-width: 575.98px) {
             .container-1 {margin-top: -100px; }
             .header .info-header {display: none;}
             .contain.container-1::before { max-height: 247px;}
             .wrap-row .question { margin-bottom: 15px; }
+            .gender {margin-bottom: 15px;}
+            .h4-title {width: 20%; padding-right: 0;}
         }
         @media (max-width: 480px) {
             .container-1 {margin-top: -80px; background-size: 100% !important; background-repeat: no-repeat;}
             .header .info-header {display: none;}
             .contain.container-1::before { max-height: 100px;}
             .container-1 .amc-column .title {display: none}
+            .h4-title {min-width: 100%; padding-right: 0;}
+            .nav-item {min-width: 100px; max-width: 105px; }
+            #header-fixed {display: none !important}
+        }
+        @media (max-width: 320px) {
+            h2 {font-size: 21px}
+            .nav-item {min-width: 90px; max-width: 94px; }
+            #header-fixed {display: none !important}
         }
 
         .btn-file input[type="file"] {
@@ -431,7 +445,7 @@ $version = $versions['20072018'];
             </div>
         </div>
     </div>
-    <div class="contain container-1" style="background-image: url('/img/bg-head.jpg'); background-size: cover;">
+    <div class="contain container-1 d-none d-sm-block" style="background-image: url('/img/bg-head.jpg'); background-size: cover;">
 
         <div class="amc-column row-2">
             <h1 class="title">QUESTIONNAIRE DE SATISFACTION</h1>
@@ -440,17 +454,17 @@ $version = $versions['20072018'];
     <div class="contain container-2">
         <div class="amc-column">
             <div class="text-center">
-                <p class="text-center text-intro">Madame, Monsieur, cher voyageur Amica,<br><br>
-                    L’équipe tenait à vous remercier de votre confiance et de nous avoir choisi, pour l’organisation de votre voyage.<br>
+                <p class="text-center text-intro">Madame, Monsieur, cher voyageur,<br><br>
+                    Notre équipe tenait à vous remercier de votre confiance et de nous avoir choisi, pour l’organisation de votre voyage.<br>
                     Afin d’améliorer constamment la qualité de nos prestations, nous vous serions<br>
-                    reconnaissant de bien vouloir nous faire part de vos appréciations, en répondant au<br>
-                    questionnaire suivant. Cela ne vous prendra pas plus de 5 minutes pour donner vos précieux avis. <br><br>
+                    reconnaissants de bien vouloir nous faire part de vos appréciations, en répondant au<br>
+                    questionnaire suivant. Cela ne vous prendra pas plus de <strong>5 minutes</strong> pour donner vos précieux avis. <br><br>
                     Vous remerciant par avance !
                 </p>
             </div>
         </div>
     </div>
-    <form id="fbForm" method="POST" accept-charset="utf-8" enctype="multipart/form-data" data-tour_id="<?=$theTour['id']?>">
+    <form id="fbForm" method="POST" accept-charset="utf-8" enctype="multipart/form-data" data-tour_id="<?= $theTour['id']?>">
     <!-- section 1 -->
     <div class="contain container-3" style="background-color: #f7f7f7;">
         <div class="amc-column">
@@ -458,24 +472,24 @@ $version = $versions['20072018'];
             <div class="wrap-table">
                 <!-- info -->
                 <div class="row wrap-row ">
-                    <div class="col-sm-2 ">
+                    <div class="col-sm-2 gender">
                         <label class="mb-fix"> Civilité</label>
                         <select id="contactform-prefix" class="fix-arrow input-fullname" name="info[prefix]">
-                            <option value="M." <?=(isset($info['prefix']) && $info['prefix'] == 'M.') ? 'selected' : ''?> >M.</option>
-                            <option value="Mme." <?=(isset($info['prefix']) && $info['prefix'] == 'Mme.') ? 'selected' : ''?> >Mme.
+                            <option value="M." <?= (isset($info['prefix']) && $info['prefix'] == 'M.')? 'selected': '' ?> >M.</option>
+                            <option value="Mme." <?= (isset($info['prefix']) && $info['prefix'] == 'Mme.')? 'selected': '' ?> >Mme.
                             </option>
                         </select>
                     </div>
                     <div class="col-sm-5 question">
                         <label class="mb-fix">Nom</label>
                         <div class="form-group mb-0 require">
-                            <input class="form-control" name="info[nom]" value="<?=(isset($info['nom'])) ? $info['nom'] : ''?>" type="text">
+                            <input class="form-control" name="info[nom]" value="<?= (isset($info['nom']))? $info['nom']: '' ?>" type="text">
                         </div>
                     </div>
                     <div class="col-sm-5 question">
                         <label class="mb-fix">Prénom</label>
                         <div class="form-group mb-0 require">
-                            <input class="form-control" name="info[pre]" value="<?=(isset($info['pre'])) ? $info['pre'] : ''?>" type="text">
+                            <input class="form-control" name="info[pre]" value="<?= (isset($info['pre']))? $info['pre']: '' ?>" type="text">
                         </div>
                     </div>
                 </div>
@@ -483,31 +497,31 @@ $version = $versions['20072018'];
 
 
             <?php
-$q1 = $version['questions']['q1'];
-unset($version['questions']['q1']);
-?>
+            $q1 = $version['questions']['q1'];
+            unset($version['questions']['q1']);
+            ?>
             <div class="table-responsive wrap-table">
-                <h4><span><?=$q1['title']?></span></h4>
+                <h4><span><?= $q1['title']?></span></h4>
                 <div class="question d-flex flex-column">
                     <?php foreach ($q1['options'] as $op_title) {?>
                     <div class="option">
-                        <?php if (strtolower($op_title) != "autre") {?>
+                        <?php if(strtolower($op_title) != "autre" ){?>
                         <label class="float-left">
-                            <input class="control-info" type="checkbox" name="q1<?='[' . $op_title . ']'?>" <?=isset($content_q['q1'][$op_title]) ? 'checked' : ''?>>
-                            <?=$op_title?>
+                            <input class="control-info" type="checkbox" name="q1<?= '['.$op_title.']'?>" <?= isset($content_q['q1'][$op_title])? 'checked': '' ?>>
+                            <?= $op_title?>
                         </label>
-                        <!-- <label class="float-left"><?=$op_title?></label> -->
+                        <!-- <label class="float-left"><?= $op_title?></label> -->
                         <?php } else {?>
-                        <label class="float-left" style="text-transform: capitalize; margin-bottom: 12px"><?=$op_title?></label>
+                        <label class="float-left" style="text-transform: capitalize; margin-bottom: 12px"><?= $op_title?></label>
                         <label class="float-left w-100">
                             <div class="form-group mb-0">
-                                <input name="q1<?='[' . $op_title . ']'?>" class="form-control" value="<?=isset($content_q['q1'][$op_title]) ? $content_q['q1'][$op_title] : ''?>" >
+                                <input name="q1<?='['.$op_title.']'?>" class="form-control" value="<?=isset($content_q['q1'][$op_title])? $content_q['q1'][$op_title]: ''?>" >
                             </div>
                         </label>
                         <?php }?>
 
                     </div>
-                    <?php }?>
+                    <?php } ?>
                 </div>
             </div>
         </div>
@@ -516,225 +530,223 @@ unset($version['questions']['q1']);
     <div class="contain container-3" style="position: relative; ">
         <div class="amc-column" style="background-color: #fff">
             <?php foreach ($version['questions'] as $num_q => $q) {
-    if ($num_q == 'q8') {
-        break;
-    }
-    ?>
-                <?php if ($num_q == 'q2') {?>
-                    <h2><span></span> Pendant le voyage</h2>
-                <?php }?>
-                <div class="table-responsive wrap-table">
-                    <?php if ($num_q != 'q6' && $num_q != 'q2' && $num_q != 'q3' && $num_q != 'q4') {?>
-                    <h4><span><?=($num_q == 'q2') ? "" : $q['title']?></span></h4>
-                    <?php }?>
-
-                    <!-- guide and driver -->
-                    <?php if ($q['title'] == 'guide' || $q['title'] == 'chauffeur') {
-        ?>
-                    <div class="float-left h4-title"><?=$q['title'] . 's'?></div>
-                    <?php
-if ($q['title'] == 'guide') {$title = 'guide';}
-        if ($q['title'] == 'chauffeur') {$title = 'driver';}
-        $arr_dt = [];
-        $t      = $title . 's';
-        if (isset($theTour[$t]) && count($theTour[$t]) > 0) {
-            ?>
-                    <ul class="nav nav-tabs">
-                    <?php
-foreach ($theTour[$t] as $index => $user) {
-                if ($user[$title . '_user_id'] == 0) {
-                    continue;
-                }
-                $jn1 = date('j/n', strtotime($user['use_from_dt']));
-                $jn2 = date('j/n', strtotime($user['use_until_dt']));
-
-                if ($jn1 == $jn2) {
-                    $dtUse = $jn1;
-                } else {
-                    if (strrchr($jn1, '/') == strrchr($jn2, '/')) {
-                        $dtUse = date('j', strtotime($user['use_from_dt'])) . ' - ' . $jn2;
-                    } else {
-                        $dtUse = $jn1 . ' - ' . $jn2;
-                    }
-                }
-                $arr_dt[$user[$title . '_user_id']][] = $dtUse;
-
-            }
-            $arr_uid = [];
-            foreach ($theTour[$t] as $index => $user) {
-                if (in_array($user[$title . '_user_id'], $arr_uid)) {
-                    continue;
-                }
-
-                if ($user[$title . '_user_id'] == 0) {
-                    $jn1 = date('j/n', strtotime($user['use_from_dt']));
-                    $jn2 = date('j/n', strtotime($user['use_until_dt']));
-
-                    if ($jn1 == $jn2) {
-                        $dateUse = $jn1;
-                    } else {
-                        if (strrchr($jn1, '/') == strrchr($jn2, '/')) {
-                            $dateUse = date('j', strtotime($user['use_from_dt'])) . ' - ' . $jn2;
-                        } else {
-                            $dateUse = $jn1 . ' - ' . $jn2;
-                        }
-                    }
-                } else {
-                    $arr_uid[] = $user[$title . '_user_id'];
-                    $dateUse   = implode(', ', $arr_dt[$user[$title . '_user_id']]);
-                }
-                $gender = 'Ms';
-                $mark   = $index + 1;
-                $name   = '';
-
-                if ($t == 'guides') {
-                    if (isset($user['guide']['gender']) && $user['guide']['gender'] == 'male') {
-                        $gender = 'Mr';
-                    }
-                    // $user['guide_name'] = preg_replace('/(-)? (\d)*/', '', $user['guide_name']);
-                    $user['guide_name'] = preg_replace('/(-)?(\d)*/', '', $user['guide_name']);
-                    $name               = isset($user['guide']['lname']) ? $gender . '. ' . $user['guide']['lname'] : $user['guide_name'];
-                    $image              = isset($user['guide']['image']) && $user['guide']['image'] != '' ? $user['guide']['image'] : 'https://my.amicatravel.com/assets/img/user_256x256.png';
-                }
-                if ($t == 'drivers') {
-                    if (isset($user['driver']['gender']) && $user['driver']['gender'] == 'male') {
-                        $gender = 'Mr';
-                    }
-                    // $user['driver_name'] = preg_replace('/(-)? (\d)*/', '', $user['driver_name']);
-                    $user['driver_name'] = str_replace(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', '-'], ['', '', '', '', '', '', '', '', '', '', '', ''], $user['driver_name']);
-                    $user['driver_name'] = 'Mr. ' . strrchr(trim($user['driver_name']), ' ');
-                    $name                = isset($user['driver']['lname']) ? $gender . '. ' . $user['driver']['lname'] : $user['driver_name'];
-                    $image               = isset($user['driver']['image']) && $user['driver']['image'] != '' ? $user['driver']['image'] : 'https://my.amicatravel.com/assets/img/user_256x256.png';
-                }
-                if (substr($image, 0, 1) == '/') {
-                    $image = 'https://my.amicatravel.com' . $image;
+                if ($num_q == 'q8') {
+                    break;
                 }
                 ?>
-                        <li class="nav-item"><a href="#<?=$t . $mark?>" style="text-transform: capitalize; line-height: 20px" class="nav-link text-center <?=($index == 0) ? 'active show' : ''?>" data-toggle="tab"><div class="wrap-name">
-                            <div><img src="<?=$image?>" class="rounded-circle" style="width:64px; height:64px;"></div>
-                            <div><?=$name?></div>
-                            <div><span class="text-center" style="display: block; color: #919191; font-size:90%"><?=$dateUse?></span></div>
+                <?php if($num_q == 'q2') {?>
+                    <h2><span></span> NOS PRESTATIONS</h2>
+                <?php } ?>
+                <div class="table-responsive wrap-table">
+                    <?php if ($num_q != 'q6' && $num_q != 'q2' && $num_q != 'q3' && $num_q != 'q4' ) {?>
+                    <h4><span><?= $q['title']?></span></h4>
+                    <?php } ?>
+
+                    <!-- guide and driver -->
+                    <?php if($q['title'] == 'guide' || $q['title'] == 'chauffeur') { ?>
+                    <div class="float-left h4-title"><?= $q['title'] . 's'?></div>
+                    <?php
+                        if ($q['title'] == 'guide') { $title = 'guide'; }
+                        if ( $q['title'] == 'chauffeur') { $title = 'driver'; }
+                        $arr_dt = [];
+                        $t = $title . 's';
+                        if (isset($theTour[$t]) && count($theTour[$t]) > 0) {
+                    ?>
+                    <ul class="nav nav-tabs">
+                    <?php
+                        foreach ($theTour[$t] as $index => $user) {
+                            if ($user[$title . '_user_id'] == 0) {
+                                continue;
+                            }
+                            $jn1 = date('j/n', strtotime($user['use_from_dt']));
+                            $jn2 = date('j/n', strtotime($user['use_until_dt']));
+
+                            if ($jn1 == $jn2) {
+                                $dtUse = $jn1;
+                            } else {
+                                if (strrchr($jn1, '/') == strrchr($jn2, '/')) {
+                                    $dtUse = date('j', strtotime($user['use_from_dt'])) . ' - ' . $jn2;
+                                } else {
+                                    $dtUse = $jn1 . ' - ' . $jn2;
+                                }
+                            }
+                            $arr_dt[$user[$title . '_user_id']][] = $dtUse;
+
+                        }
+                        $arr_uid = [];
+                        foreach ($theTour[$t] as $index => $user) {
+                            if (in_array($user[$title . '_user_id'], $arr_uid)) {
+                                continue;
+                            }
+
+                            if ($user[$title . '_user_id'] == 0) {
+                                $jn1 = date('j/n', strtotime($user['use_from_dt']));
+                                $jn2 = date('j/n', strtotime($user['use_until_dt']));
+
+                                if ($jn1 == $jn2) {
+                                    $dateUse = $jn1;
+                                } else {
+                                    if (strrchr($jn1, '/') == strrchr($jn2, '/')) {
+                                        $dateUse = date('j', strtotime($user['use_from_dt'])) . ' - ' . $jn2;
+                                    } else {
+                                        $dateUse = $jn1 . ' - ' . $jn2;
+                                    }
+                                }
+                            } else {
+                                $arr_uid[] = $user[$title . '_user_id'];
+                                $dateUse = implode(', ', $arr_dt[$user[$title . '_user_id']]);
+                            }
+                            $gender = 'Ms';
+                            $mark = $index + 1;
+                            $name = '';
+
+                            if ($t == 'guides') {
+                                if (isset($user['guide']['gender']) && $user['guide']['gender'] == 'male') {
+                                    $gender = 'Mr';
+                                }
+                                // $user['guide_name'] = preg_replace('/(-)? (\d)*/', '', $user['guide_name']);
+                                $user['guide_name'] = preg_replace('/(-)?(\d)*/', '', $user['guide_name']);
+                                $name = isset($user['guide']['lname']) ? $gender. '. ' .$user['guide']['lname']: $user['guide_name'];
+                                $image = isset($user['guide']['image']) && $user['guide']['image'] != '' ? $user['guide']['image'] : 'https://my.amicatravel.com/assets/img/user_256x256.png';
+                            }
+                            if ($t == 'drivers') {
+                                if (isset($user['driver']['gender']) && $user['driver']['gender'] == 'male') {
+                                    $gender = 'Mr';
+                                }
+                                // $user['driver_name'] = preg_replace('/(-)? (\d)*/', '', $user['driver_name']);
+                                $user['driver_name'] = str_replace(['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '.', '-'], ['', '', '', '', '', '', '', '', '', '', '', '', ], $user['driver_name']);
+                                $user['driver_name'] = 'Mr. '.strrchr(trim($user['driver_name']), ' ');
+                                $name = isset($user['driver']['lname']) ? $gender. '. ' .$user['driver']['lname']: $user['driver_name'];
+                                $image = isset($user['driver']['image']) && $user['driver']['image'] != '' ? $user['driver']['image'] : 'https://my.amicatravel.com/assets/img/user_256x256.png';
+                            }
+                            if (substr($image, 0, 1) == '/') {
+                                $image = 'https://my.amicatravel.com'.$image;
+                            }
+                        ?>
+                        <li class="nav-item"><a href="#<?= $t.$mark?>" style="text-transform: capitalize; line-height: 20px" class="nav-link text-center <?= ($index == 0)? 'active show': ''?>" data-toggle="tab"><div class="wrap-name">
+                            <div><img src="<?= $image ?>" class="rounded-circle" style="width:64px; height:64px;"></div>
+                            <div><?= $name?></div>
+                            <div><span class="text-center" style="display: block; color: #919191; font-size:90%"><?= $dateUse?></span></div>
                         </div></a> </li>
-                        <?php }?>
+                        <?php } ?>
                     </ul>
 
                     <div class="tab-content">
                     <?php foreach ($theTour[$t] as $i_user => $user) {
-                $mark = $i_user + 1;
-                ?>
-                        <div class="tab-pane fade <?=($i_user == 0) ? 'active show' : ''?>" id="<?=$t . $mark?>">
+                        $mark = $i_user + 1;
+                        ?>
+                        <div class="tab-pane fade <?= ($i_user == 0)? 'active show': ''?>" id="<?= $t.$mark?>">
                             <table class="table table-condensed table-bordered  mb-0 ">
                                 <thead>
                                     <tr class="">
                                         <th class="ta-c fix-width" ></th>
-                                        <?php foreach ($q['options_value'] as $op_v) {?>
-                                            <th class="ta-c" ><?=$op_v?></th>
-                                        <?php }?>
+                                        <?php foreach ($q['options_value'] as $op_v) { ?>
+                                            <th class="ta-c" ><?= $op_v?></th>
+                                        <?php } ?>
                                     </tr>
                                 </thead>
-                            <?php $current_v = '';?>
+                            <?php $current_v = ''; ?>
                             <?php foreach ($q['options'] as $index => $op) {
-                    $current_v = isset($content_q[$num_q][$op][$mark]) ? $content_q[$num_q][$op][$mark] : '';
-                    ?>
+                                $current_v = isset($content_q[$num_q][$op][$mark])?$content_q[$num_q][$op][$mark] : '';
+                                ?>
                                 <tr>
                                     <td class="ta-c text-left">
                                         <?php
-echo $op;
-                    ?>
+                                            echo $op;
+                                        ?>
                                     </td>
-                                    <?php for ($i = 1; $i <= count($q['options_value']); $i++) {
-                        $checked = '';
-                        if (isset($arr_v[$index]) && $arr_v[$index] == $i) {
-                            $checked = 'checked';
-                        }
-                        ?>
+                                    <?php for($i = 1; $i <= count($q['options_value']); $i ++) {
+                                        $checked = '';
+                                        if (isset($arr_v[$index]) && $arr_v[$index] == $i){
+                                            $checked = 'checked';
+                                        }
+                                    ?>
                                     <td class="text-center">
                                         <div class="checkbox">
                                         <label class="text-center">
-                                            <input class="control-info" type="radio" <?=(isset($content_q[$num_q][$op][$mark]) && $content_q[$num_q][$op][$mark] == $i) ? 'checked' : ''?> ></span>
+                                            <input class="control-info" type="radio" <?= (isset($content_q[$num_q][$op][$mark]) && $content_q[$num_q][$op][$mark] == $i)? 'checked': '' ?> ></span>
                                         </label>
                                         </div>
                                     </td>
                                 <?}?>
-                                <?=Html::input('hidden', $num_q . '[' . $op . '][' . $user['id'] . ']', $current_v, [])?>
+                                <?= Html::input('hidden', $num_q.'['.$op.']['.$user['id'].']', $current_v, [])?>
                                 </tr>
                             <?php }?>
                         </table>
                         </div>
-                    <?php }?>
+                    <?php } ?>
                     </div>
-                    <?php }?>
+                    <?php } ?>
                     <!-- other table -->
-                    <?php } elseif ($num_q == 'q7' || $num_q == 'q5') {?>
+                    <?php } elseif($num_q == 'q7' || $num_q == 'q5') { ?>
                         <div class="question">
                             <div class="text-left form-group  mb-0">
-                                <textarea name="<?=$num_q . '[' . $q['options'][0] . ']'?>" class="form-control" ><?=isset($content_q[$num_q]['autre']) ? $content_q[$num_q]['autre'] : ''?></textarea>
+                                <textarea name="<?=$num_q.'['.$q['options'][0].']'?>" class="form-control" ><?=isset($content_q[$num_q]['autre'])? $content_q[$num_q]['autre']: ''?></textarea>
                             </div>
                         </div>
-                        <?php } else {
-        ?>
-                        <table class="table table-condensed table-bordered mb-0 " id="<?=($num_q == 'q2') ? 'header_fix' : ''?>">
-                            <?php if (count($q['options']) > 1 && strtolower($q['options'][0]) != 'autre') {?>
+                        <?php } else { ?>
+                        <table class="table table-condensed table-bordered mb-0 " id="<?=($num_q == 'q2')? 'header_fix': ''?>">
+                            <?php if (count($q['options']) > 1 && strtolower($q['options'][0]) != 'autre') { ?>
                                 <thead>
                                     <tr class="">
-                                        <th class="ta-c text-left <?=($num_q == 'q2') ? 'fix-width' : ''?>  <?=($num_q == 'q6') ? 'q6_fix' : ''?>"> <?=($num_q == 'q6') ? $q['title'] : ''?></th>
-                                        <?php foreach ($q['options_value'] as $op_v) {?>
-                                            <th class="ta-c <?=($num_q == 'q6' && strtolower($op_v) == 'non') ? 'text-left' : '';?>" ><?=$op_v?></th>
-                                        <?php }?>
+                                        <th class="ta-c text-left <?= ($num_q == 'q2')? 'fix-width': ''?>  <?= ($num_q == 'q6')? 'q6_fix': ''?>"> <?= ($num_q == 'q6')? $q['title']: ''?></th>
+                                        <?php foreach ($q['options_value'] as $op_v) { ?>
+                                            <th class="ta-c <?= ($num_q == 'q6' && strtolower($op_v) == 'non' )? 'text-left': '';?>" ><?= $op_v?></th>
+                                        <?php } ?>
                                     </tr>
                                 </thead>
-                            <?php }?>
+                            <?php } ?>
                             <?php
-$arr_category = [];
-        ?>
-                            <?foreach ($q['options'] as $index => $op) {
-            $current_v = '';
-            if (isset($content_q[$num_q][$op])) {
-                $current_v = $content_q[$num_q][$op];
-            }
-            $new_cate = false;
-            if (strpos($op, '::') !== false) {
-                $arr_c    = explode('::', $op);
-                $col_span = count($q['options_value']) + 1;
-                if (!in_array($arr_c[0], $arr_category)) {
-                    $arr_category[] = $arr_c[0];
-                    $new_cate       = true;
-                }
-            }
-            if ($new_cate) {
-                echo "<tr><td colspan=" . $col_span . ">" . $arr_c[0] . " : </td></tr>";
-            }
-            ?>
+                                $arr_category = [];
+                            ?>
+                            <? foreach ($q['options'] as $index => $op) {
+                                    $current_v = '';
+                                    if (isset($content_q[$num_q][$op])) {
+                                        $current_v = $content_q[$num_q][$op];
+                                    }
+                                    $new_cate = false;
+                                    if (strpos($op, '::') !== false) {
+                                        $arr_c = explode('::', $op);
+                                        $col_span = count($q['options_value']) + 1;
+                                        if (!in_array($arr_c[0], $arr_category)) {
+                                            $arr_category[] = $arr_c[0];
+                                            $new_cate = true;
+                                        }
+                                    }
+                                    if ($new_cate) {
+                                        echo "<tr><td colspan=".$col_span.">".$arr_c[0]." : </td></tr>";
+                                    }
+                                    ?>
                                     <tr>
                                         <td class="ta-c text-left">
                                             <?php
-if (strpos($op, '::') !== false) {
-                echo "<span class='span-fix'>" . $arr_c[1] . "</span>";
-            } else {
-                echo ($op != $q['title']) ? $op : '';
-            }
-            ?>
+                                                if (strpos($op, '::') !== false){
+                                                    echo "<span class='span-fix'>".$arr_c[1]."</span>";
+                                                } else {
+                                                    echo ($op != $q['title'])? $op : '';
+                                                }
+                                            ?>
                                         </td>
-                                        <?php for ($i = 1; $i <= count($q['options_value']); $i++) {
-                $checked = '';
-                if (isset($content_q[$num_q][$op])) {
-                    $checked = ($content_q[$num_q][$op] == $i) ? 'checked' : '';
-                }
-                ?>
+                                        <?php for($i = 1; $i <= count($q['options_value']); $i ++) {
+                                            $checked = '';
+                                            if (isset($content_q[$num_q][$op])) {
+                                                $checked = ($content_q[$num_q][$op] == $i)? 'checked': '';
+                                            }
+                                            ?>
                                             <td class="text-center">
-                                                <label class="<?=($num_q == 'q6' && $i == 2) ? 'fix-col' : 'text-center';?>">
-                                                    <input class="control-info" type="radio"  <?=$checked?>  ></input>
+                                                <label class="<?= ($num_q == 'q6' && $i == 2 )? 'fix-col': 'text-center';?>">
+                                                    <input class="control-info" type="radio"  <?= $checked ?>  ></input>
                                                 </label>
                                             </td>
 
                                         <?}?>
-                                        <?=Html::input('hidden', $num_q . '[' . $op . ']', $current_v, [])?>
+                                        <?= Html::input('hidden', $num_q.'['.$op.']', $current_v, [])?>
                                     </tr>
                             <?php }?>
                         </table>
-                    <?php }?>
+                    <?php } ?>
                 </div>
-            <?php }?>
+            <?php } ?>
             <table id="header-fixed" class="table table-condensed table-bordered"></table>
 
         </div>
@@ -744,52 +756,52 @@ if (strpos($op, '::') !== false) {
     <div class="contain container-3" style="background-color: #f7f7f7;">
         <div class="amc-column">
         <?php foreach ($version['questions'] as $num_q => $q) {
-            if (!in_array($num_q, ['q8', 'q9', 'q10', 'q11'])) {
+            if (!in_array($num_q, ['q8','q9', 'q10', 'q11'])) {
                 continue;
             }
             ?>
-            <?php if ($num_q == 'q8') {?>
+            <?php if($num_q == 'q8') {?>
                 <h2><span></span> Vos futurs voyages</h2>
-            <?php }?>
+            <?php } ?>
             <div class="table-responsive wrap-table">
-                <h4><span class="<?=($num_q == 'q8' || $num_q == 'q10') ? 'require' : ''?>"><?=$q['title']?></span></h4>
-                <?php if ($num_q == 'q11' || $num_q == 'q9') {?>
+                <h4><span class="<?= ($num_q == 'q8' || $num_q == 'q10') ? 'require' : ''?>"><?= $q['title']?></span></h4>
+                <?php if ($num_q == 'q11' || $num_q == 'q9') { ?>
                 <div class="question d-flex flex-column">
                     <?php foreach ($q['options'] as $op_title) {?>
                     <div class="option">
-                        <?php if (strtolower($op_title) != "autre") {?>
+                        <?php if(strtolower($op_title) != "autre" ){?>
                         <label class="float-left">
-                            <input class="control-info" type="checkbox" name="<?=$num_q . '[' . $op_title . ']'?>" <?=isset($content_q[$num_q][$op_title]) ? 'checked' : ''?>>
-                            <?=$op_title?>
+                            <input class="control-info" type="checkbox" name="<?=$num_q.'['.$op_title.']'?>" <?= isset($content_q[$num_q][$op_title])? 'checked': '' ?>>
+                            <?= $op_title?>
                         </label>
-                        <!-- <label class="float-left"><?=$op_title?></label> -->
+                        <!-- <label class="float-left"><?= $op_title?></label> -->
                         <?php } else {?>
-                        <label class="float-left" style="text-transform: capitalize; margin-bottom: 12px"><?=$op_title?></label>
+                        <label class="float-left" style="text-transform: capitalize; margin-bottom: 12px"><?= $op_title?></label>
                         <label class="float-left w-100">
                             <div class="form-group mb-0">
-                                <input name="<?=$num_q . '[' . $op_title . ']'?>" class="form-control" value="<?=isset($content_q[$num_q][$op_title]) ? $content_q[$num_q][$op_title] : ''?>" >
+                                <input name="<?=$num_q.'['.$op_title.']'?>" class="form-control" value="<?=isset($content_q[$num_q][$op_title])? $content_q[$num_q][$op_title]: ''?>" >
                             </div>
                         </label>
                         <?php }?>
                     </div>
-                    <?php }?>
+                    <?php } ?>
                 </div>
                 <?php } elseif ($num_q == 'q8' || $num_q == 'q10') {?>
                 <div class="question d-flex flex-column">
                     <?php foreach ($q['options_value'] as $op_title) {?>
                     <div class="option">
                         <label class="float-left">
-                            <input class="control-info" type="radio" val="" name="<?=$num_q . '[' . $op_title . ']'?>" <?=isset($content_q[$num_q][$op_title]) ? 'checked' : ''?>>
-                            <?=$op_title?>
+                            <input class="control-info" type="radio" val="" name="<?=$num_q.'['.$op_title.']'?>" <?= isset($content_q[$num_q][$op_title])? 'checked': '' ?>>
+                            <?= $op_title?>
                         </label>
-                        <!-- <label class="float-left"><?=$op_title?></label> -->
+                        <!-- <label class="float-left"><?= $op_title?></label> -->
                     </div>
-                    <?php }?>
+                    <?php } ?>
 
                 </div>
                 <?php }?>
             </div>
-        <?php }?>
+        <?php } ?>
         </div>
     </div>
     <!-- section 4 -->
@@ -806,12 +818,12 @@ if (strpos($op, '::') !== false) {
                         <div class="form-group op_fix">
                             <label class="mb-fix">Titre de votre témoignage</label><input type="text" class="form-control" maxlength="60" name="contact_1" onKeyDown="limitText(this.form.contact_1,this.form.countdown,60);" onKeyUp="limitText(this.form.contact_1,this.form.countdown,60);" value="">
                             <span class="text-muted" style="color: #6c757d">
-                                <input readonly type="text" style="color: #6c757d;border: none; background: none;padding: 0; height: 15.5px; font-size: 15px; margin-top: 5px" name="countdown" size="1" value="60">caractères restants</span>
+                                <input readonly type="text" style="color: #6c757d;border: none; background: none;padding: 0; height: 15.5px; font-size: 15px; margin-top: 5px; width: 23px;" name="countdown" size="1" value="60">caractères restants</span>
                         </div>
                         <div class="form-group op_fix">
                             <label class="mb-fix">Votre témoignage</label><textarea name="contact_2"  onKeyDown="limitText(this.form.contact_2,this.form.countdown_2,1000);" onKeyUp="limitText(this.form.contact_2,this.form.countdown_2,1000);"  class="form-control" maxlength="1000"></textarea>
                             <span class="text-muted" style="color: #6c757d">
-                                <input readonly type="text" style="color: #6c757d;border: none; background: none;padding: 0; height: 15.5px; font-size: 15px; margin-top: 5px" name="countdown_2" size="3" value="1000"> caractères restants</span>
+                                <input readonly type="text" style="color: #6c757d;border: none; background: none;padding: 0; height: 15.5px; font-size: 15px; margin-top: 5px; width: 38px;" name="countdown_2" size="3" value="1000">caractères restants</span>
                         </div>
                         <div class="form-group op_fix">
                             <label class="mb-fix">Avez-vous des photos à nous faire partager ? (10 photos maximum, 10 MB maximum par photo)</label>
@@ -868,13 +880,13 @@ if (strpos($op, '::') !== false) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/4.4.9/js/plugins/purify.min.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-fileinput/4.4.9/js/fileinput.min.js"></script>
     <script>
-
         var tableOffset = $("#header_fix").offset().top;
         var tableheight = $("#header_fix").height();
         var $header = $("#header_fix thead").clone();
         var $fixedHeader = $("#header-fixed").append($header);
         var tourID = $('form').data('tour_id');
         $fixedHeader.width($("#header_fix").width());
+        $('#header_fix tbody tr:first-child td:first-child').append('<span class="require"></span>');
 
         var FILES_UPLOAD = '';
         $(window).on("scroll", function() {
@@ -908,6 +920,10 @@ if (strpos($op, '::') !== false) {
             if ($(wrap_table).find('h4 span').hasClass('require')) {
                 $(wrap_table).find('h4 span').removeClass('has-error');
             }
+            if ($(wrap_table).find('.require').length > 0) {
+                $(wrap_table).find('.require').removeClass('has-error');
+            }
+
             $(wrap_table).find('.help-block').remove();
 
 
@@ -920,7 +936,9 @@ if (strpos($op, '::') !== false) {
             } else {
                 $(tr).find('input').val('');
                 var id_attr = $(this).closest('.tab-pane').prop('id');
+
             }
+
         });
         $('form').on('submit', function(event)
         {
@@ -935,6 +953,9 @@ if (strpos($op, '::') !== false) {
                         ){
 
                             $(error).closest('.wrap-table').find('.question').append('<div class="help-block">Requise !</div>');
+                        }
+                        if ($(error).closest('td').length > 0) {
+                            // $(error).closest('td').append('<span class="help-block require">Requise !</span>');
                         }
                     });
                 }
@@ -1065,7 +1086,12 @@ if (strpos($op, '::') !== false) {
                             option_chk_val = false;
                         }
                     }
-                    else {
+                    else if ($(item).find('input[type="checkbox"]').length > 0) {
+                        if($(item).find('input[type="checkbox"][checked=true]').length == 0) {
+                            // $(this).addClass('has-error');
+                            // option_chk_val = false;
+                        }
+                    } else {
                         var wrap_table = $(this).closest('.wrap-table');
                         var checked = false;
                         $(wrap_table).find('input[type=radio], input[type=checkbox]').each(function(id,chk){

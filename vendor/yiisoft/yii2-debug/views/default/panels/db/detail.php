@@ -2,7 +2,6 @@
 /* @var $panel yii\debug\panels\DbPanel */
 /* @var $searchModel yii\debug\models\search\Db */
 /* @var $dataProvider yii\data\ArrayDataProvider */
-/* @var $hasExplain bool */
 
 use yii\helpers\Html;
 use yii\grid\GridView;
@@ -17,6 +16,7 @@ echo GridView::widget([
     'filterModel' => $searchModel,
     'filterUrl' => $panel->getUrl(),
     'columns' => [
+        ['class' => 'yii\grid\SerialColumn'],
         [
             'attribute' => 'seq',
             'label' => 'Time',
@@ -52,13 +52,13 @@ echo GridView::widget([
         [
             'attribute' => 'query',
             'value' => function ($data) use ($hasExplain, $panel) {
-                $query = Html::tag('div', Html::encode($data['query']));
+                $query = Html::encode($data['query']);
 
                 if (!empty($data['trace'])) {
                     $query .= Html::ul($data['trace'], [
                         'class' => 'trace',
-                        'item' => function ($trace) use ($panel) {
-                            return '<li>' . $panel->getTraceLine($trace) . '</li>';
+                        'item' => function ($trace) {
+                            return "<li>{$trace['file']} ({$trace['line']})</li>";
                         },
                     ]);
                 }
@@ -68,14 +68,14 @@ echo GridView::widget([
 
                     $query .= Html::tag(
                         'div',
-                        Html::a('[+] Explain', ['db-explain', 'seq' => $data['seq'], 'tag' => Yii::$app->controller->summary['tag']]),
+                        Html::a('[+] Explain', (['db-explain', 'seq' => $data['seq'], 'tag' => Yii::$app->controller->summary['tag']])),
                         ['class' => 'db-explain']
                     );
                 }
 
                 return $query;
             },
-            'format' => 'raw',
+            'format' => 'html',
             'options' => [
                 'width' => '60%',
             ],

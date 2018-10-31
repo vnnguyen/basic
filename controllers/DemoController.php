@@ -21,12 +21,14 @@ use common\models\Person;
 use common\models\Ct;
 use common\models\Task;
 
+use common\models\Contact;
 
 use common\models\Dvt;
 use common\models\Dv;
 use common\models\Dvg;
 use common\models\Destination;
 use common\models\Ncc2;
+use common\models\CpTour;
 
 use app\models\Translate;
 
@@ -48,6 +50,673 @@ use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 class DemoController extends MyController
 {
+    public function actionCptour($id = 0)
+    {
+
+        $model = new CpTour();
+        $theTour = Product::find()//12537
+            ->where(['id' => 12537, 'op_status' => 'op'])
+            ->with([
+                'bookings',
+                'bookings.people'       => function ($q) {
+                    return $q->select(['id', 'fname', 'lname', 'bday', 'bmonth', 'byear', 'gender', 'country_code'])
+                        ->orderBy('byear, bmonth, bday');
+                },
+                'bookings.people.metas' => function ($q) {
+                    return $q->select(['rid', 'value'])
+                        ->where(['name' => 'passport']);
+                },
+                'days',
+                'updatedBy',
+                'guides',
+                'tour.cskh',
+                'tour.operators',
+            ])
+            ->one();
+
+        if (!$theTour) {
+            throw new HttpException(404, 'Tour not found.');
+        }
+
+        if ($theTour->day_ids) {
+            $dayIdList = explode(',', $theTour->day_ids);
+            $start_date = $theTour->day_from;
+            $arr_day = [];
+            $cnt = 0;
+            $lastId = 0;
+            foreach ($dayIdList as $id) {
+                foreach ($theTour->days as $day) {
+                    if ($day['id'] == $id) {
+                        $cnt ++;
+                        $arr_day[date('Y/m/d', strtotime('+'.($cnt - 1).' days', strtotime($start_date)))] =  'day '.$cnt;
+                        //echo date('j/n/Y D', strtotime('+'.($cnt - 1).' days', strtotime($start_date))).'<br/>';
+                    }
+                }
+            }
+        }
+        if ($model->load(Yii::$app->request->post())) {
+            $cptour = $_POST['CpTour'];
+            if ($cptour['id'] == '') {
+                $model->tour_id = $query->id;
+                $model->venue_id = $cptour['venue_id'];
+                $model->dv_id = $cptour['dv_id'];
+                $model->qty = $cptour['qty'];
+                $model->currency = $cptour['currency'];
+                $model->use_day = $cptour['use_day'];
+                $model->payment_dt = $cptour['payment_dt'];
+                $model->who_pay = $cptour['who_pay'];
+                $model->num_day = $cptour['num_day'];
+                $model->book_of = $cptour['book_of'];
+                $model->pay_of = $cptour['pay_of'];
+                $model->status_book = $cptour['status_book'];
+                $model->parent_id = 0;
+                $model->use_day = date('Y/m/d', strtotime($cptour['use_day']));
+                $model->price = str_replace(',', '', $cptour['price']);
+                // check group
+                if (isset($_POST['cpt-group'])) {
+                    $cpt_group = CpTour::findOne($_POST['cpt-group']);
+                    if ($cpt_group != null) {
+                        if ($cpt_group->group_id == 0) {
+                            $cpt_group->group_id = $cpt_group->id;
+                            if ($cpt_group->save()) {
+                                $model->group_id = $cpt_group->group_id;
+                            }
+                        } else {
+                            $model->group_id = $cpt_group->group_id;
+                        }
+                    }
+                }
+                if ($model->validate() && $model->save()) {
+                    Yii::$app->getSession()->setFlash('success', 'Saved cpt success');
+                    if (isset($_POST['chk_option'])) {
+                        $chk_options = $_POST['chk_option'];
+                        foreach ($chk_options as $option) {
+                            $option = json_decode($option);
+                            $cpt = new CpTour();
+                            $cpt->dv_id = $option->dv_id;
+                            $cpt->qty = $option->qty;
+                            $cpt->price = str_replace(',', '',$option->price);
+                            $cpt->currency = $option->currency;
+                            $cpt->tour_id = $model->tour_id;
+                            $cpt->venue_id = $model->venue_id;
+                            $cpt->use_day = $model->use_day;
+                            $cpt->payment_dt = $model->payment_dt;
+                            $cpt->who_pay = $model->who_pay;
+                            $cpt->num_day = $model->num_day;
+                            $cpt->book_of = $model->book_of;
+                            $cpt->pay_of = $model->pay_of;
+                            $cpt->status_book = $model->status_book;
+                            $cpt->parent_id = $model->id;
+                            if (!$cpt ->save()) {
+                                Yii::$app->getSession()->setFlash('err', 'Saved cpt fail');
+                            }
+                        }
+                    }
+                }
+
+                return $this->redirect(Yii::$app->request->referrer);
+            } else {
+                $cpt_updated = CpTour::findOne($cptour['id']);
+                if ($cpt_updated == null) {
+                    throw new HttpException(404, 'cpt not found.');
+                }
+                if (isset($cptour['venue_id']) && $cptour['venue_id'] != '') {
+                    $cpt_updated->venue_id = $cptour['venue_id'];
+                }
+                $cpt_updated->dv_id = $cptour['dv_id'];
+                $cpt_updated->qty = $cptour['qty'];
+                $cpt_updated->currency = $cptour['currency'];
+                $cpt_updated->use_day = $cptour['use_day'];
+                $cpt_updated->payment_dt = $cptour['payment_dt'];
+                $cpt_updated->who_pay = $cptour['who_pay'];
+                $cpt_updated->num_day = $cptour['num_day'];
+                $cpt_updated->book_of = $cptour['book_of'];
+                $cpt_updated->pay_of = $cptour['pay_of'];
+                $cpt_updated->status_book = $cptour['status_book'];
+                $cpt_updated->use_day = date('Y/m/d', strtotime($cptour['use_day']));
+                $cpt_updated->price = str_replace(',', '', $cptour['price']);
+                // check group
+                $cpt_in_group = CpTour::find()->where('group_id = '.$cpt_updated->group_id.' AND group_id > 0  AND id != '. $cpt_updated->id)->all();
+                if ($cpt_in_group != null) {
+                    if (isset($_POST['cpt-group']) && $_POST['cpt-group'] != '') {
+                        if ($cpt_updated->group_id != $_POST['cpt-group']) {
+                            $cpt_grouped = CpTour::findOne($_POST['cpt-group']);
+                            if ($cpt_grouped != null) {
+                                if ($cpt_grouped->group_id == 0) {
+                                    $cpt_grouped->group_id = $cpt_grouped->id;
+                                    if ($cpt_grouped->save()) {
+                                        $cpt_updated->group_id = $cpt_grouped->group_id;
+                                    }
+                                } else {
+                                    $cpt_updated->group_id = $cpt_grouped->group_id;
+                                }
+                            }
+                            if ($cpt_updated->id == $cpt_in_group[0]->group_id && count($cpt_in_group) > 0) {
+                                if (count($cpt_in_group) == 1) {
+                                    $cpt_in_group[0]->group_id = 0;
+                                    $cpt_in_group[0]->save();
+                                } else {
+                                    foreach ($cpt_in_group as $cpt_g) {
+                                        $cpt_g->group_id = $cpt_in_group[0]->id;
+                                        $cpt_g->save();
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if ($cpt_updated->id == $cpt_in_group[0]->group_id && count($cpt_in_group) > 0) {
+                            if (count($cpt_in_group) == 1) {
+                                $cpt_in_group[0]->group_id = 0;
+                                $cpt_in_group[0]->save();
+                            } else {
+                                foreach ($cpt_in_group as $cpt_g) {
+                                    $cpt_g->group_id = $cpt_in_group[0]->id;
+                                    $cpt_g->save();
+                                }
+                            }
+                        }
+                        $cpt_updated->group_id = 0;
+                    }
+                } else {
+                    if (isset($_POST['cpt-group'])) {
+                        $cpt_grouped = CpTour::findOne($_POST['cpt-group']);
+                        if ($cpt_grouped != null) {
+                            if ($cpt_grouped->group_id == 0) {
+                                $cpt_grouped->group_id = $cpt_grouped->id;
+                                if ($cpt_grouped->save()) {
+                                    $cpt_updated->group_id = $cpt_grouped->group_id;
+                                }
+                            } else {
+                                $cpt_updated->group_id = $cpt_grouped->group_id;
+                            }
+                        }
+                    }
+                }
+                // save and add or update options
+                if ($cpt_updated->validate() && $cpt_updated->save()) {
+                    Yii::$app->getSession()->setFlash('success', 'Saved cpt success');
+                    $cpt_has_parent = CpTour::find()->select(['id'])->where('parent_id = '.$cpt_updated->id)->indexBy('id')->column();
+                    if ($cpt_has_parent != null) {
+                        ///check remove or update exist option
+                        $arr_diff = [];
+                        $arr_updated_ids = [];
+                         if (isset($_POST['chk_option'])) {
+                            $chk_options = $_POST['chk_option'];
+                            foreach ($chk_options as $option) {
+                                $option = json_decode($option);
+                                if ($option->id != '') {
+                                    ///update option
+                                    $cpt = CpTour::findOne($option->id);
+                                    if ($cpt != null) {
+                                        $arr_updated_ids[] = $cpt->id;
+                                        $cpt->qty = $option->qty;
+                                        $cpt->price = str_replace(',', '', $option->price);
+                                        $cpt->currency = $option->currency;
+                                        $cpt->tour_id = $cpt_updated->tour_id;
+                                        $cpt->venue_id = $cpt_updated->venue_id;
+                                        $cpt->use_day = $cpt_updated->use_day;
+                                        $cpt->payment_dt = $cpt_updated->payment_dt;
+                                        $cpt->who_pay = $cpt_updated->who_pay;
+                                        $cpt->num_day = $cpt_updated->num_day;
+                                        $cpt->book_of = $cpt_updated->book_of;
+                                        $cpt->pay_of = $cpt_updated->pay_of;
+                                        $cpt->status_book = $cpt_updated->status_book;
+                                        $cpt->parent_id = $cpt_updated->id;
+                                        if (!$cpt ->save()) {
+                                            Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
+                                        }
+                                    }
+                                } else {
+                                    ///add new option
+                                    $cpt = new CpTour();
+                                    $cpt->dv_id = $option->dv_id;
+                                    $cpt->qty = $option->qty;
+                                    $cpt->price = str_replace(',', '', $option->price);
+                                    $cpt->currency = $option->currency;
+                                    $cpt->tour_id = $cpt_updated->tour_id;
+                                    $cpt->venue_id = $cpt_updated->venue_id;
+                                    $cpt->use_day = $cpt_updated->use_day;
+                                    $cpt->payment_dt = $cpt_updated->payment_dt;
+                                    $cpt->who_pay = $cpt_updated->who_pay;
+                                    $cpt->num_day = $cpt_updated->num_day;
+                                    $cpt->book_of = $cpt_updated->book_of;
+                                    $cpt->pay_of = $cpt_updated->pay_of;
+                                    $cpt->status_book = $cpt_updated->status_book;
+                                    $cpt->parent_id = $cpt_updated->id;
+                                    if (!$cpt ->save()) {
+                                        Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
+                                    }
+                                }
+                            }
+                            $arr_diff = array_diff($cpt_has_parent,$arr_updated_ids);
+                         } else {
+                            $arr_diff = $cpt_has_parent;
+                         }
+                         // var_dump($_POST);die();
+                         if (count($arr_diff) > 0) {
+                             $cpt_removeds = CpTour::find()->where(['id' => $arr_diff])->all();
+                             foreach ($cpt_removeds as $cpt_op) {
+                                 $cpt_op->delete();
+                             }
+                         }
+                    } else {
+                        if (isset($_POST['chk_option'])) {
+                            ///insert new options
+                            $chk_options = $_POST['chk_option'];
+                            foreach ($chk_options as $option) {
+                                $option = json_decode($option);
+                                $cpt = new CpTour();
+                                $cpt->dv_id = $option->dv_id;
+                                $cpt->qty = $option->qty;
+                                $cpt->price = str_replace(',', '', $option->price);
+                                $cpt->currency = $option->currency;
+                                $cpt->tour_id = $cpt_updated->tour_id;
+                                $cpt->venue_id = $cpt_updated->venue_id;
+                                $cpt->use_day = $cpt_updated->use_day;
+                                $cpt->payment_dt = $cpt_updated->payment_dt;
+                                $cpt->who_pay = $cpt_updated->who_pay;
+                                $cpt->num_day = $cpt_updated->num_day;
+                                $cpt->book_of = $cpt_updated->book_of;
+                                $cpt->pay_of = $cpt_updated->pay_of;
+                                $cpt->status_book = $cpt_updated->status_book;
+                                $cpt->parent_id = $cpt_updated->id;
+                                if (!$cpt ->save()) {
+                                    Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
+                                }
+                            }
+                        }
+                    }
+                }
+                return $this->redirect(Yii::$app->request->referrer);
+            }
+        }
+        $cpts = CpTour::find()
+            ->with([
+                'venue',
+                'dv'
+            ])
+            ->where('tour_id = 12537');
+        // var_dump($cpts->all());die;
+
+        // $model = new CpTour();
+        // return $this->render('cptour', []);
+        // return $this->render('demo_search');
+        return $this->render('demo_search_flexbox', [
+            'theTour'=> $theTour,
+            'cpts' => $cpts->all(),
+            'model' => $model,
+        ]);
+    }
+    public function actionSearch($id = 0)
+    {
+
+        $model = new CpTour();
+        $theTour = Product::find()//12537
+            ->where(['id' => 12537, 'op_status' => 'op'])
+            ->with([
+                'bookings',
+                'bookings.people'       => function ($q) {
+                    return $q->select(['id', 'fname', 'lname', 'bday', 'bmonth', 'byear', 'gender', 'country_code'])
+                        ->orderBy('byear, bmonth, bday');
+                },
+                'bookings.people.metas' => function ($q) {
+                    return $q->select(['rid', 'value'])
+                        ->where(['name' => 'passport']);
+                },
+                'days',
+                'updatedBy',
+                'guides',
+                'tour.cskh',
+                'tour.operators',
+            ])
+            ->one();
+
+        if (!$theTour) {
+            throw new HttpException(404, 'Tour not found.');
+        }
+
+        if ($theTour->day_ids) {
+            $dayIdList = explode(',', $theTour->day_ids);
+            $start_date = $theTour->day_from;
+            $arr_day = [];
+            $cnt = 0;
+            $lastId = 0;
+            foreach ($dayIdList as $id) {
+                foreach ($theTour->days as $day) {
+                    if ($day['id'] == $id) {
+                        $cnt ++;
+                        $arr_day[date('Y/m/d', strtotime('+'.($cnt - 1).' days', strtotime($start_date)))] =  'day '.$cnt;
+                    }
+                }
+            }
+        }
+        return $this->render('demo_search', [
+            'theTour'=> $theTour,
+        ]);
+    }
+    public function actionFulltour($id = 0)
+    {
+
+        $model = new CpTour();
+        $theTour = Product::find()//12537
+            ->where(['id' => 12537, 'op_status' => 'op'])
+            ->with([
+                'bookings',
+                'bookings.people'       => function ($q) {
+                    return $q->select(['id', 'fname', 'lname', 'bday', 'bmonth', 'byear', 'gender', 'country_code'])
+                        ->orderBy('byear, bmonth, bday');
+                },
+                'bookings.people.metas' => function ($q) {
+                    return $q->select(['rid', 'value'])
+                        ->where(['name' => 'passport']);
+                },
+                'days',
+                'updatedBy',
+                'guides',
+                'tour.cskh',
+                'tour.operators',
+            ])
+            ->one();
+
+        if (!$theTour) {
+            throw new HttpException(404, 'Tour not found.');
+        }
+
+        if ($theTour->day_ids) {
+            $dayIdList = explode(',', $theTour->day_ids);
+            $start_date = $theTour->day_from;
+            $arr_day = [];
+            $cnt = 0;
+            $lastId = 0;
+            foreach ($dayIdList as $id) {
+                foreach ($theTour->days as $day) {
+                    if ($day['id'] == $id) {
+                        $cnt ++;
+                        $arr_day[date('Y/m/d', strtotime('+'.($cnt - 1).' days', strtotime($start_date)))] =  'day '.$cnt;
+                        //echo date('j/n/Y D', strtotime('+'.($cnt - 1).' days', strtotime($start_date))).'<br/>';
+                    }
+                }
+            }
+        }
+        if ($model->load(Yii::$app->request->post())) {
+            $cptour = $_POST['CpTour'];
+            if ($cptour['id'] == '') {
+                $model->tour_id = $query->id;
+                $model->venue_id = $cptour['venue_id'];
+                $model->dv_id = $cptour['dv_id'];
+                $model->qty = $cptour['qty'];
+                $model->currency = $cptour['currency'];
+                $model->use_day = $cptour['use_day'];
+                $model->payment_dt = $cptour['payment_dt'];
+                $model->who_pay = $cptour['who_pay'];
+                $model->num_day = $cptour['num_day'];
+                $model->book_of = $cptour['book_of'];
+                $model->pay_of = $cptour['pay_of'];
+                $model->status_book = $cptour['status_book'];
+                $model->parent_id = 0;
+                $model->use_day = date('Y/m/d', strtotime($cptour['use_day']));
+                $model->price = str_replace(',', '', $cptour['price']);
+                // check group
+                if (isset($_POST['cpt-group'])) {
+                    $cpt_group = CpTour::findOne($_POST['cpt-group']);
+                    if ($cpt_group != null) {
+                        if ($cpt_group->group_id == 0) {
+                            $cpt_group->group_id = $cpt_group->id;
+                            if ($cpt_group->save()) {
+                                $model->group_id = $cpt_group->group_id;
+                            }
+                        } else {
+                            $model->group_id = $cpt_group->group_id;
+                        }
+                    }
+                }
+                if ($model->validate() && $model->save()) {
+                    Yii::$app->getSession()->setFlash('success', 'Saved cpt success');
+                    if (isset($_POST['chk_option'])) {
+                        $chk_options = $_POST['chk_option'];
+                        foreach ($chk_options as $option) {
+                            $option = json_decode($option);
+                            $cpt = new CpTour();
+                            $cpt->dv_id = $option->dv_id;
+                            $cpt->qty = $option->qty;
+                            $cpt->price = str_replace(',', '',$option->price);
+                            $cpt->currency = $option->currency;
+                            $cpt->tour_id = $model->tour_id;
+                            $cpt->venue_id = $model->venue_id;
+                            $cpt->use_day = $model->use_day;
+                            $cpt->payment_dt = $model->payment_dt;
+                            $cpt->who_pay = $model->who_pay;
+                            $cpt->num_day = $model->num_day;
+                            $cpt->book_of = $model->book_of;
+                            $cpt->pay_of = $model->pay_of;
+                            $cpt->status_book = $model->status_book;
+                            $cpt->parent_id = $model->id;
+                            if (!$cpt ->save()) {
+                                Yii::$app->getSession()->setFlash('err', 'Saved cpt fail');
+                            }
+                        }
+                    }
+                }
+
+                return $this->redirect(Yii::$app->request->referrer);
+            } else {
+                $cpt_updated = CpTour::findOne($cptour['id']);
+                if ($cpt_updated == null) {
+                    throw new HttpException(404, 'cpt not found.');
+                }
+                if (isset($cptour['venue_id']) && $cptour['venue_id'] != '') {
+                    $cpt_updated->venue_id = $cptour['venue_id'];
+                }
+                $cpt_updated->dv_id = $cptour['dv_id'];
+                $cpt_updated->qty = $cptour['qty'];
+                $cpt_updated->currency = $cptour['currency'];
+                $cpt_updated->use_day = $cptour['use_day'];
+                $cpt_updated->payment_dt = $cptour['payment_dt'];
+                $cpt_updated->who_pay = $cptour['who_pay'];
+                $cpt_updated->num_day = $cptour['num_day'];
+                $cpt_updated->book_of = $cptour['book_of'];
+                $cpt_updated->pay_of = $cptour['pay_of'];
+                $cpt_updated->status_book = $cptour['status_book'];
+                $cpt_updated->use_day = date('Y/m/d', strtotime($cptour['use_day']));
+                $cpt_updated->price = str_replace(',', '', $cptour['price']);
+                // check group
+                $cpt_in_group = CpTour::find()->where('group_id = '.$cpt_updated->group_id.' AND group_id > 0  AND id != '. $cpt_updated->id)->all();
+                if ($cpt_in_group != null) {
+                    if (isset($_POST['cpt-group']) && $_POST['cpt-group'] != '') {
+                        if ($cpt_updated->group_id != $_POST['cpt-group']) {
+                            $cpt_grouped = CpTour::findOne($_POST['cpt-group']);
+                            if ($cpt_grouped != null) {
+                                if ($cpt_grouped->group_id == 0) {
+                                    $cpt_grouped->group_id = $cpt_grouped->id;
+                                    if ($cpt_grouped->save()) {
+                                        $cpt_updated->group_id = $cpt_grouped->group_id;
+                                    }
+                                } else {
+                                    $cpt_updated->group_id = $cpt_grouped->group_id;
+                                }
+                            }
+                            if ($cpt_updated->id == $cpt_in_group[0]->group_id && count($cpt_in_group) > 0) {
+                                if (count($cpt_in_group) == 1) {
+                                    $cpt_in_group[0]->group_id = 0;
+                                    $cpt_in_group[0]->save();
+                                } else {
+                                    foreach ($cpt_in_group as $cpt_g) {
+                                        $cpt_g->group_id = $cpt_in_group[0]->id;
+                                        $cpt_g->save();
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        if ($cpt_updated->id == $cpt_in_group[0]->group_id && count($cpt_in_group) > 0) {
+                            if (count($cpt_in_group) == 1) {
+                                $cpt_in_group[0]->group_id = 0;
+                                $cpt_in_group[0]->save();
+                            } else {
+                                foreach ($cpt_in_group as $cpt_g) {
+                                    $cpt_g->group_id = $cpt_in_group[0]->id;
+                                    $cpt_g->save();
+                                }
+                            }
+                        }
+                        $cpt_updated->group_id = 0;
+                    }
+                } else {
+                    if (isset($_POST['cpt-group'])) {
+                        $cpt_grouped = CpTour::findOne($_POST['cpt-group']);
+                        if ($cpt_grouped != null) {
+                            if ($cpt_grouped->group_id == 0) {
+                                $cpt_grouped->group_id = $cpt_grouped->id;
+                                if ($cpt_grouped->save()) {
+                                    $cpt_updated->group_id = $cpt_grouped->group_id;
+                                }
+                            } else {
+                                $cpt_updated->group_id = $cpt_grouped->group_id;
+                            }
+                        }
+                    }
+                }
+                // save and add or update options
+                if ($cpt_updated->validate() && $cpt_updated->save()) {
+                    Yii::$app->getSession()->setFlash('success', 'Saved cpt success');
+                    $cpt_has_parent = CpTour::find()->select(['id'])->where('parent_id = '.$cpt_updated->id)->indexBy('id')->column();
+                    if ($cpt_has_parent != null) {
+                        ///check remove or update exist option
+                        $arr_diff = [];
+                        $arr_updated_ids = [];
+                         if (isset($_POST['chk_option'])) {
+                            $chk_options = $_POST['chk_option'];
+                            foreach ($chk_options as $option) {
+                                $option = json_decode($option);
+                                if ($option->id != '') {
+                                    ///update option
+                                    $cpt = CpTour::findOne($option->id);
+                                    if ($cpt != null) {
+                                        $arr_updated_ids[] = $cpt->id;
+                                        $cpt->qty = $option->qty;
+                                        $cpt->price = str_replace(',', '', $option->price);
+                                        $cpt->currency = $option->currency;
+                                        $cpt->tour_id = $cpt_updated->tour_id;
+                                        $cpt->venue_id = $cpt_updated->venue_id;
+                                        $cpt->use_day = $cpt_updated->use_day;
+                                        $cpt->payment_dt = $cpt_updated->payment_dt;
+                                        $cpt->who_pay = $cpt_updated->who_pay;
+                                        $cpt->num_day = $cpt_updated->num_day;
+                                        $cpt->book_of = $cpt_updated->book_of;
+                                        $cpt->pay_of = $cpt_updated->pay_of;
+                                        $cpt->status_book = $cpt_updated->status_book;
+                                        $cpt->parent_id = $cpt_updated->id;
+                                        if (!$cpt ->save()) {
+                                            Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
+                                        }
+                                    }
+                                } else {
+                                    ///add new option
+                                    $cpt = new CpTour();
+                                    $cpt->dv_id = $option->dv_id;
+                                    $cpt->qty = $option->qty;
+                                    $cpt->price = str_replace(',', '', $option->price);
+                                    $cpt->currency = $option->currency;
+                                    $cpt->tour_id = $cpt_updated->tour_id;
+                                    $cpt->venue_id = $cpt_updated->venue_id;
+                                    $cpt->use_day = $cpt_updated->use_day;
+                                    $cpt->payment_dt = $cpt_updated->payment_dt;
+                                    $cpt->who_pay = $cpt_updated->who_pay;
+                                    $cpt->num_day = $cpt_updated->num_day;
+                                    $cpt->book_of = $cpt_updated->book_of;
+                                    $cpt->pay_of = $cpt_updated->pay_of;
+                                    $cpt->status_book = $cpt_updated->status_book;
+                                    $cpt->parent_id = $cpt_updated->id;
+                                    if (!$cpt ->save()) {
+                                        Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
+                                    }
+                                }
+                            }
+                            $arr_diff = array_diff($cpt_has_parent,$arr_updated_ids);
+                         } else {
+                            $arr_diff = $cpt_has_parent;
+                         }
+                         // var_dump($_POST);die();
+                         if (count($arr_diff) > 0) {
+                             $cpt_removeds = CpTour::find()->where(['id' => $arr_diff])->all();
+                             foreach ($cpt_removeds as $cpt_op) {
+                                 $cpt_op->delete();
+                             }
+                         }
+                    } else {
+                        if (isset($_POST['chk_option'])) {
+                            ///insert new options
+                            $chk_options = $_POST['chk_option'];
+                            foreach ($chk_options as $option) {
+                                $option = json_decode($option);
+                                $cpt = new CpTour();
+                                $cpt->dv_id = $option->dv_id;
+                                $cpt->qty = $option->qty;
+                                $cpt->price = str_replace(',', '', $option->price);
+                                $cpt->currency = $option->currency;
+                                $cpt->tour_id = $cpt_updated->tour_id;
+                                $cpt->venue_id = $cpt_updated->venue_id;
+                                $cpt->use_day = $cpt_updated->use_day;
+                                $cpt->payment_dt = $cpt_updated->payment_dt;
+                                $cpt->who_pay = $cpt_updated->who_pay;
+                                $cpt->num_day = $cpt_updated->num_day;
+                                $cpt->book_of = $cpt_updated->book_of;
+                                $cpt->pay_of = $cpt_updated->pay_of;
+                                $cpt->status_book = $cpt_updated->status_book;
+                                $cpt->parent_id = $cpt_updated->id;
+                                if (!$cpt ->save()) {
+                                    Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
+                                }
+                            }
+                        }
+                    }
+                }
+                return $this->redirect(Yii::$app->request->referrer);
+            }
+        }
+        $cpts = CpTour::find()
+            ->with([
+                'venue',
+                'dv'
+            ])
+            ->where('tour_id = 12537');
+        // var_dump($cpts->all());die;
+
+        // $model = new CpTour();
+        // return $this->render('cptour', []);
+        // return $this->render('demo_search');
+        return $this->render('full_tour', [
+            'theTour'=> $theTour,
+            'cpts' => $cpts->all(),
+            'model' => $model,
+        ]);
+    }
+
+    public function actionClients()
+    {
+        $theContacts = Contact::find()
+            ->innerJoinWith('bookings')
+            ->join('INNER JOIN', 'at_ct', 'at_bookings.product_id = at_ct.id')
+            ->where('YEAR(contacts.created_at)= 2018 AND MONTH(contacts.created_at) = 8 AND at_bookings.status = "won" AND at_ct.status = "on" AND SUBSTRING(at_ct.op_code, 1, 1) = "F"')
+            ->with([
+                'metas'=>function($q){
+                    return $q->select(['id', 'rid', 'name', 'value', 'format']);
+                },
+            ])
+            ->asArray()
+            ->all();
+
+        // $countryList = Country::find()
+        //     ->select(['code', 'name'=>'name_'.Yii::$app->language])
+        //     ->orderBy('name')
+        //     ->asArray()
+        //     ->all();
+
+        return $this->render('clients', [
+            'theContacts'=>$theContacts,
+            // 'countryList'=>$countryList,
+        ]);
+    }
 
 
     //fb qhkh
@@ -344,7 +1013,7 @@ class DemoController extends MyController
         $totalCases_statusInMonth = [];
 
         $rates = 1.14;
-        
+
 
         $cofr_ids = [];
         foreach ($cases_ao as $case) {
@@ -630,7 +1299,7 @@ class DemoController extends MyController
         }
         $bookings = Booking::find()
             ->select([
-                'at_bookings.created_by', 'at_bookings.updated_by', 
+                'at_bookings.created_by', 'at_bookings.updated_by',
                 'at_bookings.id', 'at_bookings.pax', 'at_bookings.currency', 'at_bookings.status_dt', 'at_bookings.case_id', 'at_bookings.product_id', 'at_bookings.updated_by', 'at_bookings.note',
                 'start_date'=>'at_ct.day_from', 'end_date'=>new \yii\db\Expression('IF(day_count=0, day_from, DATE_ADD(day_from, INTERVAL at_ct.day_count-1 DAY))')])
             ->innerJoinWith(['product'])
@@ -661,7 +1330,7 @@ class DemoController extends MyController
         $totalPc = [];
         $totalDay = [];
         $totalPax = [];
-        
+
         foreach ($bookings as $booking) {
             $y = intVal($year);
             $m = intVal(date('m',strtotime($booking['status_dt'])));
@@ -701,7 +1370,7 @@ class DemoController extends MyController
             //lai gop
             $total_lg = (isset($totalLaiGop[$year][$mo]))? $totalLaiGop[$year][$mo]: [];
             $cntInMonth[$year][$mo]['lg_total'] = number_format(array_sum($total_lg), 0). ' <span class="text-muted">EUR</span>';;
-            
+
             // ty le lai gop
             $total_pc = (isset($totalPc[$year][$mo]))? $totalPc[$year][$mo]: [];
             $cntInMonth[$year][$mo]['pc_total'] = number_format(array_sum($total_pc), 0);
@@ -845,9 +1514,6 @@ class DemoController extends MyController
 
 
 
-
-
-
     public function actionOver_view($id = 0)
     {
         $theVenue = Venue::findOne($id);
@@ -875,26 +1541,6 @@ class DemoController extends MyController
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // thông tin thưởng DH
     public function actionDh($year = '', $month = '', $operator = '')
     {
@@ -904,7 +1550,7 @@ class DemoController extends MyController
             $yearList[$y] = $y;
         }
         for ($m = 1; $m <= 12; $m ++) {
-            $monthList[$m] = $m;    
+            $monthList[$m] = $m;
         }
 
         if (!in_array($year, $yearList)) {
@@ -914,8 +1560,8 @@ class DemoController extends MyController
             $month = date('n');
         }
         $param = [':year' => $year];
-        $sql = 'SELECT tu.*, t.code, ts.start_date, ts.pax_count,  p.nickname, tu.user_id 
-                FROM at_tour_user tu INNER JOIN at_tours t ON tu.tour_id = t.id 
+        $sql = 'SELECT tu.*, t.code, ts.start_date, ts.pax_count,  p.nickname, tu.user_id
+                FROM at_tour_user tu INNER JOIN at_tours t ON tu.tour_id = t.id
                                      INNER JOIN at_tour_stats ts ON t.id = ts.tour_old_id
                                      INNER JOIN persons p ON tu.user_id = p.id
                 WHERE role ="operator" AND YEAR(ts.start_date) = :year
@@ -938,24 +1584,6 @@ class DemoController extends MyController
 
         ]);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //feedback cho cskh
     public function actionFeedback_online($id = 0, $action = 'add', $feedback = 0)
@@ -1669,7 +2297,7 @@ class DemoController extends MyController
             foreach ($persons as $person) {
 				$profile = Yii::$app->db->createCommand('SELECT * FROM at_profiles_customer WHERE user_id=:user_id', [':user_id' => $person['id']])->queryOne();
 				$user_bookings = Yii::$app->db->createCommand('
-						SELECT * 
+						SELECT *
 						FROM at_booking_user INNER JOIN at_bookings ON  at_booking_user.booking_id = at_bookings.id
 											 INNER JOIN at_ct ON  at_bookings.product_id = at_ct.id
 											 INNER JOIN at_tour_stats ON  at_ct.id = at_tour_stats.tour_id
@@ -2048,8 +2676,8 @@ class DemoController extends MyController
 			$objDrawing->setOffsetX(5);
 			$objDrawing->setOffsetY(5);
 			//set width, height
-			$objDrawing->setWidth(100); 
-			$objDrawing->setHeight(100); 
+			$objDrawing->setWidth(100);
+			$objDrawing->setHeight(100);
 			$objDrawing->setWorksheet($objPHPExcel->getActiveSheet());
 			$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
 			$objWriter->save('MyExcel.xlsx');
@@ -2308,7 +2936,7 @@ class DemoController extends MyController
                         }
                         $thuNguyente[$year][$month][$payment['currency']] += $payment['amount'];
                         // echo '<br>--------------- THU THANG ', $month, ' += ', number_format($payment['amount']), ' ', $payment['currency'];
-                        
+
                         $xrate = $this->getXrates($arr_xrate, $payment['payment_dt'], $unit_price);
                         // var_dump($xrate);die;
                         // Doanh thu - thuc te ///getXrates
@@ -2869,7 +3497,7 @@ class DemoController extends MyController
 			SELECT at_referrals.user_id, COUNT(*) AS cnt
 			FROM at_referrals INNER JOIN at_cases ON at_referrals.case_id = at_cases.id
 			WHERE YEAR(at_referrals.created_at) >= 2014 AND at_referrals.user_id > 0 AND deal_status = "won"
-			GROUP BY at_referrals.user_id 
+			GROUP BY at_referrals.user_id
 			HAVING cnt >= 2 AND cnt <= 4
     		')->queryAll();
     	foreach ($referral_cases as $referral) {
@@ -2893,7 +3521,7 @@ class DemoController extends MyController
 		            ->setCellValue('C1', 'Phone');
 		$objPHPExcel->getActiveSheet()->getStyle('A1:I1')->getFont()->setBold(true);
 		$k = 2;
-		
+
 		foreach ($persons as $person) {
 			$address = [];
 			$tel = [];
@@ -2926,7 +3554,7 @@ class DemoController extends MyController
 			SELECT at_referrals.user_id, COUNT(*) AS cnt
 			FROM at_referrals INNER JOIN at_cases ON at_referrals.case_id = at_cases.id
 			WHERE YEAR(at_referrals.created_at) >= 2014 AND at_referrals.user_id > 0 AND deal_status = "won"
-			GROUP BY at_referrals.user_id 
+			GROUP BY at_referrals.user_id
 			HAVING cnt >=5
     		')->queryAll();
     	foreach ($referral_cases as $referral) {
@@ -2950,7 +3578,7 @@ class DemoController extends MyController
 		            ->setCellValue('C1', 'Phone');
 		$objPHPExcel->getActiveSheet()->getStyle('A1:I1')->getFont()->setBold(true);
 		$k = 2;
-		
+
 		foreach ($persons as $person) {
 			$address = [];
 			$tel = [];
@@ -3006,7 +3634,7 @@ class DemoController extends MyController
 		            ->setCellValue('B1', 'Email');
 		$objPHPExcel->getActiveSheet()->getStyle('A1:I1')->getFont()->setBold(true);
 		$k = 2;
-		
+
 		foreach ($persons as $person) {
 			$emails = [];
 			foreach ($person['metas'] as $meta) {
@@ -3185,7 +3813,7 @@ class DemoController extends MyController
 									])->execute();
        			} else {
        				Yii::$app->db->createCommand('
-									UPDATE op_zones SET 
+									UPDATE op_zones SET
 										updated_dt=:updated_dt,
 										updated_by=:updated_by,
 										content_z=:content_z
@@ -3304,7 +3932,7 @@ class DemoController extends MyController
 									])->execute();
        			} else {
        				Yii::$app->db->createCommand('
-									UPDATE op_zones SET 
+									UPDATE op_zones SET
 										updated_dt=:updated_dt,
 										updated_by=:updated_by,
 										content_op=:content_op
@@ -3389,11 +4017,11 @@ class DemoController extends MyController
 
     		// $arr_data[$code]['room'] += $cpt['so_phong'];
     		if (strpos($cpt['unit'], 'phòng') !== false) {
-    			$arr_data[$code]['room'] += $cpt['qty']; 
+    			$arr_data[$code]['room'] += $cpt['qty'];
     		}
     		// $arr_data[$code]['pax'] += $cpt['so_pax'];
     		if (strpos($cpt['unit'], 'pax') !== false || strpos($cpt['unit'], 'khach')) {
-    			$arr_data[$code]['pax'] += $cpt['qty']; 
+    			$arr_data[$code]['pax'] += $cpt['qty'];
     		}
     		$arr_data[$code]['currency'][$cpt['unitc']] += $cpt['price'];
     	}

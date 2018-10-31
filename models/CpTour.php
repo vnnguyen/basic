@@ -1,7 +1,6 @@
 <?php
 
 namespace app\models;
-use common\models\Venue;
 
 use Yii;
 
@@ -50,7 +49,7 @@ class CpTour extends \yii\db\ActiveRecord
 
     public function getVenue()
     {
-        return $this->hasOne(Venue::className(), ['id' => 'venue_id']);
+        return $this->hasOne(Venues::className(), ['id' => 'venue_id']);
     }
     public function getDv()
     {

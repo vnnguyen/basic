@@ -270,7 +270,7 @@ class CptController extends MyController
             if (!empty($theVenues)) {
                 $venueIdList = array_keys($theVenues);
             }
-            
+
             $companyIdList = null;
             if (!empty($theCompanies)) {
                 $companyIdList = array_keys($theCompanies);
@@ -588,7 +588,7 @@ class CptController extends MyController
                     public $status = 'nok';
                     //public $class = 'label-danger';
                 };
-                return $ret;        
+                return $ret;
             }
         }
         // Them hoac bo muc thanh toan nay
@@ -1026,8 +1026,8 @@ class CptController extends MyController
                 ->innerJoinWith('cpt');
             foreach ($joinConditions as $joinCondition) {
                 $query->andOnCondition($joinCondition);
-            } 
-                
+            }
+
         }
 
         if ((int)$updatedby != 0) {
@@ -1393,7 +1393,7 @@ class CptController extends MyController
 
         // Ngay
         if (trim($day) != '') {
-            
+
         }
 
         $theCptx = $query
@@ -1622,7 +1622,7 @@ class CptController extends MyController
                 return $this->redirect(DIR.URI);
             }
             if ($theMtt['status'] != 'on' || !in_array(USER_ID, [1, $theMtt['created_by'], $theMtt['updated_by']])) {
-                throw new HttpException(403, 'Access denied');  
+                throw new HttpException(403, 'Access denied');
             }
             $theMtt->status = 'deleted';
             $theMtt->updated_dt = NOW;
@@ -1644,7 +1644,7 @@ class CptController extends MyController
                 return $this->redirect(DIR.URI);
             }
             if ($theMtt['status'] != 'on' || !in_array(USER_ID, [1, $theMtt['created_by'], $theMtt['updated_by']])) {
-                Yii::$app->session->setFlash('danger', 'Access denied');    
+                Yii::$app->session->setFlash('danger', 'Access denied');
                 return $this->redirect(DIR.URI);
             }
             if ($theMtt->load(Yii::$app->request->post() && $theMtt->validate())) {
@@ -1681,7 +1681,7 @@ class CptController extends MyController
                 throw new HttpException(404, 'Not found');
             }
             if ($theComment['status'] != 'on' || !in_array(USER_ID, [1, $theComment['created_by'], $theComment['updated_by']])) {
-                throw new HttpException(403, 'Access denied');  
+                throw new HttpException(403, 'Access denied');
             }
             $theComment->status = 'deleted';
             $theComment->updated_at = NOW;
@@ -1698,7 +1698,7 @@ class CptController extends MyController
                 throw new HttpException(404, 'Not found');
             }
             if ($theComment['status'] != 'on' || !in_array(USER_ID, [1, $theComment['created_by'], $theComment['updated_by']])) {
-                throw new HttpException(403, 'Access denied');  
+                throw new HttpException(403, 'Access denied');
             }
             $theComment->scenario = 'any/c';
         } else {
@@ -1720,7 +1720,7 @@ class CptController extends MyController
             return $this->redirect('@web/cpt/r/'.$theCpt['dvtour_id']);
         }
 
-/*
+        /*
         $newName = trim(Yii::$app->request->post('name', ''));
         if ($newName != '' && Yii::$app->user->id == 1) {
             $theCp = Cp::find()
@@ -1737,7 +1737,7 @@ class CptController extends MyController
                 return $this->redirect('@web/cpt/r/'.$id);
             }
         }
-*/
+        */
         return $this->render('cpt_r', [
             'theCpt'=>$theCpt,
             'theMtt'=>$theMtt,
@@ -1797,7 +1797,7 @@ class CptController extends MyController
             ->one();
 
         if (!$theTour) {
-            throw new HttpException(404, 'Tour not found');         
+            throw new HttpException(404, 'Tour not found');
         }
 
         $query = Cpt::find()

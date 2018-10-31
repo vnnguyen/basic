@@ -3029,7 +3029,7 @@ class TourController extends MyController
             'theTour'          => $theTour,
             'theTourOld'       => $theTourOld,
             'theLichxes'       => $theLichxes,
-            'theLichxe'        => $theLichxe ?  ? false,
+            // 'theLichxe'        => $theLichxe ?  ? false,
             'theLichxeContent' => $theLichxeContent,
             'lichxe'           => $lichxe,
             'action'           => $action,
@@ -3313,38 +3313,38 @@ class TourController extends MyController
     {
         $versions['20072018'] = [
             'questions' => [
-                'q1'  => [
-                    'title'         => 'Par quel intermédiaire, avez-vous connu Amica Travel ?',
-                    'options'       => ['Bouche à oreille', 'Ancien voyageur Amica', 'Médias (guides de voyage, presse, etc.)', 'Événement Amica Travel ', 'Internet', 'Autre'],
+                'q1' => [
+                    'title' => 'Comment avez-vous connu Amica Travel ?',
+                    'options' => ['Bouche à oreille', 'Déjà client', 'Médias (guides de voyage, presse, etc.)', 'Événement Amica Travel ', 'Internet', 'Autre'],
                     'options_value' => [''],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
 
-                'q2'  => [
-                    'title'         => "",
-                    'options'       => [
-                        'Votre ressenti général de votre voyage',
+                'q2' => [
+                    'title' => "",
+                    'options' => [
+                        'Votre appréciation générale',
                         "Notre disponibilité (tél, courriel, etc.)",
                         "Compétences de votre conseiller(e) (compréhension, adaptation du programme)",
                         "Informations délivrées pour le voyage (devis, programme, informations pratiques, etc.) :",
                         "Rapport Qualité/Prix",
                         "Suivi et résolution des problèmes pendant le voyage",
-                        "Personnalisation et originalité de nos prestations",
-                        "Qualité des prestations::Itinéraire",
+                        "Originalité de nos prestations",
+                        "Qualité des prestations::Programmation du voyage",
                         "Qualité des prestations::Hébergements",
-                        "Qualité des prestations::Contact avec l’habitant",
+                        "Qualité des prestations::Restauration",
                         "Qualité des prestations::Véhicule",
                         "Qualité des prestations::Bateau",
                         "Qualité des prestations::Autre moyen de transports",
-                        "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)",
+                        "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)"
                     ],
 
                     'options_value' => ['Très insatisfait', 'Peu satisfait', 'Moyen', 'Satisfait', 'Très satisfait'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q3'  => [
-                    'title'         => "guide",
-                    'options'       => [
+                'q3' => [
+                    'title' => "guide",
+                    'options' => [
                         "Niveau de français",
                         "Connaissances",
                         "Capacité d’organisation",
@@ -3352,11 +3352,11 @@ class TourController extends MyController
                         "Capacité d’assurer le contact du voyageur avec les habitants et la vie locale",
                     ],
                     'options_value' => ['Très insatisfait', 'Peu satisfait', 'Moyen', 'Satisfait', 'Très satisfait'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q4'  => [
-                    'title'         => "chauffeur",
-                    'options'       => [
+                'q4' => [
+                    'title' => "chauffeur",
+                    'options' => [
                         "Qualité de la conduite",
                         "Serviabilité",
                         "Concentration",
@@ -3364,45 +3364,45 @@ class TourController extends MyController
                         "Propreté du véhicule",
                     ],
                     'options_value' => ['Très insatisfait', 'Peu satisfait', 'Moyen', 'Satisfait', 'Très satisfait'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q5'  => [
-                    'title'         => "Vos autres remarques et suggestions sont la bienvenue, dans un souci constant d'amélioration de nos services ?",
-                    'options'       => [
+                'q5' => [
+                    'title' => "Vos autres remarques et suggestions sont la bienvenue, dans un souci constant d'amélioration de nos services ?",
+                    'options' => [
                         "autre",
                     ],
                     'options_value' => [''],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q6'  => [
-                    'title'         => "Durant votre voyage, avez-vous constaté des conditions de visites défavorables ?",
-                    'options'       => [
-                        "De sur-fréquentation touristique",
-                        "D'utilisation des plastiques jetables",
-                        "Sur la qualité des infrastructures chez l'habitant ",
-                        "Sur le travail des mineurs",
-                        "Sur les conditions de travail de votre guide et chauffeur",
-                    ],
-                    'options_value' => ['Oui', 'Non'],
-                    'note_q'        => '',
-                ],
-                'q7'  => [
-                    'title'         => "Quelle solution/action proposez-vous pour notre Fondation Amica ?",
-                    'options'       => ['autre'],
-                    'options_value' => [''],
-                    'note_q'        => '',
-                ],
-                'q8'  => [
-                    'title'         => "Choisiriez-vous Amica Travel pour un prochain voyage ?",
-                    'options'       => [
+                // 'q6' => [
+                //     'title' => "Durant votre voyage, avez-vous constaté des conditions de visites défavorables ?",
+                //     'options' => [
+                //         "De sur-fréquentation touristique",
+                //         "D'utilisation des plastiques jetables",
+                //         "Sur la qualité des infrastructures chez l'habitant ",
+                //         "Sur le travail des mineurs",
+                //         "Sur les conditions de travail de votre guide et chauffeur",
+                //     ],
+                //     'options_value' => ['Oui', 'Non'],
+                //     'note_q' => '',
+                // ],
+                // 'q7' => [
+                //     'title' => "Quelle solution/action proposez-vous pour notre Fondation Amica ?",
+                //     'options' => ['autre'],
+                //     'options_value' => [''],
+                //     'note_q' => '',
+                // ],
+                'q8' => [
+                    'title' => "Choisiriez-vous Amica Travel pour un prochain voyage ?",
+                    'options' => [
                         "Choisiriez-vous Amica Travel pour un prochain voyage?",
                     ],
                     'options_value' => ['Oui', 'Non', 'Je ne sais pas'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q9'  => [
-                    'title'         => "Si oui, quels sont vos prochains voyages envisagés en Asie du Sud-Est ?",
-                    'options'       => [
+                'q9' => [
+                    'title' => "Si oui, quelle destination vous tenterait ?",
+                    'options' => [
                         "Vietnam",
                         "Laos",
                         "Cambodge",
@@ -3410,24 +3410,24 @@ class TourController extends MyController
                         "autre",
                     ],
                     'options_value' => [''],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
                 'q10' => [
-                    'title'         => "Recommanderiez-vous Amica Travel à vos amis ?",
-                    'options'       => [
+                    'title' => "Recommanderiez-vous Amica Travel à vos amis ?",
+                    'options' => [
                         "Recommanderiez-vous Amica Travel à vos amis ?",
                     ],
                     'options_value' => ['Oui', 'Non'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
                 'q11' => [
-                    'title'         => 'Pouvez-vous nous citer des valeurs que vous associez à Amica Travel ?',
-                    'options'       => ['Empathie', 'Compréhension', 'Passion', 'Partage', 'Créativité', 'Responsable', 'Autre'],
+                    'title' => 'Pouvez-vous nous citer des valeurs que vous associez à Amica Travel ?',
+                    'options' => ['Empathie', 'Compréhension', 'Passion', 'Partage', 'Créativité', 'Responsable', 'Autre'],
                     'options_value' => [''],
-                    'note_q'        => '',
-                ],
+                    'note_q' => '',
+                ]
 
-            ],
+            ]
         ];
         $theTour = Product::find()
             ->select(['id', 'op_code', 'op_name', 'day_from'])
@@ -3509,18 +3509,37 @@ class TourController extends MyController
                     }
                 }
             }
+            /**
+             * 'options' => [
+                        'Votre appréciation générale',
+                        "Notre disponibilité (tél, courriel, etc.)",
+                        "Compétences de votre conseiller(e) (compréhension, adaptation du programme)",
+                        "Informations délivrées pour le voyage (devis, programme, informations pratiques, etc.) :",
+                        "Rapport Qualité/Prix",
+                        "Suivi et résolution des problèmes pendant le voyage",
+                        "Originalité de nos prestations",
+                        "Qualité des prestations::Programmation du voyage",
+                        "Qualité des prestations::Hébergements",
+                        "Qualité des prestations::Restauration",
+                        "Qualité des prestations::Véhicule",
+                        "Qualité des prestations::Bateau",
+                        "Qualité des prestations::Autre moyen de transports",
+                        "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)"
+                    ],
+             * @var [type]
+             */
             $poins = [
                 'q2'  => [
-                    'Votre ressenti général de votre voyage'                                                                                                               => 30,
+                    'Votre appréciation générale'                                                                                                               => 30,
                     "Notre disponibilité (tél, courriel, etc.)"                                                                                                            => 5,
                     "Compétences de votre conseiller(e) (compréhension, adaptation du programme)"                                                                          => 5,
                     "Informations délivrées pour le voyage (devis, programme, informations pratiques, etc.) :"                                                             => 3,
                     "Rapport Qualité/Prix"                                                                                                                                 => 5,
                     "Suivi et résolution des problèmes pendant le voyage"                                                                                                  => 6,
-                    "Personnalisation et originalité de nos prestations"                                                                                                   => 5,
-                    "Qualité des prestations::Itinéraire"                                                                                                                  => 2.5,
+                    "Originalité de nos prestations"                                                                                                   => 5,
+                    "Qualité des prestations::Programmation du voyage"                                                                                                                  => 2.5,
                     "Qualité des prestations::Hébergements"                                                                                                                => 2.5,
-                    "Qualité des prestations::Contact avec l’habitant"                                                                                                     => 2.5,
+                    "Qualité des prestations::Restauration"                                                                                                     => 2.5,
                     "Qualité des prestations::Véhicule"                                                                                                                    => 2.5,
                     "Qualité des prestations::Bateau"                                                                                                                      => 1,
                     "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)" => 5,
@@ -3663,38 +3682,38 @@ class TourController extends MyController
     {
         $versions['20072018'] = [
             'questions' => [
-                'q1'  => [
-                    'title'         => 'Par quel intermédiaire, avez-vous connu Amica Travel ?',
-                    'options'       => ['Bouche à oreille', 'Ancien voyageur Amica', 'Médias (guides de voyage, presse, etc.)', 'Événement Amica Travel ', 'Internet', 'Autre'],
+                'q1' => [
+                    'title' => 'Comment avez-vous connu Amica Travel ?',
+                    'options' => ['Bouche à oreille', 'Déjà client', 'Médias (guides de voyage, presse, etc.)', 'Événement Amica Travel ', 'Internet', 'Autre'],
                     'options_value' => [''],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
 
-                'q2'  => [
-                    'title'         => "",
-                    'options'       => [
-                        'Votre ressenti général de votre voyage',
+                'q2' => [
+                    'title' => "",
+                    'options' => [
+                        'Votre appréciation générale',
                         "Notre disponibilité (tél, courriel, etc.)",
                         "Compétences de votre conseiller(e) (compréhension, adaptation du programme)",
                         "Informations délivrées pour le voyage (devis, programme, informations pratiques, etc.) :",
                         "Rapport Qualité/Prix",
                         "Suivi et résolution des problèmes pendant le voyage",
-                        "Personnalisation et originalité de nos prestations",
-                        "Qualité des prestations::Itinéraire",
+                        "Originalité de nos prestations",
+                        "Qualité des prestations::Programmation du voyage",
                         "Qualité des prestations::Hébergements",
-                        "Qualité des prestations::Contact avec l’habitant",
+                        "Qualité des prestations::Restauration",
                         "Qualité des prestations::Véhicule",
                         "Qualité des prestations::Bateau",
                         "Qualité des prestations::Autre moyen de transports",
-                        "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)",
+                        "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)"
                     ],
 
                     'options_value' => ['Très insatisfait', 'Peu satisfait', 'Moyen', 'Satisfait', 'Très satisfait'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q3'  => [
-                    'title'         => "guide",
-                    'options'       => [
+                'q3' => [
+                    'title' => "guide",
+                    'options' => [
                         "Niveau de français",
                         "Connaissances",
                         "Capacité d’organisation",
@@ -3702,11 +3721,11 @@ class TourController extends MyController
                         "Capacité d’assurer le contact du voyageur avec les habitants et la vie locale",
                     ],
                     'options_value' => ['Très insatisfait', 'Peu satisfait', 'Moyen', 'Satisfait', 'Très satisfait'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q4'  => [
-                    'title'         => "chauffeur",
-                    'options'       => [
+                'q4' => [
+                    'title' => "chauffeur",
+                    'options' => [
                         "Qualité de la conduite",
                         "Serviabilité",
                         "Concentration",
@@ -3714,45 +3733,45 @@ class TourController extends MyController
                         "Propreté du véhicule",
                     ],
                     'options_value' => ['Très insatisfait', 'Peu satisfait', 'Moyen', 'Satisfait', 'Très satisfait'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q5'  => [
-                    'title'         => "Vos autres remarques et suggestions sont la bienvenue, dans un souci constant d'amélioration de nos services ?",
-                    'options'       => [
+                'q5' => [
+                    'title' => "Vos autres remarques et suggestions sont la bienvenue, dans un souci constant d'amélioration de nos services ?",
+                    'options' => [
                         "autre",
                     ],
                     'options_value' => [''],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q6'  => [
-                    'title'         => "Durant votre voyage, avez-vous constaté des conditions de visites défavorables ?",
-                    'options'       => [
-                        "De sur-fréquentation touristique",
-                        "D'utilisation des plastiques jetables",
-                        "Sur la qualité des infrastructures chez l'habitant ",
-                        "Sur le travail des mineurs",
-                        "Sur les conditions de travail de votre guide et chauffeur",
-                    ],
-                    'options_value' => ['Oui', 'Non'],
-                    'note_q'        => '',
-                ],
-                'q7'  => [
-                    'title'         => "Quelle solution/action proposez-vous pour notre Fondation Amica ?",
-                    'options'       => ['autre'],
-                    'options_value' => [''],
-                    'note_q'        => '',
-                ],
-                'q8'  => [
-                    'title'         => "Choisiriez-vous Amica Travel pour un prochain voyage ?",
-                    'options'       => [
+                // 'q6' => [
+                //     'title' => "Durant votre voyage, avez-vous constaté des conditions de visites défavorables ?",
+                //     'options' => [
+                //         "De sur-fréquentation touristique",
+                //         "D'utilisation des plastiques jetables",
+                //         "Sur la qualité des infrastructures chez l'habitant ",
+                //         "Sur le travail des mineurs",
+                //         "Sur les conditions de travail de votre guide et chauffeur",
+                //     ],
+                //     'options_value' => ['Oui', 'Non'],
+                //     'note_q' => '',
+                // ],
+                // 'q7' => [
+                //     'title' => "Quelle solution/action proposez-vous pour notre Fondation Amica ?",
+                //     'options' => ['autre'],
+                //     'options_value' => [''],
+                //     'note_q' => '',
+                // ],
+                'q8' => [
+                    'title' => "Choisiriez-vous Amica Travel pour un prochain voyage ?",
+                    'options' => [
                         "Choisiriez-vous Amica Travel pour un prochain voyage?",
                     ],
                     'options_value' => ['Oui', 'Non', 'Je ne sais pas'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
-                'q9'  => [
-                    'title'         => "Si oui, quels sont vos prochains voyages envisagés en Asie du Sud-Est ?",
-                    'options'       => [
+                'q9' => [
+                    'title' => "Si oui, quelle destination vous tenterait ?",
+                    'options' => [
                         "Vietnam",
                         "Laos",
                         "Cambodge",
@@ -3760,24 +3779,24 @@ class TourController extends MyController
                         "autre",
                     ],
                     'options_value' => [''],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
                 'q10' => [
-                    'title'         => "Recommanderiez-vous Amica Travel à vos amis ?",
-                    'options'       => [
+                    'title' => "Recommanderiez-vous Amica Travel à vos amis ?",
+                    'options' => [
                         "Recommanderiez-vous Amica Travel à vos amis ?",
                     ],
                     'options_value' => ['Oui', 'Non'],
-                    'note_q'        => '',
+                    'note_q' => '',
                 ],
                 'q11' => [
-                    'title'         => 'Pouvez-vous nous citer des valeurs que vous associez à Amica Travel ?',
-                    'options'       => ['Empathie', 'Compréhension', 'Passion', 'Partage', 'Créativité', 'Responsable', 'Autre'],
+                    'title' => 'Pouvez-vous nous citer des valeurs que vous associez à Amica Travel ?',
+                    'options' => ['Empathie', 'Compréhension', 'Passion', 'Partage', 'Créativité', 'Responsable', 'Autre'],
                     'options_value' => [''],
-                    'note_q'        => '',
-                ],
+                    'note_q' => '',
+                ]
 
-            ],
+            ]
         ];
         $theTour = Product::find()
             ->select(['id', 'op_code', 'op_name', 'day_from'])

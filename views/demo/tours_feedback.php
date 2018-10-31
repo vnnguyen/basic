@@ -1,3 +1,4 @@
+
 <?
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
@@ -156,7 +157,7 @@ $action = Yii::$app->request->get('action', 'add');
                     </tr>
                     <? } ?>
                 </table> <br>
-                <?php if ($q['note_q'] != ''): 
+                <?php if ($q['note_q'] != ''):
                     $note_q = '';
                 ?>
                     <div class="form-group">

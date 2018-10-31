@@ -173,7 +173,7 @@ $this->beginPage();
                         <i class="icon-bell2"></i>
                         <span class="d-md-none ml-2">Notifications</span>
                         <span class="badge badge-mark border-white ml-auto ml-md-0"></span>
-                    </a>                    
+                    </a>
                 </li>
  -->
                 <li class="nav-item">
@@ -277,7 +277,7 @@ $this->beginPage();
 
             </div>
             <!-- /sidebar content -->
-            
+
         </div>
         <?php } // -s ?>
 
@@ -412,24 +412,6 @@ if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page
                 <?= $content ?>
             </div>
             <!-- /content area -->
-
-            <footer class="p-3 d-flex justify-content-between">
-                <div class="">
-                    &copy; 2018 <a href="#">Amica Travel</a>
-                </div>
-
-                <div class="">
-                    <a href="#" class="">About</a>
-                    &middot;
-                    <a href="#" class="">
-                        Help
-                    </a>
-                    &middot;
-                    <a href="#" class="">
-                        Contact
-                    </a>
-                </div>
-            </footer>
 
         </div>
         <!-- /main content -->

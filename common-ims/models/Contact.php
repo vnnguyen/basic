@@ -1,15 +1,17 @@
 <?php
-
 namespace common\models;
 
 use Yii;
 use yii\db\ActiveRecord;
+use yii\web\IdentityInterface;
 
 class Contact extends MyActiveRecord
 {
 
     public $rawPassword;
     public $rawPasswordAgain;
+    public $raw_password;
+    public $raw_password_again;
     public $search;
     public $password_again;
 
@@ -20,7 +22,7 @@ class Contact extends MyActiveRecord
 
     public static function tableName()
     {
-        return 'at_users';
+        return 'contacts';
     }
 
     public function attributeLabels()
@@ -88,10 +90,32 @@ class Contact extends MyActiveRecord
         ];
     }
 
+    public function beforeSave($insert)
+    {
+        if (parent::beforeSave($insert)) {
+            if (($this->isNewRecord || $this->getScenario() === 'reset') && !empty($this->password)) {
+                if ($this->getScenario() === 'reset')
+                    $this->password_reset_token = '';
+                $this->password = Yii::$app->security->generatePasswordHash($this->password);
+            }
+            if ($this->isNewRecord) {
+                $this->created_at = NOW;
+                $this->created_by = \Yii::$app->user->identity->id;
+                $this->uid = Yii::$app->security->generateRandomString(10);
+            }
+            return true;
+        }
+        return false;
+    }
 
     public function getMetas()
     {
         return $this->hasMany(Meta::className(), ['rid' => 'id'])->where(['rtype'=>'user']);
+    }
+
+    public function getReferrals()
+    {
+        return $this->hasMany(Referral::className(), ['user_id' => 'id']);
     }
 
     public function getRefCases()
@@ -100,9 +124,10 @@ class Contact extends MyActiveRecord
             ->viaTable('at_referrals', ['user_id'=>'id']);
     }
 
-    public function getProfileMember()
+    // TODO Remove this relation
+    public function getMember()
     {
-        return $this->hasOne(ProfileMember::className(), ['user_id' => 'id']);
+        return $this->hasOne(Member::className(), ['contact_id' => 'id']);
     }
 
     public function getProfileTourguide()

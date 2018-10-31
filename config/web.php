@@ -115,12 +115,21 @@ $config = [
                 'debug/<controller>/<action>' => 'debug/<controller>/<action>',
                 'gii/<controller>/<action>' => 'gii/<controller>/<action>',
                 'admin/<controller>/<action>' => 'gii/<controller>/<action>',
-                
+
                 // '<c>/<a>/<id:\d+>' => '<c>/<a>',
+                'demo/<a>/<id:\d+>' => 'demo/<a>',
+                'cptour/<a>/<id:\d+>' => 'cptour/<a>',
 
                 'logout'=>'login/logout',
                 'help/report-a-bug'=>'help/bug',
                 'groups/type/<type>'=>'group/index',
+
+                 // NEW ROUTES
+                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|vendor>s'=>'<c_>/index',
+                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|tour|vendor>s/<id:\d+>'=>'<c_>/r',
+                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|vendor>s/r/<id:\d+>'=>'<c_>/r',
+                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|tour|vendor>s/<id:\d+>/<a_>'=>'<c_>/<a_>',
+                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|vendor>s/<a_:\w+>'=>'<c_>/<a_>',
 
                 // Account CP
                 'acp'=>'acp/acp/index',

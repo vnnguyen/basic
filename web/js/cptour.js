@@ -255,7 +255,7 @@ $(document).on('click', '.save_btn', function(){
 		})
 
 	});
-	//remove cpt 
+	//remove cpt
 	$(document).on('click', '.remove_dv', function(){
 		var cpt_id = $(this).data('cpt-id');
 		if (cpt_id > 0) {
@@ -372,7 +372,7 @@ $(document).ready(function(){
 										data: data_source_dv,
 										tags: "true",
 										maximumInputLength: 20
-									}).on("load", function(e) { 
+									}).on("load", function(e) {
 									     // $(this).prop('tabindex',2);
 									 }).trigger('load');
 					if (response.options) {
@@ -429,7 +429,7 @@ function resetVar() {
 
 				return cPos;
 			}
-			
+
 			function spaceFormat(val, pos){
 				/// add spaces for thousands
 
@@ -482,46 +482,46 @@ function resetVar() {
 
 			if((key < 37 || key > 40) && key != 8 && key != 9 && prevDefault){
 				e.preventDefault();
-				
+
 				if(!e.altKey && !e.shiftKey && !e.ctrlKey){
 
 					var value = this.value;
 					if((key > 95 && key < 106)||(key > 47 && key < 58) ||
 						(deciNumber > 0 && (key == 110 || key == 188 || key == 190))){
-						
+
 						var keys = { // reformat the keyCode
 							48: 0, 49: 1, 50: 2, 51: 3,  52: 4,  53: 5,  54: 6,  55: 7,  56: 8,  57: 9,
 							96: 0, 97: 1, 98: 2, 99: 3, 100: 4, 101: 5, 102: 6, 103: 7, 104: 8, 105: 9,
 							110: deciSep, 188: deciSep, 190: deciSep
 						};
-						
+
 						var caretPos = this.selectionStart;
 						var caretEnd = this.selectionEnd;
-						
+
 						if(caretPos != caretEnd) // remove selected text
 							value = value.substring(0,caretPos) + value.substring(caretEnd);
-						
+
 						caretPos = spaceCaretPos(value, caretPos);
-						
+
 						value = value.replace(thouReg, '');
-						
+
 						var before = value.substring(0,caretPos);
 						var after = value.substring(caretPos);
 						var newPos = caretPos+1;
-						
+
 						if(keys[key] == deciSep && value.indexOf(deciSep) >= 0){
 							if(before.indexOf(deciSep) >= 0){ newPos--; }
 							before = before.replace(deciReg, '');
 							after = after.replace(deciReg, '');
 						}
 						var newValue = before + keys[key] + after;
-						
+
 						if(newValue.substring(0,1) == deciSep){
 							newValue = "0"+newValue;
 							newPos++;
 						}
-						
-						while(newValue.length > 1 && 
+
+						while(newValue.length > 1 &&
 							newValue.substring(0,1) == "0" && newValue.substring(1,2) != deciSep){
 							newValue = newValue.substring(1);
 						newPos--;
@@ -605,3 +605,49 @@ String.prototype.allReplace = function(obj) {
     }
     return retStr;
 };
+
+
+
+/* ajax
+var gitElement = $("#cptour-venue_id").select2({
+    ajax: {
+        url: "/cptour/search_ncc",
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return {
+            q: params.term,
+            page: params.page || 1
+          };
+        },
+        processResults: function (data, params) {
+            params.page = params.page || 1;
+            return {
+                results: $.map(data.items, displayItem),
+                pagination: {
+                    more: (params.page * 20) < data.total_count
+                }
+            };
+        }
+    },
+    cache: true,
+    placeholder: "Search",
+    // data: $.map(selected, displayItem),
+    escapeMarkup: function (markup) { return markup; },
+    templateResult: function(data) {
+        return data.html;
+    },
+    templateSelection: function(repo) {
+        return repo.name || repo.text;
+    },
+    minimumInputLength: 2
+
+});
+function displayItem(repo) {
+    return {
+        id : repo.id,
+      text :    repo.name,
+      html : '<div style="color:red">bug</div><div><small>This is some small text on a new line</small></div>'
+    };
+}
+ */
