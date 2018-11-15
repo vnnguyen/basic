@@ -263,7 +263,7 @@ class ToolController extends MyController
         ]);
     }
 
-    // 
+    //
     public function actionGheTreEm($action = '', $start = '', $end = '')
     {
         if ($action == 'load') {
@@ -334,8 +334,8 @@ class ToolController extends MyController
         $theProduct['createdBy']['fname'] = $this->vn_str_filter($theProduct['createdBy']['fname']);
         $theProduct['createdBy']['lname'] = $this->vn_str_filter($theProduct['createdBy']['lname']);
         $data = unserialize($data);
-        
-        
+
+
       //  var_dump($data['days'][0]['body']);exit;
        // echo "<pre>";
        // print_r($data['days'][0]['body']);
@@ -610,7 +610,7 @@ class ToolController extends MyController
             $interval = $dt1->diff($dt2)->format('%a');
             $dayIdArray = explode(',', $li['day_ids']);
             if (isset($dayIdArray[abs($interval)])) {
-                $dayIdList[] = $dayIdArray[abs($interval)]; 
+                $dayIdList[] = $dayIdArray[abs($interval)];
             }
         }
 
@@ -705,13 +705,7 @@ class ToolController extends MyController
     // Map drawer for tour programs
     public function actionMapDrawer($id, $action = '')
     {
-        $theProduct = Product::find()
-            ->where(['id'=>$id])
-            ->asArray()
-            ->one();
-        if (!$theProduct) {
-            throw new HttpException(403, 'Tour program not found.');
-        }
+
 
         if (Yii::$app->request->isAjax && $action = 'insert') {
             // Save map file (jpg) to map folder
@@ -732,7 +726,7 @@ class ToolController extends MyController
             }
 
             file_put_contents(Yii::getAlias('@webroot').'/upload/products/'.$theProduct['id'].'/map/'.$file_name, $data);
-             
+
             // CROP + RESIZE HERE
             throw new HttpException(500);
 
@@ -742,7 +736,7 @@ class ToolController extends MyController
             ];
         }
         return $this->render('tool_map-drawer', [
-            'theProduct'=>$theProduct,
+            // 'theProduct'=>$theProduct,
             ]);
     }
 
@@ -1483,7 +1477,7 @@ $vatCodes = [
         $getMonth = Yii::$app->request->get('month', date('Y-m'));
         $sql = 'select substring(dvtour_day,1,7) as ym from cpt group by ym order by ym desc';
         $monthList = Yii::$app->db->createCommand($sql)->queryAll();
-        
+
         // Cac dich vụ Hoang phu co ngay su dung trong thang
         $sql = 'select d.dvtour_day, d.dvtour_id, d.dvtour_name, d.unit, d.unitc, d.qty, d.price, t.id, t.code, t.status, t.name, p.day_from from cpt d, at_tours t, at_ct p where t.ct_id=p.id and d.tour_id=t.id AND (via_company_id=2 or by_company_id=2 or locate("Hoang Phu", oppr)!=0) AND SUBSTRING(d.dvtour_day,1,7)=:ym ORDER BY d.dvtour_day limit 1000';
         $theCptx = Cpt::findBySql($sql, [':ym'=>$getMonth])->asArray()->all();

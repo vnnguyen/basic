@@ -209,6 +209,7 @@ foreach ($cpts as $cpt){
             </div>
             <?php } ?>
         </div>
+
         </form>
         <div class="d-none wrap-tmp-forms">
             <div id="form-cat1">

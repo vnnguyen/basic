@@ -1,6 +1,7 @@
 <?php
 use yii\helpers\Html;
 use app\assets\MainAsset;
+use app\notifications\widgets\MyNotifications;
 
 include('_nav.php');
 include('_css.php');
@@ -199,6 +200,52 @@ $this->beginPage();
                         <a href="/me/reports" a="" class="dropdown-item"><i style="font-size:16px;" class="slicon-pie-chart"></i> Báo cáo của bán hàng</a>
                         <div class="dropdown-divider"></div>
                         <a href="/logout" a="" class="dropdown-item"><i style="font-size:16px;" class="slicon-power"></i> Đăng xuất</a>
+                    </div>
+                </li>
+                <li class="nav-item dropdown"><?= MyNotifications::widget([
+                    'options' => ['class' => 'dropdown nav-notifications'],
+                    'countOptions' => ['class' => 'badge badge-pill bg-warning-400 ml-auto ml-md-0']
+                ]);?>
+
+                </li>
+                <li class="nav-item dropdown">
+                    <a href="#" class="navbar-nav-link dropdown-toggle caret-0" data-toggle="dropdown">
+                        <i class="icon-bubbles4"></i>
+                        <span class="d-md-none ml-2">Messages</span>
+                        <span id="headNotificationNum" class="badge badge-pill bg-warning-400 ml-auto ml-md-0" data-load_ids="" style="display: none">0</span>
+                        <div id="sound" class="d-none"></div>
+                    </a>
+
+                    <div class="dropdown-menu dropdown-menu-right dropdown-content wmin-md-350">
+                        <!-- <div class="dropdown-content-header">
+                            <span class="font-weight-semibold">Messages</span>
+                            <a href="#" class="text-default"><i class="icon-compose"></i></a>
+                        </div> -->
+
+                        <div class="dropdown-content-body dropdown-scrollable">
+                            <ul class="media-list">
+                                <li class="media">
+                                    <div class="mr-3 position-relative">
+                                        <img src="../../../../global_assets/images/demo/users/face10.jpg" class="rounded-circle" alt="" width="36" height="36">
+                                    </div>
+
+                                    <div class="media-body">
+                                        <div class="media-title">
+                                            <a href="#">
+                                                <span class="font-weight-semibold">James Alexander</span>
+                                                <span class="text-muted float-right font-size-sm">04:58</span>
+                                            </a>
+                                        </div>
+
+                                        <span class="text-muted">who knows, maybe that would be the best thing for me...</span>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div class="dropdown-content-footer justify-content-center p-0">
+                            <a href="#" class="bg-light text-grey w-100 py-2" data-popup="tooltip" title="" data-original-title="Load more"><i class="icon-menu7 d-block top-0"></i></a>
+                        </div>
                     </div>
                 </li>
                 <li class="nav-item">

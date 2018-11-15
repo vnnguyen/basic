@@ -20,6 +20,10 @@ use app\models\Tag;
 use yii\data\ArrayDataProvider;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
+
+
+use app\models\UserNotification;
+use app\models\Job;
 class CptourController extends MyController
 {
     public function actionCost($id = 0)
@@ -324,6 +328,8 @@ class CptourController extends MyController
     public function actionCpt_ajax()
     {
         if (Yii::$app->request->isAjax) {
+            $action = '';
+            $action_id = 0;
             $_POST['dt_from'] = str_replace(' - ', '-', $_POST['dt_from']);
             $stype_cp = $_POST['stype_data'];
             if ($_POST['cpt_id'] == '') {
@@ -341,6 +347,8 @@ class CptourController extends MyController
                 if (!$model->save(false)) {
                     return json_encode(['err' => $model->errors]);
                 }
+                $action = 'created';
+                $action_id = $model->id;
             } else {
                 $cpt_updated = CpTour::findOne($_POST['cpt_id']);
                 if ($cpt_updated == null) {
@@ -356,7 +364,15 @@ class CptourController extends MyController
                 if (!$cpt_updated->save(false)) {
                     return json_encode(['err' => $cpt_updated->errors]);
                 }
+                $action = 'updated';
+                $action_id = $cpt_updated->id;
             }
+            $theNoti = new Yii::$app->ntyModel;
+            $theNoti->sendEmail = false;
+            $theNoti->add(34718, $action_id, 'update');
+
+
+
             //return all days and cpts
             $cpts = CpTour::find()
                 ->with([

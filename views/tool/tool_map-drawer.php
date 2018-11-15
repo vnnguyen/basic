@@ -94,8 +94,12 @@ $points = [
     "274" => ["label" =>"CAM RANH", "data" => "930,1430"],
     "275" => ["label" =>"THONG NONG", "data" => "537,113"],
     "276" => ["label" =>"SOC TRANG", "data" => "549,1725"],
-    "277" => ["label" =>"NAM NGUA", "data" => "541,120"],
+    "277" => ["label" =>"NAM NGU", "data" => "541,120"],
 
+    //bo sung 2.11.2018
+    "278" => ["label" =>"DAK NONG", "data" => "760,1408"],
+    "279" => ["label" =>"LAC LAK", "data" => "821,1383"],
+    "280" => ["label" =>"Ile de la baleine", "data" => "954,1349"],
 ];
 $jsonPoints = json_encode($points);
 $pointsLaos = [
@@ -132,9 +136,9 @@ $pointsLaos = [
     "254" => ["label" =>"SAINYABULI", "data" => "332,708"],
 
     // bo sung 7/6/2018
-    "255" => ["label" =>"MUANG LA LODGE", "data" => "479,388"],
+    "255" => ["label" =>"MUANG LA", "data" => "479,388"],
     "256" => ["label" =>"PHONG SALY", "data" => "410,191"],
-    "257" => ["label" =>"BOUN TAI", "data" => "433,264"],
+    "257" => ["label" =>"YAPA", "data" => "433,264"],
     "258" => ["label" =>"PAK NAM NOY", "data" => "474,338"],
 
 ];
@@ -179,12 +183,12 @@ $poitsCambodge = [
 $jsonPointsCambodge = json_encode($poitsCambodge);
 $transports = [
     "ap" => ['label' => 'AIRPLANE', 'color' => '#6b5e90'],
-    "tr" => ['label' => 'TRAIN', 'color' => '#f07281'],
-    "ca" => ['label' => 'CAR', 'color' => '#f59c84'],
+    "tr" => ['label' => 'TRAIN', 'color' => '#cd3b48'],
+    "ca" => ['label' => 'CAR', 'color' => '#ef9c99'],
     "mt" => ['label' => 'MOTOBIKE', 'color' => '#355e7d'],
     "bc" => ['label' => 'BICYCLE', 'color' => '#c76c98'],
     "bo" => ['label' => 'BOAT', 'color' => '#622d6b'],
-    "wa" => ['label' => 'Walk', 'color' => '#cdcdcd'],
+    "wa" => ['label' => 'WALK', 'color' => '#00ff90'],
 ];
 $jsonTransports = json_encode($transports);
 $pointsMulti = [
@@ -317,11 +321,11 @@ $pointsMulti = [
     "254" => ['label' => 'DONG NAI', 'data' => '1052,1702'],
     "255" => ['label' => 'BUON MA THUOT', 'data' => '1128,1527'],
     "256" => ['label' => 'BOLOVENS', 'data' => '885,1167'],
-    
+
 
     //bổ sung 13/6
     "257" => ['label' => 'HOANG SU PHI', 'data' => '590,150'],
-    "258" => ["label" =>"NAM NGUA", "data" => "846,134"],
+    "258" => ["label" =>"NAM NGU", "data" => "846,134"],
     "259" => ["label" =>"MOC CHAU", "data" => "679,419"],
     "260" => ["label" =>"SUOI MU", "data" => "745,378"],
     "261" => ["label" =>"PU LUONG", "data" => "739,381"],
@@ -337,13 +341,18 @@ $pointsMulti = [
     "272" => ["label" =>"SOC TRANG", "data" => "876,1951"],
     "273" => ["label" =>"CAT BA", "data" => "1020,425"],
     //lao
-    "274" => ["label" =>"MUANG LA LODGE", "data" => "319,443"],
+    "274" => ["label" =>"MUANG LA", "data" => "319,443"],
     "275" => ["label" =>"PHONG SALY", "data" => "344,336"],
-    "276" => ["label" =>"BOUN TAI", "data" => "313,341"],
+    "276" => ["label" =>"YAPA", "data" => "313,341"],
     "277" => ["label" =>"PAK NAM NOY", "data" => "346,406"],
     //cam
     "278" => ["label" =>"KOH RONG SALOEM", "data" => "615,1909"],
 
+
+    //bo sung 2.11.2018
+    "279" => ["label" =>"DAK NONG", "data" => "1189,1222"],
+    "280" => ["label" =>"HO LAK", "data" => "1241,1197"],
+    "281" => ["label" =>"DAO HON ONG", "data" => "1293,1204"],
 ];
 $jsonPointsMulti = json_encode($pointsMulti);
 $pointsMyanmar = [
@@ -363,7 +372,7 @@ $pointsMyanmar = [
     "14" => ["label" =>"NGAPALI", "data" => "379,1639"],
     "15" => ["label" =>"RANGOON", "data" => "567,1894"],
     "16" => ["label" =>"HPA-AN", "data" => "898,1887"],
-    "17" => ["label" =>"MAWLAMYINE", "data" => "903,1952"], 
+    "17" => ["label" =>"MAWLAMYINE", "data" => "903,1952"],
     "18" => ["label" =>"KYAIKHTEEYOE", "data" => "806,1789"],
 ];
 $jsonPointsMyanmar = json_encode($pointsMyanmar);
@@ -456,7 +465,7 @@ $pointsMultiNew = [
     "86" => ["label" =>"MEO VAC", "data" => "1000,428"],
     "87" => ["label" =>"BAO LAC", "data" => "1021,441"],
     "88" => ["label" =>"KHUOI KHON", "data" => "1026,449"],
-    "89" => ["label" =>"NAM NGUA", "data" => "1059,450"],
+    "89" => ["label" =>"NAM NGU", "data" => "1059,450"],
     "90" => ["label" =>"CAO BANG", "data" => "1060,458"],
     "91" => ["label" =>"BA BE", "data" => "1018,476"],
     "92" => ["label" =>"HA GIANG", "data" => "965,455"],
@@ -514,7 +523,7 @@ $pointsMultiNew = [
     "144" => ["label" =>"MUI NE", "data" => "1212,1326"],
     "145" => ["label" =>"TA LAI", "data" => "1144,1295"],
     "146" => ["label" =>"TAY NINH", "data" => "1049,1300"],
-    "147" => ["label" =>"HO CHI MINH CITY", "data" => "1091,1337"],
+    "147" => ["label" =>"HO CHI MINH VILLE (SAIGON)", "data" => "1091,1337"],
     "148" => ["label" =>"MY THO", "data" => "1060,1372"],
     "149" => ["label" =>"CAI BE", "data" => "1044,1373"],
     "150" => ["label" =>"SA DEC", "data" => "1037,1381"],
@@ -529,8 +538,8 @@ $pointsMultiNew = [
     "159" => ["label" =>"TRA VINH", "data" => "1044,1420"],
     "160" => ["label" =>"ILE DE CON DAO", "data" => "1084,1493"],
     "161" => ["label" =>"CHAU DOC", "data" => "975,1347"],
-    "162" => ["label" =>"BEN TRE", "data" => "1073,1378"], 
-    "163" => ["label" =>"MAWLAMYINE", "data" => "423,918"], 
+    "162" => ["label" =>"BEN TRE", "data" => "1073,1378"],
+    "163" => ["label" =>"MAWLAMYINE", "data" => "423,918"],
     "164" => ["label" =>"KYAIKHTEEYOE", "data" => "372,840"],
 
     "165" => ["label" =>"LAI CHAU", "data" => "847,475"],
@@ -554,7 +563,7 @@ $pointsMultiNew = [
     "185" => ["label" =>"VUNG TAU", "data" => "1126,1366"],
     "186" => ["label" =>"THU DAU MOT", "data" => "1095,1327"],
     "188" => ["label" =>"CAM RANH", "data" => "1279,1255"],
-    "198" => ["label" =>"NAM NGUA", "data" => "1037,453"],
+    "198" => ["label" =>"NAM NGU", "data" => "1037,453"],
 
     "191" => ["label" =>"SA PA", "data" => "890,474"],
     "192" => ["label" =>"THONG NONG", "data" => "1035,442"],
@@ -565,15 +574,20 @@ $pointsMultiNew = [
 
 
     //LAO
-    "184" => ["label" =>"MUANG LA LODGE", "data" => "752,582"],
+    "184" => ["label" =>"MUANG LA", "data" => "752,582"],
     "189" => ["label" =>"PHONG SALY", "data" => "760,527"],
-    "190" => ["label" =>"BOUN TAI", "data" => "744,559"],
+    "190" => ["label" =>"YAPA", "data" => "744,559"],
     "196" => ["label" =>"PAK NAM NOY", "data" => "758,580"],
     //cam
     "199" => ["label" =>"KOH RONG SALOEM", "data" => "839,1355"],
 
 
     "200" => ["label" =>"NHA TRANG", "data" => "1280,1214"],
+
+    //bo sung 2.11.2018
+    "201" => ["label" =>"DAK NONG", "data" => "1189,1222"],
+    "202" => ["label" =>"LAC LAK", "data" => "1211,1223"],
+    "203" => ["label" =>"Ile de la baleine", "data" => "1293,1204"],
 
 ];
 
@@ -585,7 +599,8 @@ Yii::$app->params['body_class'] = 'sidebar-xs';
 
 ?>
 <script>
-var product_id = <?= $theProduct['id'] ?>;
+var product_id = 1;
+// //$theProduct['id'] ;
 var time = '<?= date('Ymd-Hi', strtotime('+7 hours')) ?>';
 var text_confirm_insert_map = '<?= Yii::t('x', 'This will replace any existing map. Continue?') ?>';
 </script>
@@ -594,132 +609,137 @@ var text_confirm_insert_map = '<?= Yii::t('x', 'This will replace any existing m
 #locations_chosen{min-width:600px;}
 .text-pink img {border:1px solid #e91e63!important;}
 </style>
-
-<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title" id="exampleModalLabel">Change location's name</h4>
-            </div>
-            <div class="modal-body">
-                <form>
-                    <div class="form-group">
-                        <label for="recipient-name" class="control-label">New name:</label>
-                        <input type="text" class="form-control" id="change-name">
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
-                <button id="remove-text" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
-                <button id="submit-change-text" data-layer="" type="button" class="btn btn-primary">OK</button>
+<div class="row wrap-map">
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                    <h4 class="modal-title" id="exampleModalLabel">Change location's name</h4>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="recipient-name" class="control-label">New name:</label>
+                            <input type="text" class="form-control" id="change-name">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal">Close</button>
+                    <button id="remove-text" type="button" class="btn btn-danger" data-dismiss="modal">Delete</button>
+                    <button id="submit-change-text" data-layer="" type="button" class="btn btn-primary">OK</button>
+                </div>
             </div>
         </div>
     </div>
+
+    <div id="alert"></div>
+    <div class="col-md-12">
+        <div class="row mb-2">
+            <div class="col-sm-3"><?= Yii::t('x', 'Program') ?>:</div>
+            <div class="col-sm-9"><?= Html::a('title', '/products/r/1') ?></div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-3"><?= Yii::t('x', 'Load map') ?>:</div>
+            <div class="col-sm-9">
+                <ul class="list-inline">
+                    <li class="list-inline-item">
+                        <a data-width="1508" data-height="2052" class="map vietnam" data-map="/assets/tools/map-drawer/img/maps/v.jpg" href="javascript:;">Vietnam
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/v.jpg"></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a data-width="1580" data-height="1872" class="map laos" data-map="/assets/tools/map-drawer/img/maps/l.jpg" href="javascript:;">Laos
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/l.jpg"></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a data-width="1900" data-height="1872" class="map cambodge" data-map="/assets/tools/map-drawer/img/maps/c.jpg" href="javascript:;">Cambodia
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/c.jpg"></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a data-width="1500" data-height="3049" class="map myanmar" data-map="/assets/tools/map-drawer/img/maps/myanmar.jpg" href="javascript:;">Myanmar
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/myanmar.jpg"></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a data-width="1900" data-height="2200" class="map multipays" data-map="/assets/tools/map-drawer/img/maps/vlc.jpg" href="javascript:;">Indochina
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/vlc.jpg"></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a data-width="1900" data-height="2200" class="map multipays-new" data-map="/assets/tools/map-drawer/img/maps/vlc.jpg" href="javascript:;">VLC
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/vlcm.jpg"></a>
+                    </li>
+                    <li class="list-inline-item">
+                        <a data-width="1500" data-height="1551" class="map multipays-new" data-map="/assets/tools/map-drawer/img/maps/vlcm.jpg" href="javascript:;">VLCM
+                        <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/vlcm.jpg"></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-3">
+                <?= Yii::t('x', 'Select points & paths') ?>:
+            </div>
+            <div class="col-sm-9">
+                <select data-placeholder="<?= Yii::t('x', 'Select points & paths') ?>" multiple class="chosen-select" id="locations">
+                    <optgroup label="TRANSPORTS">
+                        <?php foreach ($transports as $ktp => $tp): ?>
+                            <option class='<?= $ktp ?>' data-type="transport" value="<?= $ktp ?>"><?= $tp['label'] ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                    <optgroup label="LOCATIONS" class="vietnam-location">
+                        <?php foreach ($points as $kpo => $po) : ?>
+                            <option class="location vietnam-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ($pointsLaos as $kpo => $po) : ?>
+                            <option disabled="true" class="location laos-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ($poitsCambodge as $kpo => $po) : ?>
+                            <option disabled="true" class="location cambodge-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ($pointsMyanmar as $kpo => $po) : ?>
+                            <option disabled="true" class="location myanmar-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ($pointsMultiNew as $kpo => $po) : ?>
+                            <option disabled="true" class="location multipays-new-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
+                        <?php endforeach; ?>
+                        <?php foreach ($pointsMulti as $kpo => $po) : ?>
+                            <option disabled="true" class="location multipays-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
+                        <?php endforeach; ?>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-3"><?= Yii::t('x', 'Other options') ?>:</div>
+            <div class="col-sm-9">
+                <label><?= Yii::t('x', 'Curve') ?>: <input type="number" style="width:50px" min="-60" max="60" step="10" id="change-line" name="change-line" value="30"></label>
+                &nbsp; <label><input type="checkbox" id="change-dashed" name="change-dashed" value="yes"> <?= Yii::t('x', 'Solid line') ?></label>
+                &nbsp; <label><input type="checkbox" id="en-map" name="en-map" value="yes" > <?= Yii::t('x', 'English label') ?></label>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <div class="col-sm-3 text-pink">
+                &nbsp;
+            </div>
+            <div class="col-sm-9">
+                <button class="btn btn-primary" type="button" id="submit"><?= Yii::t('x', 'Draw on map') ?></button>
+                <button class="btn btn-danger" type="button" id="clear-all"><?= Yii::t('x', 'Clear path') ?></button>
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+
+                <button class="btn btn-info" type="button" id="save"><?= Yii::t('x', 'Download as jpeg') ?></button>
+            </div>
+        </div>
+    </div>
+    <canvas id="myCanvas" width="1900"></canvas>
 </div>
 
-<div id="alert"></div>
-<div class="row mb-10">
-    <div class="col-sm-3"><?= Yii::t('x', 'Program') ?>:</div>
-    <div class="col-sm-9"><?= Html::a($theProduct['title'], '/products/r/'.$theProduct['id']) ?></div>
-</div>
-<div class="row mb-10">
-    <div class="col-sm-3"><?= Yii::t('x', 'Load map') ?>:</div>
-    <div class="col-sm-9">
-        <ul class="list-inline">
-            <li>
-                <a data-width="1508" data-height="2052" class="map vietnam" data-map="/assets/tools/map-drawer/img/maps/vietnam1.jpg" href="javascript:;">Vietnam
-                <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/vietnam1.jpg"></a>
-            </li>
-            <li>
-                <a data-width="1580" data-height="1872" class="map laos" data-map="/assets/tools/map-drawer/img/maps/laos1.jpg" href="javascript:;">Laos
-                <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/laos1.jpg"></a>
-            </li>
-            <li>
-                <a data-width="1900" data-height="1872" class="map cambodge" data-map="/assets/tools/map-drawer/img/maps/cambodge.jpg" href="javascript:;">Cambodia
-                <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/cambodge.jpg"></a>
-            </li>
-            <li>
-                <a data-width="1500" data-height="3049" class="map myanmar" data-map="/assets/tools/map-drawer/img/maps/myanmar.jpg" href="javascript:;">Myanmar
-                <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/myanmar.jpg"></a>
-            </li>
-            <li>
-                <a data-width="1900" data-height="2200" class="map multipays" data-map="/assets/tools/map-drawer/img/maps/multipays.jpg" href="javascript:;">Indochina
-                <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/multipays.jpg"></a>
-            </li>
-            <li>
-                <a data-width="1500" data-height="1551" class="map multipays-new" data-map="/assets/tools/map-drawer/img/maps/multipays-new.jpg" href="javascript:;">VLCM
-                <br><img src="/timthumb.php?h=100&src=/assets/tools/map-drawer/img/maps/multipays-new.jpg"></a>
-            </li>
-        </ul>
-    </div>
-</div>
-<div class="row mb-10">
-    <div class="col-sm-3">
-        <?= Yii::t('x', 'Select points & paths') ?>:
-    </div>
-    <div class="col-sm-9">
-        <select data-placeholder="<?= Yii::t('x', 'Select points & paths') ?>" multiple class="chosen-select" id="locations">
-            <optgroup label="TRANSPORTS">
-                <?php foreach ($transports as $ktp => $tp): ?> 
-                    <option class='<?= $ktp ?>' data-type="transport" value="<?= $ktp ?>"><?= $tp['label'] ?></option>
-                <?php endforeach; ?>
-            </optgroup>
-            <optgroup label="LOCATIONS" class="vietnam-location">
-                <?php foreach ($points as $kpo => $po) : ?>
-                    <option class="location vietnam-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
-                <?php endforeach; ?>
-                <?php foreach ($pointsLaos as $kpo => $po) : ?>
-                    <option disabled="true" class="location laos-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
-                <?php endforeach; ?>
-                <?php foreach ($poitsCambodge as $kpo => $po) : ?>
-                    <option disabled="true" class="location cambodge-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
-                <?php endforeach; ?>
-                <?php foreach ($pointsMyanmar as $kpo => $po) : ?>
-                    <option disabled="true" class="location myanmar-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
-                <?php endforeach; ?>  
-                <?php foreach ($pointsMultiNew as $kpo => $po) : ?>
-                    <option disabled="true" class="location multipays-new-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
-                <?php endforeach; ?>    
-                <?php foreach ($pointsMulti as $kpo => $po) : ?>
-                    <option disabled="true" class="location multipays-location" data-type='location' value="<?= $kpo; ?>"><?= $po['label'] ?></option>
-                <?php endforeach; ?>
-            </optgroup>
-        </select>
-    </div>
-</div>
-<div class="row mb-10">
-    <div class="col-sm-3"><?= Yii::t('x', 'Other options') ?>:</div>
-    <div class="col-sm-9">
-        <label><?= Yii::t('x', 'Curve') ?>: <input type="number" style="width:50px" min="-60" max="60" step="10" id="change-line" name="change-line" value="30"></label>
-        &nbsp; <label><input type="checkbox" id="change-dashed" name="change-dashed" value="yes"> <?= Yii::t('x', 'Solid line') ?></label>
-        &nbsp; <label><input type="checkbox" id="en-map" name="en-map" value="yes" <?= $theProduct['language'] == 'en' ? 'checked="checked"' : '' ?>> <?= Yii::t('x', 'English label') ?></label>
-    </div>
-</div>
-<div class="row mb-10">
-    <div class="col-sm-3 text-pink">
-        &nbsp;
-    </div>
-    <div class="col-sm-9">
-        <button class="btn btn-primary" type="button" id="submit"><?= Yii::t('x', 'Draw on map') ?></button>
-        <button class="btn btn-danger" type="button" id="clear-all"><?= Yii::t('x', 'Clear path') ?></button>
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <? if (in_array(USER_ID, [1, $theProduct['created_by'], $theProduct['updated_by']])) { ?>
-        <button class="btn btn-success" type="button" id="insert"><?= Yii::t('x', 'Insert to program') ?></button>
-        <? } ?>
-        <button class="btn btn-info" type="button" id="save"><?= Yii::t('x', 'Download as jpeg') ?></button>
-    </div>
-</div>
-
-<canvas id="myCanvas" width="1900"></canvas>
 
 <?
 
 $this->registerCssFile('/assets/tools/map-drawer/css/chosen.css', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerCssFile('/assets/tools/map-drawer/css/fontface.css', ['depends'=>'yii\web\JqueryAsset']);
 
-$this->registerJsFile('/assets/tools/map-drawer/js/chosen.jquery.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('/assets/tools/map-drawer/js/chosen.jquery.js?v=1', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/assets/tools/map-drawer/js/chosen.order.jquery.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/assets/tools/map-drawer/js/jcanvas.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/assets/tools/map-drawer/js/FileSaver.js', ['depends'=>'yii\web\JqueryAsset']);
@@ -837,7 +857,7 @@ $('a.map').click(function() {
         $('#locations .location').prop('disabled', true).trigger("chosen:updated");
         $('#locations .multipays-new-location').prop('disabled', false).trigger("chosen:updated");
         $('#locations').val('').trigger('chosen:updated');
-        drawMapMultiNew();  
+        drawMapMultiNew();
     } else if ($(this).hasClass('multipays')) {
         scale = 1.2;
         ex = 1534;
@@ -1254,7 +1274,7 @@ function drawMapMultiNew() {
             $('canvas').setLayer(layer.name, {
                 opacity: 1
             });
-        }    
+        }
     }).drawImage({
         layer: true,
         source: '/assets/tools/map-drawer/img/maps/capitan.png',
@@ -1298,7 +1318,7 @@ function drawMapMultiNew() {
         height: 21,
         scale: scale,
         bringToFront: true,
-        fromCenter: false    
+        fromCenter: false
     }).drawImage({
         layer: true,
         source: '/assets/tools/map-drawer/img/maps/name-cambodge.png',
@@ -1328,7 +1348,7 @@ function drawMapMultiNew() {
         width: 73,
         height: 22,
         fromCenter: false,
-        bringToFront: true    
+        bringToFront: true
     }).drawImage({
         layer: true,
         source: '/assets/tools/map-drawer/img/maps/name-vietnam.png',

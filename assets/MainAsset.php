@@ -26,6 +26,7 @@ class MainAsset extends AssetBundle
     ];
     public $js = [
         // 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js',
         'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js',
         // 'js/main/bootstrap.bundle.min.js',
         'js/plugins/loaders/blockui.min.js',

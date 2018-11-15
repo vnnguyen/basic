@@ -31,6 +31,7 @@ use common\models\Ncc2;
 use common\models\CpTour;
 
 use app\models\Translate;
+use app\models\UserNotification;
 
 use yii\web\Controller;
 use yii\web\UploadedFile;
@@ -42,12 +43,28 @@ use \PHPExcel_Helper_HTML;
 use \PHPExcel_Style_Alignment;
 
 
+
+
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
+
+
+use Hhxsv5\SSE\SSE;
+use Hhxsv5\SSE\Update;
+
+use app\models\Job;
+use common\models\User;
+use app\jobqueues\SendNotif;
+
+use app\models\MyMailQueueModel;
+
+use app\components\MyMailHandler;
+
+
 class DemoController extends MyController
 {
     public function actionCptour($id = 0)
@@ -398,7 +415,7 @@ class DemoController extends MyController
     {
 
         $model = new CpTour();
-        $theTour = Product::find()//12537
+        $theTour = Product::find()
             ->where(['id' => 12537, 'op_status' => 'op'])
             ->with([
                 'bookings',
@@ -433,245 +450,8 @@ class DemoController extends MyController
                     if ($day['id'] == $id) {
                         $cnt ++;
                         $arr_day[date('Y/m/d', strtotime('+'.($cnt - 1).' days', strtotime($start_date)))] =  'day '.$cnt;
-                        //echo date('j/n/Y D', strtotime('+'.($cnt - 1).' days', strtotime($start_date))).'<br/>';
                     }
                 }
-            }
-        }
-        if ($model->load(Yii::$app->request->post())) {
-            $cptour = $_POST['CpTour'];
-            if ($cptour['id'] == '') {
-                $model->tour_id = $query->id;
-                $model->venue_id = $cptour['venue_id'];
-                $model->dv_id = $cptour['dv_id'];
-                $model->qty = $cptour['qty'];
-                $model->currency = $cptour['currency'];
-                $model->use_day = $cptour['use_day'];
-                $model->payment_dt = $cptour['payment_dt'];
-                $model->who_pay = $cptour['who_pay'];
-                $model->num_day = $cptour['num_day'];
-                $model->book_of = $cptour['book_of'];
-                $model->pay_of = $cptour['pay_of'];
-                $model->status_book = $cptour['status_book'];
-                $model->parent_id = 0;
-                $model->use_day = date('Y/m/d', strtotime($cptour['use_day']));
-                $model->price = str_replace(',', '', $cptour['price']);
-                // check group
-                if (isset($_POST['cpt-group'])) {
-                    $cpt_group = CpTour::findOne($_POST['cpt-group']);
-                    if ($cpt_group != null) {
-                        if ($cpt_group->group_id == 0) {
-                            $cpt_group->group_id = $cpt_group->id;
-                            if ($cpt_group->save()) {
-                                $model->group_id = $cpt_group->group_id;
-                            }
-                        } else {
-                            $model->group_id = $cpt_group->group_id;
-                        }
-                    }
-                }
-                if ($model->validate() && $model->save()) {
-                    Yii::$app->getSession()->setFlash('success', 'Saved cpt success');
-                    if (isset($_POST['chk_option'])) {
-                        $chk_options = $_POST['chk_option'];
-                        foreach ($chk_options as $option) {
-                            $option = json_decode($option);
-                            $cpt = new CpTour();
-                            $cpt->dv_id = $option->dv_id;
-                            $cpt->qty = $option->qty;
-                            $cpt->price = str_replace(',', '',$option->price);
-                            $cpt->currency = $option->currency;
-                            $cpt->tour_id = $model->tour_id;
-                            $cpt->venue_id = $model->venue_id;
-                            $cpt->use_day = $model->use_day;
-                            $cpt->payment_dt = $model->payment_dt;
-                            $cpt->who_pay = $model->who_pay;
-                            $cpt->num_day = $model->num_day;
-                            $cpt->book_of = $model->book_of;
-                            $cpt->pay_of = $model->pay_of;
-                            $cpt->status_book = $model->status_book;
-                            $cpt->parent_id = $model->id;
-                            if (!$cpt ->save()) {
-                                Yii::$app->getSession()->setFlash('err', 'Saved cpt fail');
-                            }
-                        }
-                    }
-                }
-
-                return $this->redirect(Yii::$app->request->referrer);
-            } else {
-                $cpt_updated = CpTour::findOne($cptour['id']);
-                if ($cpt_updated == null) {
-                    throw new HttpException(404, 'cpt not found.');
-                }
-                if (isset($cptour['venue_id']) && $cptour['venue_id'] != '') {
-                    $cpt_updated->venue_id = $cptour['venue_id'];
-                }
-                $cpt_updated->dv_id = $cptour['dv_id'];
-                $cpt_updated->qty = $cptour['qty'];
-                $cpt_updated->currency = $cptour['currency'];
-                $cpt_updated->use_day = $cptour['use_day'];
-                $cpt_updated->payment_dt = $cptour['payment_dt'];
-                $cpt_updated->who_pay = $cptour['who_pay'];
-                $cpt_updated->num_day = $cptour['num_day'];
-                $cpt_updated->book_of = $cptour['book_of'];
-                $cpt_updated->pay_of = $cptour['pay_of'];
-                $cpt_updated->status_book = $cptour['status_book'];
-                $cpt_updated->use_day = date('Y/m/d', strtotime($cptour['use_day']));
-                $cpt_updated->price = str_replace(',', '', $cptour['price']);
-                // check group
-                $cpt_in_group = CpTour::find()->where('group_id = '.$cpt_updated->group_id.' AND group_id > 0  AND id != '. $cpt_updated->id)->all();
-                if ($cpt_in_group != null) {
-                    if (isset($_POST['cpt-group']) && $_POST['cpt-group'] != '') {
-                        if ($cpt_updated->group_id != $_POST['cpt-group']) {
-                            $cpt_grouped = CpTour::findOne($_POST['cpt-group']);
-                            if ($cpt_grouped != null) {
-                                if ($cpt_grouped->group_id == 0) {
-                                    $cpt_grouped->group_id = $cpt_grouped->id;
-                                    if ($cpt_grouped->save()) {
-                                        $cpt_updated->group_id = $cpt_grouped->group_id;
-                                    }
-                                } else {
-                                    $cpt_updated->group_id = $cpt_grouped->group_id;
-                                }
-                            }
-                            if ($cpt_updated->id == $cpt_in_group[0]->group_id && count($cpt_in_group) > 0) {
-                                if (count($cpt_in_group) == 1) {
-                                    $cpt_in_group[0]->group_id = 0;
-                                    $cpt_in_group[0]->save();
-                                } else {
-                                    foreach ($cpt_in_group as $cpt_g) {
-                                        $cpt_g->group_id = $cpt_in_group[0]->id;
-                                        $cpt_g->save();
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if ($cpt_updated->id == $cpt_in_group[0]->group_id && count($cpt_in_group) > 0) {
-                            if (count($cpt_in_group) == 1) {
-                                $cpt_in_group[0]->group_id = 0;
-                                $cpt_in_group[0]->save();
-                            } else {
-                                foreach ($cpt_in_group as $cpt_g) {
-                                    $cpt_g->group_id = $cpt_in_group[0]->id;
-                                    $cpt_g->save();
-                                }
-                            }
-                        }
-                        $cpt_updated->group_id = 0;
-                    }
-                } else {
-                    if (isset($_POST['cpt-group'])) {
-                        $cpt_grouped = CpTour::findOne($_POST['cpt-group']);
-                        if ($cpt_grouped != null) {
-                            if ($cpt_grouped->group_id == 0) {
-                                $cpt_grouped->group_id = $cpt_grouped->id;
-                                if ($cpt_grouped->save()) {
-                                    $cpt_updated->group_id = $cpt_grouped->group_id;
-                                }
-                            } else {
-                                $cpt_updated->group_id = $cpt_grouped->group_id;
-                            }
-                        }
-                    }
-                }
-                // save and add or update options
-                if ($cpt_updated->validate() && $cpt_updated->save()) {
-                    Yii::$app->getSession()->setFlash('success', 'Saved cpt success');
-                    $cpt_has_parent = CpTour::find()->select(['id'])->where('parent_id = '.$cpt_updated->id)->indexBy('id')->column();
-                    if ($cpt_has_parent != null) {
-                        ///check remove or update exist option
-                        $arr_diff = [];
-                        $arr_updated_ids = [];
-                         if (isset($_POST['chk_option'])) {
-                            $chk_options = $_POST['chk_option'];
-                            foreach ($chk_options as $option) {
-                                $option = json_decode($option);
-                                if ($option->id != '') {
-                                    ///update option
-                                    $cpt = CpTour::findOne($option->id);
-                                    if ($cpt != null) {
-                                        $arr_updated_ids[] = $cpt->id;
-                                        $cpt->qty = $option->qty;
-                                        $cpt->price = str_replace(',', '', $option->price);
-                                        $cpt->currency = $option->currency;
-                                        $cpt->tour_id = $cpt_updated->tour_id;
-                                        $cpt->venue_id = $cpt_updated->venue_id;
-                                        $cpt->use_day = $cpt_updated->use_day;
-                                        $cpt->payment_dt = $cpt_updated->payment_dt;
-                                        $cpt->who_pay = $cpt_updated->who_pay;
-                                        $cpt->num_day = $cpt_updated->num_day;
-                                        $cpt->book_of = $cpt_updated->book_of;
-                                        $cpt->pay_of = $cpt_updated->pay_of;
-                                        $cpt->status_book = $cpt_updated->status_book;
-                                        $cpt->parent_id = $cpt_updated->id;
-                                        if (!$cpt ->save()) {
-                                            Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
-                                        }
-                                    }
-                                } else {
-                                    ///add new option
-                                    $cpt = new CpTour();
-                                    $cpt->dv_id = $option->dv_id;
-                                    $cpt->qty = $option->qty;
-                                    $cpt->price = str_replace(',', '', $option->price);
-                                    $cpt->currency = $option->currency;
-                                    $cpt->tour_id = $cpt_updated->tour_id;
-                                    $cpt->venue_id = $cpt_updated->venue_id;
-                                    $cpt->use_day = $cpt_updated->use_day;
-                                    $cpt->payment_dt = $cpt_updated->payment_dt;
-                                    $cpt->who_pay = $cpt_updated->who_pay;
-                                    $cpt->num_day = $cpt_updated->num_day;
-                                    $cpt->book_of = $cpt_updated->book_of;
-                                    $cpt->pay_of = $cpt_updated->pay_of;
-                                    $cpt->status_book = $cpt_updated->status_book;
-                                    $cpt->parent_id = $cpt_updated->id;
-                                    if (!$cpt ->save()) {
-                                        Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
-                                    }
-                                }
-                            }
-                            $arr_diff = array_diff($cpt_has_parent,$arr_updated_ids);
-                         } else {
-                            $arr_diff = $cpt_has_parent;
-                         }
-                         // var_dump($_POST);die();
-                         if (count($arr_diff) > 0) {
-                             $cpt_removeds = CpTour::find()->where(['id' => $arr_diff])->all();
-                             foreach ($cpt_removeds as $cpt_op) {
-                                 $cpt_op->delete();
-                             }
-                         }
-                    } else {
-                        if (isset($_POST['chk_option'])) {
-                            ///insert new options
-                            $chk_options = $_POST['chk_option'];
-                            foreach ($chk_options as $option) {
-                                $option = json_decode($option);
-                                $cpt = new CpTour();
-                                $cpt->dv_id = $option->dv_id;
-                                $cpt->qty = $option->qty;
-                                $cpt->price = str_replace(',', '', $option->price);
-                                $cpt->currency = $option->currency;
-                                $cpt->tour_id = $cpt_updated->tour_id;
-                                $cpt->venue_id = $cpt_updated->venue_id;
-                                $cpt->use_day = $cpt_updated->use_day;
-                                $cpt->payment_dt = $cpt_updated->payment_dt;
-                                $cpt->who_pay = $cpt_updated->who_pay;
-                                $cpt->num_day = $cpt_updated->num_day;
-                                $cpt->book_of = $cpt_updated->book_of;
-                                $cpt->pay_of = $cpt_updated->pay_of;
-                                $cpt->status_book = $cpt_updated->status_book;
-                                $cpt->parent_id = $cpt_updated->id;
-                                if (!$cpt ->save()) {
-                                    Yii::$app->getSession()->setFlash('err', 'Saved cpt option fail');
-                                }
-                            }
-                        }
-                    }
-                }
-                return $this->redirect(Yii::$app->request->referrer);
             }
         }
         $cpts = CpTour::find()
@@ -680,17 +460,179 @@ class DemoController extends MyController
                 'dv'
             ])
             ->where('tour_id = 12537');
-        // var_dump($cpts->all());die;
-
-        // $model = new CpTour();
-        // return $this->render('cptour', []);
-        // return $this->render('demo_search');
         return $this->render('full_tour', [
             'theTour'=> $theTour,
             'cpts' => $cpts->all(),
             'model' => $model,
         ]);
     }
+    public function actionWs()
+    {
+        //long polling
+        return $this->render('ws');
+        //SSE
+        // return $this->render('ws1');
+        // return $this->renderPartial('ws2');
+
+    }
+    public function actionSse_server()
+    {
+        session_write_close();
+        ignore_user_abort(true);
+        header("Content-Type: text/event-stream");
+        header("Cache-Control: no-cache");
+        header("Connection: keep-alive");
+
+        $sse = new SSE();
+        $sse->start(new Update(function(){
+            $model = new UserNotification;
+            $tickets = $model->fetchDataToSend(USER_ID);
+            $newMsgs = count($tickets);
+            if (!empty($newMsgs)) {
+                return json_encode(['newMsgs' => $newMsgs]);
+            }
+            return false;
+        }), 'new-msgs');
+
+    }
+    public function actionSse_server1()
+    {
+        // session_start();
+        session_write_close();
+
+        // disable default disconnect checks
+        ignore_user_abort(true);
+
+        // set headers for stream
+        header("Content-Type: text/event-stream");
+        header("Cache-Control: no-cache");
+        header("Access-Control-Allow-Origin: *");
+        $lastEventId = floatval(isset($_SERVER["HTTP_LAST_EVENT_ID"]) ? $_SERVER["HTTP_LAST_EVENT_ID"] : 0);
+        if ($lastEventId == 0) {
+            $lastEventId = floatval(isset($_GET["lastEventId"]) ? $_GET["lastEventId"] : 0);
+        }
+
+        echo ":" . str_repeat(" ", 2048) . "\n"; // 2 kB padding for IE
+        echo "retry: 2000\n";
+
+        // start stream
+        while(true){
+
+            if(connection_aborted()){
+                die('not ok');
+                exit();
+            } else {
+
+                // here you will want to get the latest event id you have created on the server, but for now we will increment and force an update
+                $latestEventId = $lastEventId+1;
+
+                if($lastEventId < $latestEventId) {
+                    echo "id: " . $latestEventId . "\n";
+                    echo "data: Howdy (".$latestEventId.") \n\n";
+                    $lastEventId = $latestEventId;
+                    ob_flush();
+                    flush();
+
+                } else {
+                    echo ": heartbeat\n\n";
+                    ob_flush();
+                    flush();
+                }
+
+            }
+
+            // 2 second sleep then carry on
+            sleep(3);
+
+        }
+
+    }
+    public function actionR_server()
+    {
+        session_write_close();
+        ignore_user_abort(true);
+        $model = new UserNotification;
+
+        $recipientUid = isset($_REQUEST["recipientUid"]) ? (int)$_REQUEST["recipientUid"] : USER_ID;
+        $displayedNotificationNum = isset($_REQUEST["displayedNotificationNum"]) ? (int)$_REQUEST["displayedNotificationNum"]: 0;
+        $secCount = 0;
+
+        do {
+            sleep(3);
+            $ids = [];
+            $updatedNotification = $model->fetchDataToSend($recipientUid);
+            foreach ($updatedNotification as $nty) {
+                $ids[] = $nty['id'];
+            }
+            $updatedNotificationNum = count($ids);
+            // var_dump($updatedNotification);die;
+            // $updatedNotificationNum = $model->fetchNumberByRecipientUid($recipientUid);
+            // if(connection_aborted()){exit();}
+        } while ($updatedNotificationNum == $displayedNotificationNum);
+        return json_encode([
+            // 'updatedNotification' => $updatedNotification,
+            'ids' => $ids,
+            'updatedNotificationNum' => $updatedNotificationNum
+        ]);
+
+    }
+
+    public function actionRun_queue()
+    {
+        session_write_close();
+        // ignore_user_abort(true);
+
+        try {
+            Yii::$app->db->close();
+            Yii::$app->db->open();
+            echo 'Sendding.. <br>';
+            Yii::$app->queue->run(2,3);
+            echo '<br>Sended! <br>';
+        } catch (Exception $e) {
+            Yii::error(LoggerMessage::log($e), __METHOD__);
+        }
+
+        // session_write_close();
+        // ignore_user_abort(true);
+
+    }
+
+    public function actionPush_queue()
+    {
+        /*
+        notification1 fullcustommer use (queue, send mail, send noti screen)
+        */
+
+        $id = Yii::$app->ntyModel->add([34718,34718,34718,34718,34718,34718,34718], 1, 'create', 'email test', 'url', 'all');
+
+
+        /*
+        notification2 use (queue, send mail, send noti screen)
+        */
+
+        // $user = User::findOne(34718);
+        // $noti = Yii::$app->userNty::create(Yii::$app->userNty::KEY_NEW_ACCOUNT, [
+        //     'datas' => [
+        //         'user' => $user,
+        //         'channels' => null
+        // ]])->send();
+
+
+
+        // $id = Yii::$app->queue->delay(1 * 60)->push(new SendNotif([
+        //     'datas' => $noti
+        // ]));
+
+
+
+
+
+
+        // Yii::$app->ntyModel->sendAllMailQueue();
+        // die('hello !!!');
+        // var_dump(Yii::$app->queue->isDone($id));die;
+    }
+
 
     public function actionClients()
     {
@@ -4049,6 +3991,7 @@ class DemoController extends MyController
 
     	]);
     }
+
 
 
 

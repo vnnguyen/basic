@@ -1,6 +1,31 @@
 Change Log: `yii2-krajee-base`
 ==============================
 
+## Version 2.0.0
+
+**Date:** 09-Oct-2018
+
+- (enh #101): Remove composer dependency on yii2 bootstrap.
+- Enhancements to `bsVersion` initialization.
+
+## Version 1.9.9
+
+**Date:** 27-Sep-2018
+
+- Enhance `BootstrapTrait::getCssClass` method.
+
+## Version 1.9.8
+
+**Date:** 27-Sep-2018
+
+- Bump up version.
+
+## Version 1.9.7
+
+**Date:** 26-Sep-2018
+
+- (enh #100): Configurable conversion classes between Bootstrap Versions.
+
 ## Version 1.9.6
 
 **Date:** 22-Sep-2018

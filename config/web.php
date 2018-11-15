@@ -28,6 +28,7 @@ $_REQUEST_URI = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'); def
 
 
 yii::setAlias('@web', 'localhost/basic/web');
+// Yii::setAlias('common', 'D:/wamp/www/basic/common-ims/');
 // Yii::setAlias('@web', 'http://amica.dev');
 
 $params = array_merge(
@@ -48,7 +49,64 @@ $config = [
 
 
     'layout' => 'limitless',
+    'bootstrap' => [
+        'queue', // The component registers its own console commands
+    ],
     'components' => [
+        'db' => $params['components.db'],
+        'queue' => [
+            'class' => \yii\queue\db\Queue::class,
+             // 'ttr' => 5 * 60, // Max time for job execution
+            // 'attempts' => 3, // Max number of attempts
+
+            'db' => 'db',
+            //     'strictJobType' => false,
+            //     'serializer' => \yii\queue\serializers\JsonSerializer::class,
+            'tableName' => '{{queue}}', // Table name
+            'channel' => 'default', // Queue channel key
+            'mutex' => \yii\mutex\MysqlMutex::class, // Mutex used to sync queries
+        ],
+        'mailqueue' => [
+            'class' => \yiicod\mailqueue\MailQueue::class,
+            'modelMap' => [
+                'mailQueue' => [
+                    'class' => \app\models\MyMailQueueModel::class,
+                ],
+            ],
+        ],
+        // 'mailer' => [
+        //     'class' => 'yii\swiftmailer\Mailer',
+        //     'viewPath'         => '@app/mail',
+        //     'useFileTransport' => false,
+        //     'transport' => [
+        //         'class' => 'Swift_SmtpTransport',
+        //         'host' => 'smtp.gmail.com',
+        //         'username' => 'nguyen.nv@amica-travel.com',
+        //         'password' => 'app_gmail_9999',
+        //         'port' => '587',
+        //         'encryption' => 'tls',
+        //     ],
+        // ],
+        'mailer' => [
+            'class' => 'yii\swiftmailer\Mailer',
+            'viewPath'         => '@app/mail',
+            'useFileTransport' => false,
+            'transport' => [
+                'class' => 'Swift_SmtpTransport',
+                'host' => 'smtp.gmail.com',
+                'username' => 'nguyen.nv@amica-travel.com',
+                'password' => 'app_gmail_9999',
+                'port' => '587',
+                'encryption' => 'tls',
+            ],
+        ],
+        'ntyModel' => [
+            'class' => \app\models\UserNotification::class,
+        ],
+        'userNty' => [
+            'class' => 'app\notifications\UserNotification',
+        ],
+
         'assetManager' => [
             'bundles' => [
                 'yii\web\JqueryAsset' => [
@@ -73,7 +131,7 @@ $config = [
             'class' => 'yii\rbac\DbManager',
         ],
         'cache' => $params['components.cache'],
-        'db' => $params['components.db'],
+
         'errorHandler' => [
             'errorAction' => 'default/error',
         ],
@@ -96,7 +154,6 @@ $config = [
                 ],
             ],
         ],
-        'mail' => $params['components.mail'],
         'request'=>[
             'enableCsrfValidation'=>false,
             'cookieValidationKey' => '*&%78v x5a6754',
@@ -360,6 +417,23 @@ $config = [
         'user' => $params['components.user'],
     ],
     'modules' => [
+        'notifications' => [
+            'class' => 'webzop\notifications\Module',
+            'channels' => [
+                'screen' => [
+                    'class' => 'webzop\notifications\channels\ScreenChannel',
+                ],
+                'email' => [
+                    'class' => 'webzop\notifications\channels\EmailChannel',
+                    'message' => [
+                        'from' => 'example@email.com'//nguyen.nv@amica-travel.com
+                    ],
+                ],
+                // 'voice' => [
+                //     'class' => 'app\channels\VoiceChannel',
+                // ],
+            ],
+        ],
         // 'admin' => [
         //     'class' => 'app\modules\admin\Module',
         // ],

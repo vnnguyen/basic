@@ -66,8 +66,8 @@ function parseRange(str) {
 };
 
 // Add NLBR
-function nl2br (str, is_xhtml) {   
-    var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';    
+function nl2br (str, is_xhtml) {
+    var breakTag = (is_xhtml || typeof is_xhtml === 'undefined') ? '<br />' : '<br>';
     return (str + '').replace(/([^>\r\n]?)(\r\n|\n\r|\r|\n)/g, '$1'+ breakTag +'$2');
 }
 
@@ -146,8 +146,94 @@ $('#livesearch').on('select2:select', function (evt) {
     // alert($(this).val());
     // location.href = $(this).val();
 });
+//-------------demo polling-----///
+    console.log("Connection");
+    var UID = USER_ID;
+    var ntyNum = 0, repeatNtySound = 0;
+
+    $.NotifierLongPolling = (function() {
+        return {
+            onMessage : function(data) {
+                if(ntyNum != data.updatedNotificationNum) {
+                    ntyNum = data.updatedNotificationNum;
+                    repeatNtySound = 0;
+                }
+                if(ntyNum > 0) {
+                    $('#headNotificationNum').data('load_ids', data.ids.join(',')).text(ntyNum).fadeIn('slow', function(){
+                            $(this).show();
+                            if(repeatNtySound == 0) {
+                                playSound('/sound/light');
+                                repeatNtySound ++;
+                            }
+                        });
+
+                }
+                if(!ntyNum> 0) {
+                    $('#headNotificationNum').text(0).hide();
+                }
+                setTimeout($.NotifierLongPolling.send, 2000);
+            },
+            send : function() {
+                $.ajax({
+                        url: '/demo/r_server',
+                        type: 'POST',
+                        dataType: 'json',
+                        data: {
+                            recipientUid: UID,
+                            displayedNotificationNum:
+
+                             ntyNum                            },
+                        success: function(data) {
+                            $.NotifierLongPolling.onMessage(data);
+                        }
+                });
+            }
+        }
+    }());
+    $(document).ready(function() {
+       setTimeout($.NotifierLongPolling.send, 40);
+    });
+    function playSound(filename){
+        var mp3Source = '<source src="' + filename + '.mp3" type="audio/mpeg">';
+        var oggSource = '<source src="' + filename + '.ogg" type="audio/ogg">';
+        var embedSource = '<embed hidden="true" autostart="true" loop="false" src="' + filename +'.mp3">';
+        document.getElementById("sound").innerHTML='<audio autoplay="autoplay">' + mp3Source + oggSource + embedSource + '</audio>';
+    }
+///----------end sse----------////
+//-------------demo sse-----///
+    // (function(){
+    //     var isNews = 0;
+    //     if (!!window.EventSource) {
+    //         var E_SOURCE = new EventSource("/demo/sse_server1");
+    //     } else {
+    //         alert("Your browser does not support Server-sent events! Please upgrade it!");
+    //     }
+    //     E_SOURCE.addEventListener("message", function(e) {
+    //         console.log(e.data);
+    //     }, false);
+    //     E_SOURCE.addEventListener("new-msgs", function(event) {
+    //         var jon_obj = $.parseJSON(event.data);
+    //             if(isNews !== jon_obj['newMsgs']){
+    //                 isNews = jon_obj['newMsgs'];
+    //                 alert("new notification: " + isNews);
+    //             }
+    //             console.log(jon_obj);
+    //             document.getElementById("log").innerHTML += event.data + "<br />";
+    //     }, false);
+
+    //     E_SOURCE.addEventListener("open", function(e) {
+    //         console.log("Connection was opened.");
+    //     }, false);
+
+    //     E_SOURCE.addEventListener("error", function(e) {
+    //         console.log("Error - connection was lost.");
+    //     }, false);
+    //     // E_SOURCE.close();
+    // });
+///----------end sse----------////
 TXT;
 
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.full.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/assets/jquery.gotop_1.1.2/jquery.gotop.min.js', ['depends'=>'yii\web\JqueryAsset']);
+$js = str_replace('USER_ID', USER_ID, $js);
 $this->registerJs($js);

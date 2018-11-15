@@ -10,7 +10,6 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
-        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
         'abede361264e2ae69ec1eee813a101af' => __DIR__ . '/..' . '/markbaker/complex/classes/src/functions/abs.php',
         '21a5860fbef5be28db5ddfbc3cca67c4' => __DIR__ . '/..' . '/markbaker/complex/classes/src/functions/acos.php',
         '1546e3f9d127f2a9bb2d1b6c31c26ef1' => __DIR__ . '/..' . '/markbaker/complex/classes/src/functions/acosh.php',
@@ -53,12 +52,26 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         '883af48563631547925fa4c3b48ead07' => __DIR__ . '/..' . '/markbaker/complex/classes/src/operations/multiply.php',
         'f190e3308e6ca23234a2875edc985c03' => __DIR__ . '/..' . '/markbaker/complex/classes/src/operations/divideby.php',
         'ac9e33ce6841aa5bf5d16d465a2f03a7' => __DIR__ . '/..' . '/markbaker/complex/classes/src/operations/divideinto.php',
+        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
     );
 
     public static $prefixLengthsPsr4 = array (
         'y' => 
         array (
+            'yiicod\\mailqueue\\' => 17,
+            'yiicod\\cron\\' => 12,
+            'yiicod\\base\\' => 12,
             'yii\\swiftmailer\\' => 16,
+            'yii\\queue\\sync\\' => 15,
+            'yii\\queue\\sqs\\' => 14,
+            'yii\\queue\\redis\\' => 16,
+            'yii\\queue\\gearman\\' => 18,
+            'yii\\queue\\file\\' => 15,
+            'yii\\queue\\db\\' => 13,
+            'yii\\queue\\beanstalk\\' => 20,
+            'yii\\queue\\amqp_interop\\' => 23,
+            'yii\\queue\\amqp\\' => 15,
+            'yii\\queue\\' => 10,
             'yii\\imagine\\' => 12,
             'yii\\gii\\' => 8,
             'yii\\debug\\' => 10,
@@ -67,6 +80,10 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
             'yii\\authclient\\' => 15,
             'yii\\' => 4,
             'yidas\\yii2BowerAsset\\' => 21,
+        ),
+        'w' => 
+        array (
+            'webzop\\notifications\\' => 21,
         ),
         'k' => 
         array (
@@ -80,6 +97,14 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
             'creocoder\\taggable\\' => 19,
             'creocoder\\nestedsets\\' => 21,
             'cebe\\markdown\\' => 14,
+        ),
+        'b' => 
+        array (
+            'bubasuma\\simplechat\\' => 20,
+        ),
+        'S' => 
+        array (
+            'Symfony\\Component\\Process\\' => 26,
         ),
         'R' => 
         array (
@@ -95,11 +120,19 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         array (
             'Mpdf\\' => 5,
         ),
+        'H' => 
+        array (
+            'Hhxsv5\\SSE\\' => 11,
+        ),
         'G' => 
         array (
             'GuzzleHttp\\Stream\\' => 18,
             'GuzzleHttp\\Ring\\' => 16,
             'GuzzleHttp\\' => 11,
+        ),
+        'E' => 
+        array (
+            'Egulias\\EmailValidator\\' => 23,
         ),
         'D' => 
         array (
@@ -112,9 +145,61 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
     );
 
     public static $prefixDirsPsr4 = array (
+        'yiicod\\mailqueue\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiicod/yii2-mailqueue',
+        ),
+        'yiicod\\cron\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiicod/yii2-cron',
+        ),
+        'yiicod\\base\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiicod/yii2-base',
+        ),
         'yii\\swiftmailer\\' => 
         array (
-            0 => __DIR__ . '/..' . '/yiisoft/yii2-swiftmailer',
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-swiftmailer/src',
+        ),
+        'yii\\queue\\sync\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/sync',
+        ),
+        'yii\\queue\\sqs\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/sqs',
+        ),
+        'yii\\queue\\redis\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/redis',
+        ),
+        'yii\\queue\\gearman\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/gearman',
+        ),
+        'yii\\queue\\file\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/file',
+        ),
+        'yii\\queue\\db\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/db',
+        ),
+        'yii\\queue\\beanstalk\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/beanstalk',
+        ),
+        'yii\\queue\\amqp_interop\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/amqp_interop',
+        ),
+        'yii\\queue\\amqp\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src/drivers/amqp',
+        ),
+        'yii\\queue\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-queue/src',
         ),
         'yii\\imagine\\' => 
         array (
@@ -148,13 +233,17 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         array (
             0 => __DIR__ . '/..' . '/yidas/yii2-bower-asset',
         ),
+        'webzop\\notifications\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/webzop/yii2-notifications',
+        ),
         'kartik\\plugins\\fileinput\\' => 
         array (
             0 => __DIR__ . '/..' . '/kartik-v/bootstrap-fileinput',
         ),
         'kartik\\mpdf\\' => 
         array (
-            0 => __DIR__ . '/..' . '/kartik-v/yii2-mpdf',
+            0 => __DIR__ . '/..' . '/kartik-v/yii2-mpdf/src',
         ),
         'kartik\\file\\' => 
         array (
@@ -176,6 +265,14 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         array (
             0 => __DIR__ . '/..' . '/cebe/markdown',
         ),
+        'bubasuma\\simplechat\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/bubasuma/yii2-simplechat',
+        ),
+        'Symfony\\Component\\Process\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/symfony/process',
+        ),
         'React\\Promise\\' => 
         array (
             0 => __DIR__ . '/..' . '/react/promise/src',
@@ -196,6 +293,10 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         array (
             0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
         ),
+        'Hhxsv5\\SSE\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/hhxsv5/php-sse/src',
+        ),
         'GuzzleHttp\\Stream\\' => 
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/streams/src',
@@ -207,6 +308,10 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         'GuzzleHttp\\' => 
         array (
             0 => __DIR__ . '/..' . '/guzzlehttp/guzzle/src',
+        ),
+        'Egulias\\EmailValidator\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/egulias/email-validator/EmailValidator',
         ),
         'DeepCopy\\' => 
         array (
@@ -250,6 +355,10 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         ),
         'D' => 
         array (
+            'Doctrine\\Common\\Lexer\\' => 
+            array (
+                0 => __DIR__ . '/..' . '/doctrine/lexer/lib',
+            ),
             'Diff' => 
             array (
                 0 => __DIR__ . '/..' . '/phpspec/php-diff/lib',

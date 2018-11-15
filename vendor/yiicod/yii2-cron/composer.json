@@ -1,0 +1,28 @@
+{
+    "name": "yiicod/yii2-cron",
+    "description": "Auto block|unblock console command for the Yii2. One command without duplicate.",
+    "type": "yii2-extension",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Alexey Orlov",
+            "email": "aaorlov88@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "2.*",
+        "php": ">=7"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "yiicod\\cron\\": "/"
+        }
+    }
+}
