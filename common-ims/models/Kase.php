@@ -34,7 +34,7 @@ class Kase extends MyActiveRecord
     }
 
     public function scenarios()
-    { 
+    {
         return [
             'kase/c'=>['name', 'language', 'is_b2b', 'is_priority', 'owner_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'emails'],
             'b2b/kase/c'=>['name', 'stype', 'language', 'is_priority', 'owner_id', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword'],
@@ -54,6 +54,10 @@ class Kase extends MyActiveRecord
     }
     public function getCperson() {
         return $this->hasMany(Person::className(), ['id' => 'user_id'])
+            ->viaTable('at_case_user', ['case_id'=>'id']);
+    }
+    public function getContact() {
+        return $this->hasMany(Contact::className(), ['id' => 'user_id'])
             ->viaTable('at_case_user', ['case_id'=>'id']);
     }
 

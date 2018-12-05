@@ -67,6 +67,175 @@ use app\components\MyMailHandler;
 
 class DemoController extends MyController
 {
+    public function actionExport_jd2()
+    {
+        $cases = Kase::find()
+                ->innerJoinWith('stats')
+                ->joinWith('cperson')
+                ->with(
+                    'bookings',
+                    'bookings.product',
+                    'contact.metas'
+                )
+                ->where('at_cases.deal_status = "won" AND YEAR(at_cases.created_at) = 2018 AND MONTH(at_cases.created_at) IN (10, 11, 12) AND is_b2b = "no"')
+                ->asArray()->all()
+                ;
+        // var_dump($cases);die;
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()
+                    ->setCellValue('A1', 'ID')
+                    ->setCellValue('B1', 'Date Created')
+                    ->setCellValue('C1', 'Deal status')
+                    ->setCellValue('D1', 'Language')
+                    ->setCellValue('E1', 'Status')
+                    ->setCellValue('F1', 'Nationality')
+                    ->setCellValue('G1', 'Country')
+                    ->setCellValue('H1', 'Sex')
+                    ->setCellValue('I1', 'Date start')
+                    ->setCellValue('J1', 'Req countries selectany')
+                    ->setCellValue('K1', 'Reason')
+                    ->setCellValue('L1', 'Note')
+                    ->setCellValue('M1', 'Email')
+                    ->setCellValue('N1', 'First Name')
+                    ->setCellValue('O1', 'Last name')
+                    ->setCellValue('P1', 'Birth year')
+                    ->setCellValue('Q1', 'Tour code')
+                    ;
+        $k = 2;
+        foreach ($cases as $row) {
+            $email = $p_byear = $p_first_name = $p_last_name = '';
+            if (isset($row['contact'][0])) {
+                $person = $row['contact'][0];
+                $p_byear = $person['byear'];
+                $p_first_name = $person['fname'];
+                $p_last_name = $person['lname'];
+                foreach ($person['metas'] as $meta) {
+                    if ($meta['name'] == 'email') {
+                        $email = $meta['value'];
+                        break;
+                    }
+                }
+            }
+            // if (count($row['contact']) > 1 ) {
+            //     var_dump($row['contact']);die;
+            // }
+            $bookings = $row['bookings'];
+            $tour_codes = [];
+            foreach ($bookings as $booking) {
+                if ($booking['status'] == 'won') {
+                    $tour_codes[] = $booking['product']['op_code'];
+                }
+            }
+            $notes = str_replace('\n', ' + ', $row['closed_note']);
+            // if (count($tour_codes) > 1) {
+
+            // }
+            $tour_codes = implode(', ', $tour_codes);
+            $spreadsheet->getActiveSheet()
+                        ->setCellValue('A'.$k, $row['id'])
+                        ->setCellValue('B'.$k, $row['created_at'])
+                        ->setCellValue('C'.$k, $row['deal_status'])
+                        ->setCellValue('D'.$k, $row['language'])
+                        ->setCellValue('E'.$k, $row['status'])
+                        ->setCellValue('F'.$k, $row['stats']['contact_nationality'])
+                        ->setCellValue('G'.$k, $row['stats']['contact_addr_country'])
+                        ->setCellValue('H'.$k, isset($row['contact'][0])? $row['contact'][0]['gender']: '')
+                        ->setCellValue('I'.$k, $row['stats']['start_date'])
+                        ->setCellValue('J'.$k, $row['stats']['req_countries'])
+                        ->setCellValue('K'.$k, $row['why_closed'])
+                        ->setCellValue('L'.$k, $notes)
+                        ->setCellValue('M'.$k, $email)
+                        ->setCellValue('N'.$k, $p_first_name)
+                        ->setCellValue('O'.$k, $p_last_name)
+                        ->setCellValue('P'.$k, $p_byear)
+                        ->setCellValue('Q'.$k, $tour_codes)
+                        ;
+            $k++;
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A1:Q1')->getFont()->setBold(true);
+
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename='.'report.Xlsx');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        die('ok');
+    }
+    public function actionExport_jd()
+    {
+        //Ngày gửi form / Tên khách / Email khách / Câu trả lời về số tiền (để trống nếu k điền) / Trạng thái bán tour (case=WON)
+        $sql = 'SELECT *
+                FROM at_inquiries INNER JOIN at_cases ON at_inquiries.case_id = at_cases.id
+                WHERE data != ""';// AND (form_name LIKE "%devis%" OR form_name LIKE "%booking%")
+        $datas = Yii::$app->db->createCommand($sql)->queryAll();
+
+        $results = [];
+        $results['cnt'] = 0;
+        $results['c_success'] = 0;
+        $results['forms'] = [];
+        foreach ($datas as $form) {
+            if (strpos($form['data'], '"budget"') === false) continue;
+            $results['forms'][] = $form;
+            if ($form['deal_status'] == "won") $results['c_success'] ++;
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()
+                    ->setCellValue('A1', 'Date send')
+                    ->setCellValue('B1', 'Name')
+                    ->setCellValue('C1', 'Email')
+                    ->setCellValue('D1', 'Budget')
+                    ->setCellValue('E1', 'Case');
+        $k = 2;
+        foreach ($results['forms'] as $form) {
+            $arr_infos = explode('}}', $form['data2']);
+            $budget = '';
+            foreach ($arr_infos as $field) {
+                if(strpos($field, 'Budget par personne') !== false) {
+                    $ar = explode(':', $field);
+                    if(count($ar) != 3) {
+                        unset($ar[0]);
+                        unset($ar[1]);
+                        $budget = implode(':', $ar);
+                    } else
+                        $budget = trim($ar[2]);
+                }
+            }
+            $spreadsheet->getActiveSheet()
+                        ->setCellValue('A'.$k, $form['created_at'])
+                        ->setCellValue('B'.$k, $form['name'])
+                        ->setCellValue('C'.$k, $form['email'])
+                        ->setCellValue('D'.$k, $budget)
+                        ->setCellValue('E'.$k, $form['deal_status']);
+            $k++;
+        }
+        $spreadsheet->getActiveSheet()
+                        ->setCellValue('E'.$k, $results['c_success']);
+        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getFont()->setBold(true);
+
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename='.'report.Xlsx');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        die('ok');
+    }
+    /*
+    actions demo
+     */
+
+
+    public function actionTest()
+    {
+        $a2=array("a"=>"red","b"=>"green","c"=>"blue","d"=>"yellow");
+        $a1=array("e"=>"red","f"=>"green","g"=>"blue", 'a1' => 'bgb');
+
+        $result=array_diff($a1,$a2);
+        print_r($result);die;
+    }
+
     public function actionCptour($id = 0)
     {
 

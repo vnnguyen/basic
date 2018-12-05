@@ -3470,7 +3470,7 @@ class TourController extends MyController
         $contact = '';
         $data    = '';
 
-        if (isset($_POST['info'])) {
+        if (isset($_POST['info'])) {//var_dump($_POST);die;
             $data_post              = $_POST;
             $questions_point['q2']  = $data_post['q2'];
             $questions_point['q3']  = isset($data_post['q3']) ? $data_post['q3'] : null;
@@ -3678,8 +3678,9 @@ class TourController extends MyController
             'content_q' => $data,
         ]);
     }
-    public function actionView_feedback($id = 0, $fb_id = 0)
+    public function actionView_feedback($id = 0, $fbid = 0)
     {
+        //view test 30/112018
         $versions['20072018'] = [
             'questions' => [
                 'q1' => [
@@ -3822,15 +3823,163 @@ class TourController extends MyController
         if (!$theTour) {
             throw new HttpException(404, 'Tour not found.');
         }
-        $cpLink = Cplink::find()->where(['id' => $fb_id])->one();
-        if (!$cpLink) {
+        // $cpLink = Cplink::find()->where(['id' => $fb_id])->one();
+        $onlfb = Cplink::findOne($fbid);
+
+        if (!$onlfb) {
             throw new HttpException(404, 'cpLink not found.');
         }
+        $fbData = unserialize($onlfb['fb_data']);
+        // $content = unserialize($cpLink->fb_data);
+        // var_dump($fbData);die;
+        //
+        $questions_point['q2']  = $fbData['q2'];
+        $questions_point['q3']  = isset($fbData['q3']) ? $fbData['q3'] : null;
+        $questions_point['q4']  = isset($fbData['q4']) ? $fbData['q4'] : null;
+        $questions_point['q8']  = $fbData['q8'];
+        $questions_point['q10'] = $fbData['q10'];
+        $poins = [
+            'q2'  => [
+                'Votre appréciation générale' => 30,
+                "Notre disponibilité (tél, courriel, etc.)" => 5,
+                "Compétences de votre conseiller(e) (compréhension, adaptation du programme)" => 5,
+                "Informations délivrées pour le voyage (devis, programme, informations pratiques, etc.) :" => 3,
+                "Rapport Qualité/Prix" => 5,
+                "Suivi et résolution des problèmes pendant le voyage" => 6,
+                "Originalité de nos prestations" => 5,
+                "Qualité des prestations::Programmation du voyage" => 2.5,
+                "Qualité des prestations::Hébergements" => 2.5,
+                "Qualité des prestations::Restauration" => 2.5,
+                "Qualité des prestations::Véhicule" => 2.5,
+                "Qualité des prestations::Bateau" => 1,
+                "Ce séjour était-il adapté à votre degré d'immersion que vous avez souhaité (participation aux acitivités, séjours et contacts chez l'habitant, etc.)" => 5,
+            ],
+            'q3' => [
+                "Niveau de français" => 2,
+                "Connaissances" => 2,
+                "Capacité d’organisation" => 2,
+                "Serviabilité - Disponibilité - Aimabilité" => 2,
+                "Capacité d’assurer le contact du voyageur avec les habitants et la vie locale" => 2,
 
-        $content = unserialize($cpLink->fb_data);
-        // var_dump($content);die;
+            ],
+            'q4' => [
+                "Qualité de la conduite" => 1,
+                "Serviabilité" => 1,
+                "Concentration" => 1,
+                "Relationnel (avec le guide et les voyageurs)" => 1,
+                "Propreté du véhicule" => 1,
+
+            ],
+            'q8' => 5,
+            'q10' => 5
+        ];
+        $table = [];
+        $cpLink_point = [];
+        $arr_point = [];
+        foreach ($questions_point as $k_q => $questions) {
+            if ($k_q == 'q2') {
+                $arr_ = [];
+                foreach ($questions as $q => $column_id) {
+                    if ($column_id == '') {
+                        $column_id = 5;
+                    }
+                    if (!isset($poins[$k_q][$q])) {
+                        continue;
+                    }
+                    $arr_[] = ($column_id - 1) * $poins[$k_q][$q];
+                }
+                $table['q2'] = array_sum($arr_);
+            }
+            if ($k_q == 'q3' || $k_q == 'q4') {
+                if ( $k_q == 'q3' ) {
+                    $arr_points = [
+                        'Niveau de français' =>[0, 10, 30, 40, 50],
+                        'Connaissances' => [0, 15, 45, 60, 75],
+                        'Capacité d’organisation' => [0, 15, 45, 60, 75],
+                        'Serviabilité - Disponibilité - Aimabilité' => [0, 20, 60, 80, 100],
+                        'Capacité d’assurer le contact du voyageur avec les habitants et la vie locale' => [0, 20, 60, 80, 100]
+                    ];
+                }
+                if ( $k_q == 'q4' ) {
+                    $arr_points = [
+                        'Qualité de la conduite' => [0, 10, 30, 40, 50],
+                        'Serviabilité' => [0, 10, 30, 40, 50],
+                        'Concentration' => [0, 10, 30, 40, 50],
+                        'Relationnel (avec le guide et les voyageurs)' => [0, 10, 30, 40, 50],
+                        'Propreté du véhicule' => [0, 10, 30, 40, 50]
+                    ];
+                }
+                if ( !$questions ) {
+                    $table[$k_q] = 20;
+                    continue;
+                }
+
+                $arr_ = [];
+
+                $cpLink_ids = array_keys(current($questions));
+                $keys_q = array_keys($questions);
+
+
+                foreach ($cpLink_ids as $id_l) {
+                    foreach ($keys_q as $key_q) {
+                        if ($questions[$key_q][$id_l] == '') {
+                            $questions[$key_q][$id_l] = 5;
+                        }
+                        if (!isset($poins[$k_q][$key_q])) {
+                            continue;
+                        }
+                        $arr_[$id_l][$key_q] = ($questions[$key_q][$id_l]-1) * $poins[$k_q][$key_q];
+                        $arr_point[$id_l][$key_q] = $arr_points[$key_q][$questions[$key_q][$id_l]-1];
+                    }
+                }
+                $total[$k_q] = 0;
+                foreach ($arr_ as $cpLink_id => $ar_v) {
+                    $cpLink_point[$k_q][$cpLink_id] = array_sum($ar_v);
+                    $total[$k_q] += $cpLink_point[$k_q][$cpLink_id];
+                }
+                $table[$k_q] = ceil($total[$k_q]/count($arr_));
+            }
+            if (in_array($k_q, ['q8', 'q10'])) {
+                $column_id = 2;
+                if (isset($questions['Oui'])) {
+                    $column_id = 4;
+                }
+                if (isset($questions['Non'])) {
+                    $column_id = 0;
+                }
+                $table[$k_q] = $column_id * $poins[$k_q];
+            }
+        }
+        if (isset($cpLink_point['q3'])) {
+            foreach ($cpLink_point['q3'] as $user_id => $point) {
+                //save to table
+                // Yii::$app->db->createCommand()
+                //     ->update('at_tour_guides', [
+                //         // 'updated_by'=>USER_ID,
+                //         'points' => isset($arr_point[$user_id]) ? array_sum($arr_point[$user_id]) : 0,
+                //     ], ['tour_id' => $theTour['id'], 'guide_user_id' => $user_id])
+                //     ->execute();
+                $scores['guides'][$user_id] = isset($arr_point[$user_id]) ? array_sum($arr_point[$user_id]) : 0;
+            }
+        }
+        if (isset($cpLink_point['q4'])) {
+            foreach ($cpLink_point['q4'] as $user_id => $point) {
+                //save to table
+                // Yii::$app->db->createCommand()
+                //     ->update('at_tour_drivers', [
+                //         // 'updated_by'=>USER_ID,
+                //         'points' => isset($arr_point[$user_id]) ? array_sum($arr_point[$user_id]) : 0,
+                //     ], ['tour_id' => $theTour['id'], 'driver_user_id' => $user_id])
+                //     ->execute();
+                $scores['drives'][$user_id] = isset($arr_point[$user_id]) ? array_sum($arr_point[$user_id]) : 0;
+            }
+        }
+        $scores['totals'] = array_sum($table);
+        // var_dump($scores);die;
+
         return $this->render('view_fb', [
-            'content_q' => $content,
+            'scores' => $scores,
+            'content_q' => $fbData,
             'theTour'   => $theTour,
             'versions'  => $versions,
         ]);

@@ -206,6 +206,29 @@ $info = $content_q['info'];
     	<form id="fbForm" method="POST" accept-charset="utf-8" enctype="multipart/form-data" data-tour_id="<?= $theTour['id']?>">
     	<!-- section 1 -->
 		<div class="amc-column">
+            <div class="feedback_scores">
+                <div> <strong>Tổng điểm feedback:</strong> <span class='scores'> <?= $scores['totals']?></span> </div>
+                <div> <strong>Điểm hướng dẫn viên</strong></div>
+                <?php if(isset($scores['guides'])) {
+                    foreach ($scores['guides'] as $uid => $score){
+                    ?>
+                    <div> <strong>- <?= $uid?>:</strong> <span class='scores'> <?= $score?></span> </div>
+                    <?php }
+                } else {
+                ?>
+                    <div> <strong>- Không có thông tin Hướng dẫn</strong></div>
+                <?php } ?>
+                <div> <strong>Điểm Lái xe</strong></div>
+                <?php if(isset($scores['drives'])) {
+                    foreach ($scores['drives'] as $uid => $score){
+                    ?>
+                    <div> <strong>- <?= $uid?>:</strong> <span class='scores'> <?= $score?></span> </div>
+                <?php }
+                } else {
+                ?>
+                    <div> <strong>- Không có thông tin Lái xe</strong></div>
+                <?php } ?>
+            </div>
 			<h2> <span></span> Informations générales</h2>
 			<div class="wrap-table">
 				<!-- info -->

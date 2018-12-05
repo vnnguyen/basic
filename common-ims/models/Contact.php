@@ -113,6 +113,7 @@ class Contact extends MyActiveRecord
         return $this->hasMany(Meta::className(), ['rid' => 'id'])->where(['rtype'=>'user']);
     }
 
+
     public function getReferrals()
     {
         return $this->hasMany(Referral::className(), ['user_id' => 'id']);
@@ -194,13 +195,13 @@ class Contact extends MyActiveRecord
         return $this->hasMany(Kase::className(), ['id' => 'case_id'])
             ->viaTable('at_case_user', ['user_id'=>'id']);
     }
-    
+
     public function getBookings()
     {
         return $this->hasMany(Booking::className(), ['id' => 'booking_id'])
             ->viaTable('at_booking_user', ['user_id'=>'id']);
     }
-    
+
     public function hasGroups()
     {
         return $this->hasMany(Term::className(), ['id'=>'term_id'])
