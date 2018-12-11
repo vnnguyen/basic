@@ -67,6 +67,646 @@ use app\components\MyMailHandler;
 
 class DemoController extends MyController
 {
+    public function actionConvert_to_new1()
+    {
+        $sql = 'SELECT *
+                FROM at_tour_drivers';
+        $datas = Yii::$app->db->createCommand($sql)->queryAll();
+        $resutls = [];
+        $unknowns = [];
+        foreach ($datas as $item) {
+            if ($item['driver_user_id'] == 0 || $item['driver_user_id'] == '' || $item['tour_id'] == 0 || $item['tour_id'] == '') {
+                $unknowns[] = $item;
+                continue;
+            }
+            $resutls[$item['driver_user_id']][$item['tour_id']][] = $item;
+        }
+        foreach ($unknowns as $item) {
+            $date_times['use_from_dt'] = $item['use_from_dt'];
+            $date_times['use_until_dt'] = $item['use_until_dt'];
+
+            $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+            $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+            Yii::$app->db->createCommand()
+                ->insert('at_tour_drivers_new', [
+                    'created_dt'=>$item['created_dt'],
+                    'created_by'=>$item['created_by'],
+                    'updated_dt'=>$item['updated_dt'],
+                    'updated_by'=>$item['updated_by'],
+                    'booking_status'=>$item['booking_status'],
+                    'use_status'=>$item['use_status'],
+                    'tour_id'=>$item['tour_id'],
+                    'vehicle_type'=>$item['vehicle_type'],
+                    'vehicle_number'=>$item['vehicle_number'],
+                    'driver_company'=>$item['driver_company'],
+                    'driver_name'=>$item['driver_name'],
+                    'driver_user_id'=>$item['driver_user_id'],
+                    'use_from_dt'=>$date_times['use_from_dt'],
+                    'use_until_dt'=>$date_times['use_until_dt'],
+                    'info_dt'=> $item['use_from_dt'] . '-' . $item['use_until_dt'],
+                    'points'=>$item['points'],
+                    'use_timezone'=>$item['use_timezone'],
+                    'note' => $item['note']
+                ])
+            ->execute();
+        }
+        $not_inserts = [];
+        foreach ($resutls as $user_id => $resutl) {
+            foreach ($resutl as $tour_id => $items) {
+                $objs = [];
+                $date_times['use_from_dt'] = '';
+                $date_times['use_until_dt'] = '';
+                foreach ($items as $item) {
+                    if ($item['use_from_dt'] == '0000-00-00 00:00:00') {
+                        $not_inserts[] = $item;
+                        continue;
+                    }
+                    if (!isset($objs['driver_user_id'])) {
+                        $date_times['use_from_dt'] = $item['use_from_dt'];
+                        $date_times['use_until_dt'] = $item['use_until_dt'];
+
+                        $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+                        $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+
+                        $objs['created_dt'] = $item['created_dt'];
+                        $objs['created_by'] = $item['created_by'];
+                        $objs['updated_dt'] = $item['updated_dt'];
+                        $objs['updated_by'] = $item['updated_by'];
+                        $objs['booking_status'] = $item['booking_status'];
+                        $objs['use_status'] = $item['use_status'];
+                        $objs['tour_id'] = $item['tour_id'];
+                        $objs['vehicle_type'] = $item['vehicle_type'];
+                        $objs['vehicle_number'] = $item['vehicle_number'];
+
+                        $objs['driver_company'] = $item['driver_company'];
+                        $objs['driver_name'] = $item['driver_name'];
+                        $objs['driver_user_id'] = $item['driver_user_id'];
+                        $objs['info_dt'][] = $item['use_from_dt'] . '-' . $item['use_until_dt'];
+                        $objs['use_timezone'] = $item['use_timezone'];
+                        $objs['points'] = $item['points'];
+                        $objs['use_timezone'] = $item['use_timezone'];
+                        $objs['note'] = $item['note'];
+
+
+                    } else {
+                        if(strtotime($date_times['use_from_dt']) < strtotime($item['use_from_dt'])) {
+                            $date_times['use_from_dt'] =  $item['use_from_dt'];
+                        }
+                        if(strtotime($date_times['use_until_dt']) > strtotime($item['use_until_dt'])) {
+                            $date_times['use_until_dt'] = $item['use_until_dt'];
+                        }
+                        $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+                        $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+                        $objs['info_dt'][] = $item['use_from_dt'] . '-' . $item['use_until_dt'];
+                    }
+                }
+                if($date_times['use_from_dt'] == '') {
+                    continue;
+                }
+                $objs['use_from_dt'] = $date_times['use_from_dt'];
+                $objs['use_until_dt'] = $date_times['use_until_dt'];
+                Yii::$app->db->createCommand()->insert('at_tour_drivers_new', [
+                    'created_dt'=>$objs['created_dt'],
+                    'created_by'=>$objs['created_by'],
+                    'updated_dt'=>$objs['updated_dt'],
+                    'updated_by'=>$objs['updated_by'],
+                    'booking_status'=>$objs['booking_status'],
+                    'use_status'=>$objs['use_status'],
+                    'tour_id'=>$objs['tour_id'],
+                    'vehicle_type'=>$objs['vehicle_type'],
+                    'vehicle_number'=>$objs['vehicle_number'],
+                    'driver_company'=>$objs['driver_company'],
+                    'driver_name'=>$objs['driver_name'],
+                    'driver_user_id'=>$objs['driver_user_id'],
+                    'use_from_dt'=>$objs['use_from_dt'],
+                    'use_until_dt'=>$objs['use_until_dt'],
+                    'info_dt'=>implode(';', $objs['info_dt']),
+                    'points'=>$objs['points'],
+                    'use_timezone'=>$objs['use_timezone'],
+                    'note' => $objs['note']
+                ])->execute();
+            }
+        }
+        foreach ($not_inserts as $item) {
+            if ($item['parent_id'] > 0) {
+                var_dump($item);die;
+            }
+            // $date_times['use_from_dt'] = $item['use_from_dt'];
+            // $date_times['use_until_dt'] = $item['use_until_dt'];
+
+            // $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+            // $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+            //
+            Yii::$app->db->createCommand()
+                ->insert('at_tour_drivers_new', [
+                    'created_dt'=>$item['created_dt'],
+                    'created_by'=>$item['created_by'],
+                    'updated_dt'=>$item['updated_dt'],
+                    'updated_by'=>$item['updated_by'],
+                    'booking_status'=>$item['booking_status'],
+                    'use_status'=>$item['use_status'],
+                    'tour_id'=>$item['tour_id'],
+                    'vehicle_type'=>$item['vehicle_type'],
+                    'vehicle_number'=>$item['vehicle_number'],
+                    'driver_company'=>$item['driver_company'],
+                    'driver_name'=>$item['driver_name'],
+                    'driver_user_id'=>$item['driver_user_id'],
+                    'use_from_dt'=>$item['use_from_dt'],
+                    'use_until_dt'=>$item['use_until_dt'],
+                    'info_dt'=> $item['use_from_dt'] . '-' . $item['use_until_dt'],
+                    'points'=>$item['points'],
+                    'use_timezone'=>$item['use_timezone'],
+                    'note' => $item['note']
+                ])
+            ->execute();
+        }
+        // var_dump($not_inserts);
+        die('xong');
+    }
+
+    public function actionConvert_to_new()
+    {
+        $sql = 'SELECT *
+                FROM at_tour_guides';
+        $datas = Yii::$app->db->createCommand($sql)->queryAll();
+        $resutls = [];
+        $unknowns = [];
+        foreach ($datas as $item) {
+            if ($item['guide_user_id'] == 0 || $item['guide_user_id'] == '' || $item['tour_id'] == 0 || $item['tour_id'] == '') {
+                $unknowns[] = $item;
+                continue;
+            }
+            $resutls[$item['guide_user_id']][$item['tour_id']][] = $item;
+        }
+        foreach ($unknowns as $item) {
+            $date_times['use_from_dt'] = $item['use_from_dt'];
+            $date_times['use_until_dt'] = $item['use_until_dt'];
+
+            $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+            $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+            Yii::$app->db->createCommand()
+                ->insert('at_tour_guides_new', [
+                    'created_dt'=>$item['created_dt'],
+                    'created_by'=>$item['created_by'],
+                    'updated_dt'=>$item['updated_dt'],
+                    'updated_by'=>$item['updated_by'],
+                    'booking_status'=>$item['booking_status'],
+                    'use_status'=>$item['use_status'],
+                    'tour_id'=>$item['tour_id'],
+                    'guide_company'=>$item['guide_company'],
+                    'guide_name'=>$item['guide_name'],
+                    'guide_user_id'=>$item['guide_user_id'],
+                    'use_from_dt'=>$date_times['use_from_dt'],
+                    'use_until_dt'=>$date_times['use_until_dt'],
+                    'info_dt'=> $item['use_from_dt'] . '-' . $item['use_until_dt'],
+                    'points'=>$item['points'],
+                    'use_timezone'=>$item['use_timezone'],
+                    'days'=>$item['days'],
+                    'note' => $item['note']
+                ])
+            ->execute();
+        }
+        $not_inserts = [];
+        foreach ($resutls as $user_id => $resutl) {
+            foreach ($resutl as $tour_id => $items) {
+                $objs = [];
+                $date_times['use_from_dt'] = '';
+                $date_times['use_until_dt'] = '';
+                foreach ($items as $item) {
+                    if ($item['use_from_dt'] == '0000-00-00 00:00:00') {
+                        $not_inserts[] = $item;
+                        continue;
+                    }
+                    if (!isset($objs['guide_user_id'])) {
+                        $date_times['use_from_dt'] = $item['use_from_dt'];
+                        $date_times['use_until_dt'] = $item['use_until_dt'];
+
+                        $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+                        $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+
+                        $objs['created_dt'] = $item['created_dt'];
+                        $objs['created_by'] = $item['created_by'];
+                        $objs['updated_dt'] = $item['updated_dt'];
+                        $objs['updated_by'] = $item['updated_by'];
+                        $objs['booking_status'] = $item['booking_status'];
+                        $objs['use_status'] = $item['use_status'];
+                        $objs['tour_id'] = $item['tour_id'];
+                        $objs['guide_company'] = $item['guide_company'];
+                        $objs['guide_name'] = $item['guide_name'];
+                        $objs['guide_user_id'] = $item['guide_user_id'];
+                        $objs['info_dt'][] = $item['use_from_dt'] . '-' . $item['use_until_dt'];
+                        $objs['use_timezone'] = $item['use_timezone'];
+                        $objs['points'] = $item['points'];
+                        $objs['days'] = $item['days'];
+                        $objs['note'] = $item['note'];
+
+
+                    } else {
+                        if(strtotime($date_times['use_from_dt']) < strtotime($item['use_from_dt'])) {
+                            $date_times['use_from_dt'] =  $item['use_from_dt'];
+                        }
+                        if(strtotime($date_times['use_until_dt']) > strtotime($item['use_until_dt'])) {
+                            $date_times['use_until_dt'] = $item['use_until_dt'];
+                        }
+                        $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+                        $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+                        $objs['info_dt'][] = $item['use_from_dt'] . '-' . $item['use_until_dt'];
+                    }
+                }
+                if($date_times['use_from_dt'] == '') {
+                    continue;
+                }
+                $objs['use_from_dt'] = $date_times['use_from_dt'];
+                $objs['use_until_dt'] = $date_times['use_until_dt'];
+                Yii::$app->db->createCommand()->insert('at_tour_guides_new', [
+                    'created_dt'=>$objs['created_dt'],
+                    'created_by'=>$objs['created_by'],
+                    'updated_dt'=>$objs['updated_dt'],
+                    'updated_by'=>$objs['updated_by'],
+                    'booking_status'=>$objs['booking_status'],
+                    'use_status'=>$objs['use_status'],
+                    'tour_id'=>$objs['tour_id'],
+                    'guide_company'=>$objs['guide_company'],
+                    'guide_name'=>$objs['guide_name'],
+                    'guide_user_id'=>$objs['guide_user_id'],
+                    'use_from_dt'=>$objs['use_from_dt'],
+                    'use_until_dt'=>$objs['use_until_dt'],
+                    'info_dt'=>implode(';', $objs['info_dt']),
+                    'use_timezone'=>$objs['use_timezone'],
+                    'points'=>$objs['points'],
+                    'days'=>$objs['days'],
+                    'note' => $objs['note']
+                ])->execute();
+            }
+        }
+        foreach ($not_inserts as $item) {
+            if ($item['parent_id'] > 0) {
+                var_dump($item);die;
+            }
+            // $date_times['use_from_dt'] = $item['use_from_dt'];
+            // $date_times['use_until_dt'] = $item['use_until_dt'];
+
+            // $item['use_from_dt'] = date('j/n/Y H:i', strtotime($item['use_from_dt']));
+            // $item['use_until_dt'] = date('j/n/Y H:i', strtotime($item['use_until_dt']));
+            Yii::$app->db->createCommand()
+                ->insert('at_tour_guides_new', [
+                    'created_dt'=>$item['created_dt'],
+                    'created_by'=>$item['created_by'],
+                    'updated_dt'=>$item['updated_dt'],
+                    'updated_by'=>$item['updated_by'],
+                    'booking_status'=>$item['booking_status'],
+                    'use_status'=>$item['use_status'],
+                    'tour_id'=>$item['tour_id'],
+                    'guide_company'=>$item['guide_company'],
+                    'guide_name'=>$item['guide_name'],
+                    'guide_user_id'=>$item['guide_user_id'],
+                    'use_from_dt'=>$item['use_from_dt'],
+                    'use_until_dt'=>$item['use_until_dt'],
+                    'info_dt'=> $item['use_from_dt'] . '-' . $item['use_until_dt'],
+                    'use_timezone'=>$item['use_timezone'],
+                    'points'=>$item['points'],
+                    'days'=>$item['days'],
+                    'note' => $item['note']
+                ])
+            ->execute();
+        }
+        die('xong');
+    }
+    /*
+    export functions
+     */
+    //SELECT `id`, `name`, `stype`, `about`, `search`, `destination_id`, `info` FROM `venues`
+    public function actionExport_jd3()
+    {
+        $theVenues = Venue::find()
+            ->select(['id', 'name', 'stype', 'about', 'search', 'destination_id', 'cruise_meta', 'supplier_id', 'image', 'images', 'new_tags', 'new_pricemin', 'new_pricemax'])
+            ->where('stype = "cruise"')
+            ->with([
+                'destination',
+                'company',
+                'metas',
+            ])
+            ->asArray()
+            ->all();
+
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()
+                    /*Cruise*/
+                    ->setCellValue('A1', 'Company')
+                    ->setCellValue('B1', 'name')
+                    ->setCellValue('C1', 'star')
+                    ->setCellValue('D1', 'port')
+                    /* hotel
+                    ->setCellValue('A1', 'Name')
+                    ->setCellValue('B1', 'Location')
+                    ->setCellValue('C1', 'Type')
+                    ->setCellValue('D1', 'Price')
+                    ->setCellValue('E1', 'Class')
+                    ->setCellValue('F1', 'Tags')
+                    */
+                    ;
+        $k = 2;
+        foreach ($theVenues as $li) {
+            /* start cruise*/
+            // Stars
+            $venueStar = '';
+            $venueRates = [];
+            $venueCabins = '';
+            $venueTags = [];
+            $venueContracts = [];
+            $venueTripAdv = '';
+            $venueLocations = [];
+
+            $i2d1n = '';
+            $i3d2n = '';
+            $r2d1n = '';
+            $r3d2n = '';
+            $port = '';
+            $com = '';
+
+            $meta = explode(';', $li['cruise_meta']);
+            foreach ($meta as $li_meta) {
+                $li2_meta = explode(':', $li_meta);
+                if (is_array($li2_meta) && count($li2_meta) == 2) {
+                    if (trim($li2_meta[0]) == 'com') $com = trim($li2_meta[1]);
+                    // if (trim($li2_meta[0]) == 'r2d1n') $r2d1n = trim($li2_meta[1]);
+                    // if (trim($li2_meta[0]) == 'r3d2n') $r3d2n = trim($li2_meta[1]);
+                    // if (trim($li2_meta[0]) == 'i2d1n') $i2d1n = trim($li2_meta[1]);
+                    // if (trim($li2_meta[0]) == 'i3d2n') $i3d2n = trim($li2_meta[1]);
+                    if (trim($li2_meta[0]) == 'port') $port = trim($li2_meta[1]);
+                }
+            }
+
+
+            $tags = explode(' ', $li['search']);
+
+
+
+            // Rates
+            foreach ($tags as $tag) {
+                if (in_array($tag, ['1s', '2s', '3s', '4s', '5s'])) {
+                    $venueStar = substr($tag, 0, 1);
+                }
+            }
+            /*end cruise*/
+
+            /*hotel*//*
+            $price = '';
+            if ($venue['new_pricemin'] != 0) {
+                $price = $venue['new_pricemin'];
+            }
+            if ($venue['new_pricemax'] != 0 && $venue['new_pricemax'] > $venue['new_pricemin']) {
+                $price = $venue['new_pricemin'] .' - '. $venue['new_pricemax'];
+            }
+             $newTags = explode(';|', $venue['new_tags']);
+
+            $tags = []; //explode(' ', $venue['search']);
+
+            // Stars
+            $venueStar = '';
+            $venueRates = [];
+            $venueTags = [];
+            $venueContracts = [];
+            $venueTripAdv = '';
+            $venueLocations = [];
+            $venueClassiList = [
+                '1_bud'=>Yii::t('xx', 'Budget'),
+                '1_sta'=>Yii::t('x', 'Standard'),
+                '1_sup'=>Yii::t('x', 'Superior'),
+                '1_del'=>Yii::t('x', 'Deluxe'),
+                '1_lux'=>Yii::t('x', 'Luxury'),
+            ];
+
+            // Rates
+            foreach ($newTags as $tag) {
+                if (in_array($tag, ['s_1s', 's_2s', 's_3s', 's_4s', 's_5s'])) {
+                    $venueStar = substr($tag, 2, 1);
+                }
+            }
+            foreach ($tags as $tag) {
+                if (substr($tag, 0, '2') == 'rf') {
+                    $venueRates[] = substr($tag, 2);
+                } elseif (substr($tag, 0, '2') == 'hd') {
+                    $venueContracts[] = (int)substr($tag, 2) >= (int)date('Y') ? '<span style="color:blue;">'.substr($tag, 2).'</span>' : substr($tag, 2);
+                } elseif (substr($tag, 0, '2') == 'tr' && $tag != 'trekking') {
+                    $venueTripAdv = substr($tag, 2);
+                } else {
+                    if ($tag == 'charm') {
+                        $tag = '<span style="color:blue">charming</span>';
+                    } elseif ($tag == 'not') {
+                        $tag = '<s style="color:red">not OK</s>';
+                    } elseif ($tag == 'see') {
+                        $tag = 'đợi khảo sát';
+                    } elseif ($tag == 'far') {
+                        $tag = 'xa trung tâm';
+                    }
+
+                    if (substr($tag, 0, 1) == '@') $tag = '';
+                    if ($tag == 're' || $tag == 'ks') $tag = '';
+                    if (str_replace('_', '', fURL::makeFriendly($venue['name'], '_')) == $tag) $tag = '';
+                    if (trim($tag) != '') {
+                        $venueTags[] = $tag;
+                    }
+                }
+            }
+
+            foreach ($newTags as $tag) {
+                $tag = '';
+                if (in_array($tag, ['1s', '2s', '3s', '4s', '5s'])) {
+                    $venueStar = substr($tag, 0, 1);
+                } elseif (substr($tag, 0, '2') == 'tr' && $tag != 'trekking') {
+                    $venueTripAdv = substr($tag, 2);
+                } elseif ($tag == 'sr_s') {
+                    $tag = '<span class="text-pink">strategic</span>';
+                } elseif ($tag == 'sr_r') {
+                    $tag = '<span style="color:green">recommended+</span>';
+                }
+                if ($tag != '') {
+                    $venueTags[] = $tag;
+                }
+            }
+
+            if (strpos($venue['new_tags'], 'sr_s') !== false) {
+                $venueTags[] = 'strategic';
+            }
+            if (strpos($venue['new_tags'], 'sr_r') !== false) {
+                $venueTags[] = 'recommended';
+            }
+            $class = '';
+            foreach ($newTags as $newTag) {
+                if (array_key_exists($newTag, $venueClassiList)) {
+                    $class = $venueClassiList[$newTag];
+                    break;
+                }
+            }
+            */
+
+            $spreadsheet->getActiveSheet()
+                /*cruise*/
+                ->setCellValue('A'.$k, $com)
+                ->setCellValue('B'.$k, $li['name'])
+                ->setCellValue('C'.$k, $venueStar)
+                ->setCellValue('D'.$k, $port)
+                /*end cruise*/
+                /* hotel
+                ->setCellValue('A'.$k, $venue['name'])
+                ->setCellValue('B'.$k, $venue['destination']['name_en'])
+                ->setCellValue('C'.$k, $venue['stype'])
+                ->setCellValue('D'.$k, $price)
+                ->setCellValue('E'.$k, $class)
+                ->setCellValue('F'.$k, implode(', ', $venueTags))
+                */
+            ;
+            $k++;
+
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A1:Z1')->getFont()->setBold(true);
+
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename='. rand(1, 100) . 'report.Xlsx');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        die('ok');
+    }
+    public function actionExport_tour_huan2()
+    {
+        $results = [];
+        $venues = Venue::find()//->select(['id', 'stype', 'name'])
+                ->with('company')
+                ->where('stype = "cruise"')->indexBy('id')->asArray()->all();
+        $venue_ids = array_keys($venues);
+        $year = 2016;
+        foreach ($venue_ids as $venue_id) {
+            for ($y = 2016; $y < 2020; $y++) {
+                $results[$venue_id][$y]['b2c'] = [];
+                $results[$venue_id][$y]['b2b'] = [];
+                $results[$venue_id][$y]['cases'] = [];
+            }
+        }
+
+        $sql_y = "SELECT *
+                FROM cpt INNER JOIN at_tours ON cpt.tour_id = at_tours.id
+                         LEFT OUTER JOIN at_ct ON at_tours.ct_id = at_ct.id
+                WHERE YEAR(dvtour_day) = ".$year;
+        $cpts = Yii::$app->db->createCommand($sql_y)->queryAll();
+        $tour_ids = [];
+        foreach ($cpts as $cpt) {
+            $y = date('Y', strtotime($cpt['dvtour_day']));
+            if($cpt['owner'] == 'si' && $cpt['op_status'] == 'op') {
+                $stype = 'b2b';
+            } elseif ($cpt['owner'] == 'at' && $cpt['op_status'] == 'op') {
+                $stype = 'b2c';
+            } else {
+                die($cpt['id']);
+            }
+            if (isset($results[$cpt['venue_id']]) && !in_array($cpt['ct_id'], $results[$cpt['venue_id']][$y][$stype])) {
+                $results[$cpt['venue_id']][$y][$stype][] = $cpt['ct_id'];
+                $tour_ids[$cpt['venue_id']][$y][] = $cpt['ct_id'];
+            }
+
+        }
+        foreach ($tour_ids as $venue_id => $item) {
+            var_dump($venues[$venue_id]);die;
+            $bookings = Booking::find()->select(['id', 'case_id', 'product_id'])->where(['product_id' => $item[$year]])->asArray()->all();
+            // var_dump($bookings);die;
+            foreach ($bookings as $booking) {
+                if (isset($results[$venue_id]) && !in_array($booking['case_id'], $results[$venue_id][$year]['cases'])) {
+                    $results[$venue_id][$year]['cases'][] = $booking['case_id'];
+                }
+            }
+        }
+        // var_dump($results);die;
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->mergeCells('C1:E1');
+        $spreadsheet->getActiveSheet()
+                    ->setCellValue('A1', 'Hotel ID or Home ID')
+                    ->setCellValue('B1', 'Name')
+                    ->setCellValue('C1', $year)
+                    ->setCellValue('C2', 'B2c')
+                    ->setCellValue('D2', 'B2b')
+                    ->setCellValue('E2', 'Cases')
+                    ;
+        $k = 3;
+        foreach ($results as $id => $item) {
+            $spreadsheet->getActiveSheet()
+                ->setCellValue('A'.$k, $id)
+                ->setCellValue('B'.$k, $venues[$id]['name'])
+                ->setCellValue('C'.$k, count($item[$year]['b2c']))
+                ->setCellValue('D'.$k, count($item[$year]['b2b']))
+                ->setCellValue('E'.$k, count($item[$year]['cases']))
+                ;
+            $k++;
+
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A1:G2')->getFont()->setBold(true);
+
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename='. $year . 'report.Xlsx');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        die('ok');
+    }
+    public function actionExport_tour_huan()
+    {
+        $cases = Kase::find()
+                ->innerJoinWith('stats')
+                ->with(
+                    'bookings',
+                    'bookings.product'
+                )
+                ->where('at_cases.deal_status = "won" AND YEAR(at_cases.deal_status_date) >= 2017 AND is_b2b = "no"')
+                ->asArray()->all()
+                ;
+        // var_dump($cases);die;
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()
+                    ->setCellValue('A1', 'Tour ID')
+                    ->setCellValue('B1', 'Tour code')
+                    ->setCellValue('C1', 'Case start date')
+                    ->setCellValue('D1', 'Case end date')
+                    ->setCellValue('E1', 'Tour start date')
+                    ->setCellValue('F1', 'Tour end date')
+                    ;
+        $k = 2;
+        $results = [];
+        foreach ($cases as $case) {
+            $c_start_dt = strtotime($case['stats']['tour_start_date']);
+            $c_end_dt = strtotime($case['stats']['tour_end_date']);
+            foreach ($case['bookings'] as $booking) {
+                if ($booking['status'] != 'won') continue;
+                $tour = $booking['product'];
+                $t_start_dt = strtotime($tour['day_from']);
+                $tour['day_count'] --;
+                $t_end_dt = strtotime($tour['day_from'] . ' + ' . $tour['day_count'] . ' days');
+                if ($c_start_dt != $t_start_dt || $c_end_dt != $t_end_dt) {
+                    // var_dump($booking);die();
+                    $spreadsheet->getActiveSheet()
+                        ->setCellValue('A'.$k, $tour['id'])
+                        ->setCellValue('B'.$k, $tour['op_code'])
+                        ->setCellValue('C'.$k, date('Y-m-d', $c_start_dt))
+                        ->setCellValue('D'.$k, date('Y-m-d', $c_end_dt))
+                        ->setCellValue('E'.$k, date('Y-m-d', $t_start_dt))
+                        ->setCellValue('F'.$k, date('Y-m-d', $t_end_dt))
+                        ;
+                    $k++;
+                }
+            }
+
+        }
+        $spreadsheet->getActiveSheet()->getStyle('A1:F1')->getFont()->setBold(true);
+
+
+        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        header('Content-Disposition: attachment;filename='.'report.Xlsx');
+
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save('php://output');
+        die('ok');
+    }
     public function actionExport_jd2()
     {
         $cases = Kase::find()
@@ -222,6 +862,9 @@ class DemoController extends MyController
         $writer->save('php://output');
         die('ok');
     }
+    /*
+    end export functions
+     */
     /*
     actions demo
      */

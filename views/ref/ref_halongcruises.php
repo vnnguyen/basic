@@ -58,6 +58,7 @@ Yii::$app->params['page_class'] = 'bg-white';
 			<tbody>
 				<? if (empty($theVenues)) { ?><tr><td colspan="10">No items found.</td></tr><? } ?>
 				<? foreach ($theVenues as $li) {
+                    // var_dump($li);die;
 					// Stars
 					$venueStar = '';
 					$venueRates = [];

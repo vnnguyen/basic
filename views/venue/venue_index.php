@@ -45,6 +45,7 @@ $venueStraList = [
     'r'=>'Recommended hotels',
     'sr'=>'Strategic & Recommended',
     'h'=>'Homestays',
+    'ha'=>'Homestays by Amica',
 ];
 
 function url_to_domain($url)
@@ -66,14 +67,14 @@ function url_to_domain($url)
 
 ?>
 <div class="col-md-12">
-    <form method="get" action="" class="form-inline mb-1em">
+    <form method="get" action="" class="form-inline mb-2">
         <?= Html::dropDownList('stra', $stra, $venueStraList, ['class'=>'form-control']) ?>
         <?= Html::dropdownList('dest', $dest, ArrayHelper::map($allDestinations, 'id', 'name_en'), ['class'=>'form-control', 'prompt'=>'All destinations']) ?>
         <?= Html::dropdownList('type', $type, $venueTypeList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Type -')]) ?>
         <?= Html::dropdownList('class', $class, $venueClassiList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Hạng -')]) ?>
         <?= Html::dropdownList('style', $style, $venueStyleList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Kiểu -')]) ?>
         <?= Html::textInput('price', $price, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Price, eg. 45 or 45-55')]) ?>
-        <?= Html::dropdownList('faci', $faci, $venueFaciList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Tiện nghi -')]) ?>
+        <?= Html::dropdownList('faci', $faci, $venueFaciSearchList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Tiện nghi -')]) ?>
         <?= Html::dropdownList('recc', $recc, $venueReccList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '- Khuyên dùng cho -')]) ?>
         <?= Html::textInput('search', $search, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Tags')]) ?>
         <?= Html::textInput('name', $name, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Name')]) ?>
@@ -81,18 +82,18 @@ function url_to_domain($url)
         <?= Html::a(Yii::t('x', 'Reset'), '/venues?stra=sr') ?>
     </form>
     <?php if (empty($theVenues)) { ?><p><?= Yii::t('x', 'No data found.') ?></p><?php } else { ?>
-    <div class="table-responsive panel panel-body no-padding">
-        <table class="table table-bordered table-narrow table-striped">
+    <div class="table-responsive card">
+        <table class="table table-bordered table-narrow">
             <thead>
                 <tr>
                     <th width="15"></th>
-                    <th colspan="2">Name</th>
+                    <th colspan="2"><?= Yii::t('x', 'Name') ?></th>
                     <?php if ($dest == '') { ?>
-                    <th width="">Địa điểm</th>
+                    <th width=""><?= Yii::t('x', 'Location') ?></th>
                     <?php } ?>
-                    <th width="80" class="text-center">Class</th>
-                    <th width="50" class="text-center">Price</th>
-                    <th>Tags</th>
+                    <th width="80" class="text-center"><?= Yii::t('x', 'Class') ?></th>
+                    <th width="50" class="text-center"><?= Yii::t('x', 'Price') ?></th>
+                    <th><?= Yii::t('x', 'Tags') ?></th>
                     <th><?= Yii::t('x', 'Contract') ?></th>
                 </tr>
             </thead>
@@ -101,7 +102,7 @@ function url_to_domain($url)
                 foreach ($theVenues as $venue) {
                     $newTags = explode(';|', $venue['new_tags']);
 
-                    $tags = explode(' ', $venue['search']);
+                    $tags = []; //explode(' ', $venue['search']);
 
                     // Stars
                     $venueStar = '';
@@ -139,8 +140,9 @@ function url_to_domain($url)
                             if (substr($tag, 0, 1) == '@') $tag = '';
                             if ($tag == 're' || $tag == 'ks') $tag = '';
                             if (str_replace('_', '', fURL::makeFriendly($venue['name'], '_')) == $tag) $tag = '';
-                            if (trim($tag) != '')
+                            if (trim($tag) != '') {
                                 $venueTags[] = $tag;
+                            }
                         }
                     }
 
@@ -223,6 +225,7 @@ function url_to_domain($url)
                     <?php } ?>
                     <td class="text-center">
                         <?php
+
                         foreach ($newTags as $newTag) { ?>
                             <?php if (array_key_exists($newTag, $venueClassiList)) { ?>
                             <?= $venueClassiList[$newTag] ?>
@@ -247,7 +250,7 @@ function url_to_domain($url)
         </table>
     </div>
     <?php if ($pagination->totalCount > $pagination->pageSize) { ?>
-    <div class="text-center">
+    <div class="center-h">
     <?= LinkPager::widget([
         'pagination' => $pagination,
         'firstPageLabel' => '<<',

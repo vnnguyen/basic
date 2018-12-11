@@ -105,7 +105,7 @@ class VenueController extends MyController
 
     public function actionVenue_map()
     {
-        //SELECT id, name, latlng FROM venues WHERE stype="hotel" 
+        //SELECT id, name, latlng FROM venues WHERE stype="hotel"
         $venues = Venue::find()
             ->select(['id', 'name', 'latlng'])
             ->where('stype="hotel"')->asArray()->all();
@@ -293,137 +293,141 @@ class VenueController extends MyController
         }
     }
 
-    public function actionIndex() { 
-        $getType = Yii::$app->request->get('type', 'all');
-        $getStatus = Yii::$app->request->get('status', 'all');
-        $getDestinationId = Yii::$app->request->get('destination_id', 0);
-        $getName = Yii::$app->request->get('name', '');
+    public function actionIndex($dest = '', $type = '', $class = '', $style = '', $price = '', $faci = '', $recc = '', $name = '', $stra = 'sr', $search = '') {
+        $allDestinations = Destination::find()
+            ->select('id, name_en')
+            ->orderBy('country_code, name_en')
+            ->asArray()
+            ->all();
 
-        $getClassification = Yii::$app->request->get('classification', '');
-        $getArchitecture_style = Yii::$app->request->get('architecture_style', '');
-        $getProperty_type = Yii::$app->request->get('property_type', '');
-        $getStyle = Yii::$app->request->get('style', '');
-        $getFacilities = Yii::$app->request->get('facilities', '');
-        $getRecommended = Yii::$app->request->get('recommended', '');
-        $getPrice_range = Yii::$app->request->get('price_range', '');
+        $query = Venue::find()
+            ->where('LENGTH(name)>3');
 
-
-
-        $allDestinations = Destination::find()->select('id, name_en')->orderBy('country_code, name_en')->asArray()->all();
-
-        $query = Venue::find()->select(['*', 'over_view_options AS op_ov']);
-
-        if ($getType != 'all') {
-            $query->andWhere(['stype'=>$getType]);
-        }
-        if ($getStatus != 'all') {
-            $query->andWhere(['status'=>$getStatus]);
-        }
-        if ($getDestinationId != 0) {
-            $query->andWhere(['destination_id'=>$getDestinationId]);
-        }
-        if ($getName != '') {
-            $query->andWhere(['like', 'name', $getName]);
-        }
-
-        if (
-            $getClassification != ''
-            ||$getArchitecture_style != ''
-            || $getProperty_type != ''
-            || $getStyle != ''
-            || $getFacilities != ''
-            || $getRecommended != ''
-            || $getPrice_range != ''
-        ) {
-            $query->andWhere('over_view_options != ""');
-            //SELECT * FROM `venues` WHERE over_view_options REGEXP '.*"property_type";s:[0-9]+:"1".*'
-            if ($getClassification != '') {
-                $query->andWhere('over_view_options  REGEXP \'.*"classification";s:[0-9]+:"'.$getClassification.'".*\'');
-            }
-            if ($getArchitecture_style != '') {
-                $query->andWhere('over_view_options  REGEXP \'.*"architecture_style";s:[0-9]+:"'.$getArchitecture_style.'".*\'');
-            }
-            if ($getProperty_type != '') {
-                $query->andWhere('over_view_options  REGEXP \'.*"property_type";s:[0-9]+:"'.$getProperty_type.'".*\'');
-            }
-            if ($getStyle != '') {
-                //SELECT * FROM `venues` WHERE over_view_options REGEXP '.*"facilities";a:[0-9]+:{.*i:[0-9]+;s:[0-9]+:"30";.*}.*'
-                $pat = '.*"style";a:[0-9]+:{';
-                foreach ($getStyle as $str) {
-                    $pat .= '.*i:[0-9]+;s:[0-9]+:"'. $str .'";';
-                }
-                $pat .= '.*}.*';
-                $query->andWhere('over_view_options  REGEXP \''.$pat.'\'');
-            }
-            if ($getFacilities != '') {
-                $pat = '.*"facilities";a:[0-9]+:{';
-                foreach ($getFacilities as $str) {
-                    $pat .= '.*i:[0-9]+;s:[0-9]+:"'. $str .'";';
-                }
-                $pat .= '.*}.*';
-                $query->andWhere('over_view_options  REGEXP \''.$pat.'\'');
-            }
-            if ($getRecommended != '') {
-                $pat = '.*"recommended";a:[0-9]+:{';
-                foreach ($getRecommended as $str) {
-                    $pat .= '.*i:[0-9]+;s:[0-9]+:"'. $str .'";';
-                }
-                $pat .= '.*}.*';
-                $query->andWhere('over_view_options  REGEXP \''.$pat.'\'');
-            }
-            if ($getPrice_range != '') {
-                $price_min = 0;
-                $price_max = 0;
-                $pr_arr = explode('-', $getPrice_range);
-                if (count($pr_arr) == 1) {
-                    $price_min = $pr_arr[0] - 5;
-                    $price_max = $pr_arr[0] + 5;
-                }
-                if (count($pr_arr) == 2) {
-                    $price_min = $pr_arr[0];
-                    $price_max = $pr_arr[1];
-                }
-                $ids = Yii::$app->db
-                ->createCommand("SELECT id,
-                    SUBSTRING_INDEX(SUBSTRING_INDEX(over_view_options, '-', 1), '|', -1) AS f_num,
-                    SUBSTRING_INDEX(SUBSTRING_INDEX(over_view_options, '-', -1), '|', 1) AS t_num
-                    FROM `venues` where over_view_options != ''
-                    HAVING !(:price_max < f_num) AND !(:price_min > t_num)", [':price_min'=>$price_min, ':price_max' => $price_max])->queryColumn();
-                    $query->andWhere(['id' => $ids]);
+        if ($stra == '') {
+            $query->andWhere(['stype'=>'hotel']);
+        } elseif ($stra == 's') {
+            $query
+                ->andWhere(['stype'=>'hotel'])
+                ->andWhere('LOCATE("sr_s", new_tags)!=0');
+        } elseif ($stra == 'r') {
+            $query
+                ->andWhere(['stype'=>'hotel'])
+                ->andWhere('LOCATE("sr_r", new_tags)!=0');
+        } elseif ($stra == 'sr') {
+            $query
+                ->andWhere(['stype'=>'hotel'])
+                ->andWhere('LOCATE("sr_s", new_tags)!=0 OR LOCATE("sr_r", new_tags)!=0');
+        } elseif ($stra == 'h' || $stra == 'ha') {
+            $query
+                ->andWhere(['stype'=>'home']);
+            if ($stra == 'ha') {
+                $query
+                    ->andWhere('LOCATE("c_amica", new_tags)!=0');
             }
         }
 
+        if ($dest != '') {
+            if (in_array($dest, ['vn', 'la', 'kh', 'mm'])) {
+                $destIdList = Destination::find()
+                    ->select(['id'])
+                    ->where(['country_code'=>$dest])
+                    ->asArray()
+                    ->column();
+                $query->andWhere(['destination_id'=>$destIdList]);
+            } else {
+                $query->andWhere(['destination_id'=>$dest]);
+            }
+        }
+
+        if ($type != '') {
+            $query->andWhere('LOCATE(:type, new_tags)!=0', [':type'=>$type]);
+        }
+
+        if ($class != '') {
+            $query->andWhere('LOCATE(:class, new_tags)!=0', [':class'=>$class]);
+        }
+
+        if ($style != '') {
+            $query->andWhere('LOCATE(:style, new_tags)!=0', [':style'=>$style]);
+        }
+
+        if ($price != '') {
+            $minp = 0; $maxp = 0;
+            $prices = explode('-', $price);
+            $minp = (int)$prices[0];
+            if (!isset($prices[1])) {
+                // // Chi co 1 so thi lay +- 10 USD
+                // $minp = max(0, $minp - 10);
+                // $maxp = max(0, $minp + 20);
+                $maxp = $minp;
+            } else {
+                if ((int)$prices[1] >= $minp) {
+                    $maxp = (int)$prices[1];
+                } else {
+                    $maxp = $minp;
+                }
+            }
+            if ($maxp != 0) {
+                $query->andWhere('new_pricemin<=:maxp', [':maxp'=>$maxp])
+                    ->andWhere('new_pricemax>=:minp', [':minp'=>$minp]);
+            }
+        }
+
+        if ($faci != '') {
+            $query->andWhere('LOCATE(:faci, new_tags)!=0', [':faci'=>$faci]);
+        }
+
+        if ($recc != '') {
+            $query->andWhere('LOCATE(:recc, new_tags)!=0', [':recc'=>$recc]);
+        }
+
+        if ($name != '') {
+            $query->andWhere(['or', ['like', 'name', $name], ['like', 'about', $name]]);
+        }
+
+        $searchParams = explode(' ', $search);
+        if (!empty($searchParams)) {
+            foreach ($searchParams as $param) {
+                $orParams = explode('|', $param);
+                if (count($orParams) > 1) {
+                    $query->andWhere(['or', 'LOCATE("'.$orParams[0].'", search)!=0', 'LOCATE("'.$orParams[1].'", search)!=0']);
+                } else {
+                    $query->andWhere('LOCATE("'.$param.'", search)!=0');
+                }
+            }
+        }
         $countQuery = clone $query;
-        $pages = new Pagination([
+        $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
             'pageSize'=>25,
             ]);
 
         $theVenues = $query
-            ->select(['id', 'name', 'stype', 'about', 'search', 'destination_id', 'info'])
+            ->select(['id', 'name', 'stype', 'about', 'search', 'destination_id', 'image', 'images', 'new_tags', 'new_pricemin', 'new_pricemax'])
             ->orderBy('stype, name')
-            ->offset($pages->offset)
-            ->limit($pages->limit)
-            ->with(['destination'])
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->with([
+                'destination',
+                'metas',
+            ])
             ->asArray()
             ->all();
+
         return $this->render('venue_index', [
-            'pages'=>$pages,
+            'pagination'=>$pagination,
             'theVenues'=>$theVenues,
             'allDestinations'=>$allDestinations,
-            'getType'=>$getType,
-            'getStatus'=>$getStatus,
-            'getDestinationId'=>$getDestinationId,
-            'getName'=>$getName,
-
-
-            'getClassification' => $getClassification,
-            'getArchitecture_style' => $getArchitecture_style,
-            'getProperty_type' => $getProperty_type,
-            'getStyle' => $getStyle,
-            'getFacilities' => $getFacilities,
-            'getRecommended' => $getRecommended,
-            'getPrice_range' => $getPrice_range,
+            'dest'=>$dest,
+            'type'=>$type,
+            'class'=>$class,
+            'style'=>$style,
+            'price'=>$price,
+            'faci'=>$faci,
+            'recc'=>$recc,
+            'name'=>$name,
+            'stra'=>$stra,
+            'search'=>$search
         ]);
     }
 
@@ -505,8 +509,8 @@ class VenueController extends MyController
             ->where(['venue_id'=>$id])
             ->asArray()
             ->one();
-        
-        $the_room = unserialize($the_venue_temp['rooms']);       
+
+        $the_room = unserialize($the_venue_temp['rooms']);
 
         // Update SGL,DBL,TWN rooms
         if ($theVenue['stype'] == 'hotel') {
@@ -2343,7 +2347,7 @@ class VenueController extends MyController
     public function actionPrice_table($venue_id = 0, $date = NOW)
     {
         if (Yii::$app->request->isAjax) {
-            
+
             $html = Venue::find()
                 ->select('new_pricetable')
                 ->where(['id'=>$venue_id])
@@ -2483,7 +2487,7 @@ class VenueController extends MyController
             '5_68'=>Yii::t('x', 'Meeting room'),
             '5_69'=>Yii::t('x', 'Free wifi in room'),
             '5_70'=>Yii::t('x', 'Satellite TV'),
-            '5_71'=>Yii::t('x', 'TV channels'), 
+            '5_71'=>Yii::t('x', 'TV channels'),
             '5_72'=>Yii::t('x', 'play ground'),
 
         ];
@@ -2766,7 +2770,7 @@ class VenueController extends MyController
         return $this->render('venue_uu', [
             'theVenue'=>$theVenue,
             'theForm'=>$theForm,
-        ]);     
+        ]);
     }
 
     public function actionD($id = 0) {
@@ -2776,7 +2780,7 @@ class VenueController extends MyController
         }
 
         throw new HttpException(403, 'Under development.');
-        
+
 
         return $this->render('venue_d', [
             'theVenue'=>$theVenue,
