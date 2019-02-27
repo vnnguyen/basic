@@ -18,6 +18,7 @@ use common\models\Tour;
 use common\models\Venue;
 use common\models\Invoice;
 use common\models\Payment;
+use common\models\Meta;
 /*
 INSERT INTO at_products (id, created_at, created_by, updated_at, updated_by, status, stype, op_status, code, name, info, note, start_date)
 (SELEECT id, uo, ub, uo, ub, status, offer_type, "nop", "", title, about, summary, day_from FROM at_ct ORDER BY id);
@@ -33,7 +34,7 @@ INSERT INTO at_prod_tcgtour (day_count, pax_count, name, ct_id, tour_from)
 class ProductController extends MyController
 {
 /*
-INSERT INTO at_prod_tour (id, owner, name, day_count, pax_count, prices) 
+INSERT INTO at_prod_tour (id, owner, name, day_count, pax_count, prices)
 (SELECT id, ub, title, days, pax, prices FROM at_ct WHERE offer_type="private" order by id);
 
 INSERT INTO at_products (rtype, rid)
@@ -55,6 +56,73 @@ INSERT INTO at_products (rtype, rid)
                 ]
             ]
         ];
+    }
+
+     // Ajax
+    public function actionAjax()
+    {
+        if (!Yii::$app->request->isAjax) {
+            throw new HttpException(401);
+        }
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        $action = $_POST['action'] ?? '';
+        $product_id = $_POST['product_id'] ?? 0;
+        $text = $_POST['text'] ?? '';
+
+        $theProduct = Product::findOne($product_id);
+        if (!$theProduct) {
+            throw new HttpException(404);
+        }
+
+        if ($action == 'text_compair') {
+            if ($text != '') {
+                Yii::$app->db->createCommand('DELETE FROM metas WHERE rtype="product" AND rid=:id AND SUBSTRING(name,1,3)="td/"', [':id'=>$product_id])->execute();
+                foreach ($text as $i => $v) {
+                    $k = 'td/'.substr('0'.$i, -2);
+                    Yii::$app->db->createCommand()->insert('metas', [
+                        'created_dt'=>NOW,
+                        'created_by'=>USER_ID,
+                        'updated_dt'=>NOW,
+                        'updated_by'=>USER_ID,
+                        'rtype'=>'product',
+                        'rid'=>$theProduct['id'],
+                        'name'=>$k,
+                        'value'=>$v,
+                    ])->execute();
+                }
+                return true;
+            }
+            throw new HttpException(401, 'Error saving data');
+        }
+
+        if ($action == 'text_price') {
+            $price_summary = $_POST['price_summary'] ?? null;
+            $meta_name = 'text_price';
+            $theProduct = Product::find()
+                ->where(['id'=>$product_id])
+                ->one();
+            if ($text != '') {
+                // Only save if text not blank
+                $theProduct->updated_at = NOW;
+                $theProduct->updated_by = USER_ID;
+                $theProduct->prices = strip_tags(trim($text));
+                if ($price_summary && $price_summary['price'] > 0) {
+                    $theProduct->price = $price_summary['price'];
+                    $theProduct->price_unit = $price_summary['unit'];
+                    $theProduct->price_for = $price_summary['for'];
+                    $theProduct->price_from = $price_summary['from'];
+                    $theProduct->price_until = $price_summary['until'];
+                }
+                if ($theProduct->save(false)) {
+                    return true;
+                }
+            } else {
+                return true;
+            }
+            throw new HttpException(401, 'Error saving data');
+        }
+
+        throw new HttpException(401);
     }
 
     // Auto devis
@@ -122,12 +190,12 @@ INSERT INTO at_products (rtype, rid)
             //throw new HttpException(403, 'Please wait. This page is being updated');
         }
 
-        if (!in_array(USER_ID, [1, 4432, 26435, $theProduct['created_by'], $theProduct['updated_by']])) {
-            // throw new HttpException(403, 'Access denied');
+        if (!in_array(USER_ID, [34718, 1, 4432, 26435, $theProduct['created_by'], $theProduct['updated_by']])) {
+            throw new HttpException(403, 'Access denied');
         }
 
         if ($theProduct['owner'] != 'at' || $theProduct['language'] != 'fr') {
-            // throw new HttpException(403, 'Not applicable');
+            throw new HttpException(403, 'Not applicable');
         }
 
         $metaData = [];
@@ -135,7 +203,7 @@ INSERT INTO at_products (rtype, rid)
         $metas = Yii::$app->db->createCommand($sql, [':id'=>$theProduct['id']])->queryAll();
 
         foreach ($metas as $meta) {
-            $items = explode('|', $meta['v']);
+            $items = explode('|', $meta['value']);
             if (count($items) == 4) {
                 $metaData[] = $items;
             }
@@ -145,36 +213,37 @@ INSERT INTO at_products (rtype, rid)
             if (USER_ID == 1) {
                 // \fCore::expose($_POST); exit;
             }
-            if (isset($_POST['i1'], $_POST['i2'], $_POST['i3'], $_POST['i4']) && is_array($_POST['i1'])) {
-                Yii::$app->db->createCommand('DELETE FROM at_meta WHERE rtype="product" AND rid=:id AND SUBSTRING(k,1,3)="td/"', [':id'=>$theProduct['id']])->execute();
-                for ($i = 0; $i < count($_POST['i1']); $i ++) {
+            if (isset($_POST['field_v'], $_POST['field_d'], $_POST['field_a'], $_POST['field_o']) && is_array($_POST['field_v'])) {
+                Yii::$app->db->createCommand('DELETE FROM metas WHERE rtype="product" AND rid=:id AND SUBSTRING(name,1,3)="td/"', [':id'=>$theProduct['id']])->execute();
+
+                for ($i = 0; $i < count($_POST['field_v']); $i ++) {
                     $k = 'td/'.substr('0'.$i, -2);
-                    $v = implode('|', [$_POST['i1'][$i], $_POST['i2'][$i], $_POST['i3'][$i], $_POST['i4'][$i]]);
-                    Yii::$app->db->createCommand()->insert('at_meta', [
-                        'uo'=>NOW,
-                        'ub'=>USER_ID,
+                    $v = implode('|', [$_POST['field_d'][$i], $_POST['field_o'][$i], $_POST['field_a'][$i], $_POST['field_v'][$i]]);
+                    Yii::$app->db->createCommand()->insert('metas', [
+                        'created_dt'=>NOW,
+                        'created_by'=>USER_ID,
+                        'updated_dt'=>NOW,
+                        'updated_by'=>USER_ID,
                         'rtype'=>'product',
                         'rid'=>$theProduct['id'],
-                        'k'=>$k,
-                        'v'=>$v,
+                        'name'=>$k,
+                        'value'=>$v,
                     ])->execute();
                 }
                 return $this->redirect('/products/r/'.$theProduct['id']);
             }
         }
 
-        return $this->render('product_td', [
+        return $this->render(isset($_GET['new']) ? 'product_td_huan' : 'product_td', [
             'theProduct'=>$theProduct,
             'metaData'=>$metaData,
         ]);
     }
- 
-    // Price table, 160915
+
     public function actionPt($id = 0)
     {
         $theProduct = Product::find()
             ->where(['id'=>$id])
-            ->asArray()
             ->one();
 
         if (!$theProduct) {
@@ -187,18 +256,14 @@ INSERT INTO at_products (rtype, rid)
             ->with([
                 'destination',
                 'metas'=>function($q) {
-                    return $q->select(['v', 'rid', 'rtype'])->where(['k'=>['website', 'pinterest']]);
+                    return $q->select(['value', 'rid', 'rtype'])->where(['name'=>['website', 'pinterest']]);
                 }
                 ])
             ->orderBy('destination_id, name')
             ->asArray()
             ->all();
 
-        if (USER_ID != 1) {
-            //throw new HttpException(403, 'Please wait. This page is being updated');
-        }
-
-        if (!in_array(USER_ID, [1, 4432, 26435, $theProduct['created_by'], $theProduct['updated_by']])) {
+        if (!in_array(USER_ID, [34718, 1, 4432, 26435, $theProduct['created_by'], $theProduct['updated_by']])) {
             throw new HttpException(403, 'Access denied');
         }
 
@@ -206,12 +271,13 @@ INSERT INTO at_products (rtype, rid)
             throw new HttpException(403, 'Not applicable');
         }
 
-        if (Yii::$app->request->isPost) {
-            // \fCore::expose($_POST); exit;
-            if (isset($_POST['prices'])) {
-                Yii::$app->db->createCommand('UPDATE at_ct SET prices=:p WHERE id=:id LIMIT 1', [':p'=>$_POST['prices'], ':id'=>$theProduct['id']])->execute();
-                return $this->redirect('/products/r/'.$theProduct['id']);
-            }
+        $theProduct->scenario = 'product/pt';
+        if ($theProduct->load(Yii::$app->request->post()) && $theProduct->validate()) {
+            $theProduct->updated_at = NOW;
+            $theProduct->updated_by = USER_ID;
+            $theProduct->save(false);
+            Yii::$app->session->setFlash('success', 'Product price has been updated.');
+            return $this->redirect('/products/r/'.$theProduct['id']);
         }
 
         return $this->render('product_pt', [
@@ -437,7 +503,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
     // New B2B Prod
     private function newB2bProd() {
         $theProduct = new Product;
-        
+
         $theProduct->price = 0;
         $theProduct->scenario = 'product/c/prod';
         $theProduct->day_from = date('Y-m-d');
@@ -468,7 +534,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
         }
 
         $theProduct = new Product;
-        
+
         $theProduct->price = 0;
         $theProduct->scenario = 'products_c';
         $theProduct->day_from = date('Y-m-d');
@@ -696,7 +762,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                         'guides'=>$day['guides'],
                         'transport'=>$day['transport'],
                     ];
-                }                
+                }
             } elseif ($searchIn == 'ap' || $searchIn == 'mp') {
                 // All programs
                 $query = Product::find()
@@ -724,7 +790,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                         }
                     }
                 }
-                
+
                 $countQuery = clone $query;
                 $pagination = new Pagination([
                     'page'=>$searchPage,
@@ -786,7 +852,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                             }
                         }
                     }
-                }                
+                }
             } else {
                 exit;
                 // All programs
@@ -851,7 +917,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             // Save product
             $sql = 'UPDATE at_ct SET day_ids=:di WHERE id=:id LIMIT 1';
             Yii::$app->db->createCommand($sql, [':di'=>implode(',', $dayIdList), ':id'=>$theProduct['id']])->execute();
-            return true;   
+            return true;
         }
 
         // Add blank after
@@ -868,7 +934,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             $theDay->image = '';
             if ($theDay->save(false)) {
                 array_splice($dayIdList, (int)$_POST['at'], 0, $theDay->id);
-            
+
                 // Save product
                 $sql = 'UPDATE at_ct SET day_ids=:di WHERE id=:id LIMIT 1';
                 Yii::$app->db->createCommand($sql, [':di'=>implode(',', $dayIdList), ':id'=>$theProduct['id']])->execute();
@@ -929,6 +995,10 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             throw new HttpException(404, 'Product not found.');
         }
 
+        if ($theProduct['owner'] == 'si') {
+            return $this->redirect('/b2b/programs/r/'.$id);
+        }
+
         $theDays = Day::find()->where(['rid'=>$id])->asArray()->all();
 
         // Load extra days
@@ -977,6 +1047,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                 $newDay->step = 1;
                 $newDay->name = '( blank )';
                 $newDay->body = '<p>( blank )</p>';
+                $newDay->summary = '';
                 $newDay->image = '';
                 $newDay->meals = '---';
                 $newDay->transport = '';
@@ -984,7 +1055,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                 $newDay->note = '';
             } elseif ($insertFrom == 'sd') {
                 // Sample day
-                $sourceDay = Nm::findOne($insertId);
+                $sourceDay = SampleTourDay::findOne($insertId);
                 if (!$sourceDay) {
                     throw new HttpException(404, 'Sample day not found');
                 }
@@ -999,6 +1070,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                 $newDay->step = 1;
                 $newDay->name = $sourceDay->title;
                 $newDay->body = $sourceDay->body;
+                $newDay->summary = $sourceDay->summary;
                 $newDay->image = $sourceDay->image;
                 $newDay->meals = $sourceDay->meals;
                 $newDay->transport = $sourceDay->transport;
@@ -1048,6 +1120,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                     'guides'=>$newDay->guides,
                     'transport'=>$newDay->transport,
                     'body'=>$newDay->body,
+                    'summary'=>$newDay->summary,
                 ];
             }
             throw new HttpException(401);
@@ -1064,8 +1137,10 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             $searchB2cb = $_POST['search_b2cb'];
             $searchPage = $_POST['search_page'];
             if ($searchIn == 'sd') {
-                $query = \common\models\Nm::find()
+                $query = \common\models\SampleTourSegment::find()
                     ->select(['id', 'title', 'meals', 'body', 'guides', 'transport'])
+                    ->andWhere(['or', ['stype'=>'segment'], ['is_selectable'=>'yes']])
+                    ->andWhere('LOCATE("nouse", tags)=0')
                     ->andWhere(['language'=>$searchLang]);
                 if ($searchB2cb == 'b2c') {
                     $query->andWhere(['owner'=>'at']);
@@ -1077,9 +1152,9 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                 }
                 if (strlen($searchTags) > 2) {
                     $tagArray = explode(',', str_replace([' '], [','], $searchTags));
-                    foreach ($tagArray as $tag) {
+                    foreach ($tagArray as $i=>$tag) {
                         if (trim($tag) != '') {
-                            $query->andWhere('LOCATE(:tags, tags) !=0', [':tags'=>$searchTags]);
+                            $query->andWhere('LOCATE(:tag'.$i.', tags)!=0', [':tag'.$i=>trim($tag)]);
                         }
                     }
                 }
@@ -1119,7 +1194,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                         'guides'=>$day['guides'],
                         'transport'=>$day['transport'],
                     ];
-                }                
+                }
             } elseif ($searchIn == 'ap' || $searchIn == 'mp') {
                 // All programs
                 $query = Product::find()
@@ -1141,13 +1216,13 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
 
                 if (strlen($searchTags) > 2) {
                     $tagArray = explode(',', str_replace([' '], [','], $searchTags));
-                    foreach ($tagArray as $tag) {
+                    foreach ($tagArray as $i=>$tag) {
                         if (trim($tag) != '') {
-                            $query->andWhere('LOCATE(:tags, tags) !=0', [':tags'=>$searchTags]);
+                            $query->andWhere('LOCATE(:tag'.$i.', tags)!=0', [':tag'.$i=>trim($tag)]);
                         }
                     }
                 }
-                
+
                 $countQuery = clone $query;
                 $pagination = new Pagination([
                     'page'=>$searchPage,
@@ -1211,7 +1286,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
                             }
                         }
                     }
-                }                
+                }
             } else {
                 exit;
                 // All programs
@@ -1276,7 +1351,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             // Save product
             $sql = 'UPDATE at_ct SET day_ids=:di WHERE id=:id LIMIT 1';
             Yii::$app->db->createCommand($sql, [':di'=>implode(',', $dayIdList), ':id'=>$theProduct['id']])->execute();
-            return true;   
+            return true;
         }
 
         // Add blank after
@@ -1293,7 +1368,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             $theDay->image = '';
             if ($theDay->save(false)) {
                 array_splice($dayIdList, (int)$_POST['at'], 0, $theDay->id);
-            
+
                 // Save product
                 $sql = 'UPDATE at_ct SET day_ids=:di WHERE id=:id LIMIT 1';
                 Yii::$app->db->createCommand($sql, [':di'=>implode(',', $dayIdList), ':id'=>$theProduct['id']])->execute();
@@ -1320,7 +1395,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
         $metas = Yii::$app->db->createCommand($sql, [':id'=>$theProduct['id']])->queryAll();
 
         foreach ($metas as $meta) {
-            $items = explode('|', $meta['v']);
+            $items = explode('|', $meta['value']);
             if (count($items) == 4) {
                 $metaData[] = $items;
             }
@@ -1454,7 +1529,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
 
         $theInvoice = new Invoice();
 
-        $thePayment = new Payment;      
+        $thePayment = new Payment;
         $thePayment->scenario = 'payments_c';
 
         if ($thePayment->load(Yii::$app->request->post()) && $thePayment->validate()) {
@@ -1715,7 +1790,7 @@ UPDATE at_days SET rid=41544 WHERE rid=41712  AND in IN (659281,659273,659282,65
             'theDays'=>$theDays,
         ]);
 
-        
+
 
 /*
         Yii::$app->session->set('ckfinder_authorized', true);

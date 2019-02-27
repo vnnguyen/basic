@@ -1,18 +1,20 @@
 <?php
 use yii\helpers\FileHelper;
 use yii\helpers\Html;
+use app\helpers\DateTimeHelper;
 use yii\helpers\Markdown;
 
 $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'Excellent'];
 ?>
-<div id="venueside" class="col-sm-4">
+<div class="row">
+<div id="venueside" class="col-sm-4 order-12">
     <?php
     if ($theVenue['image'] == '') {
         if ($theVenue['images'] != '') {
             $pos = strpos($theVenue['images'], '">');
             if (false !== $pos) {
                 $img = substr($theVenue['images'], 0, $pos + 2);
-                $img = str_replace('src=', 'class="img-responsive" src=', $img);
+                $img = str_replace('src=', 'class="img-fluid" src=', $img);
                 echo $img;
             } else {
                 $imgs = explode(';|', $theVenue['images']);
@@ -23,12 +25,12 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
 
         }
     }
-    
-    echo Html::a(Html::img($theVenue['image'], ['class'=>'img-responsive card-img-top']), $theVenue['image'], ['data-fancybox'=>'gallery', 'title'=>'View image gallery']);
+
+    echo Html::a(Html::img($theVenue['image'], ['class'=>'img-fluid']), $theVenue['image'], ['data-fancybox'=>'gallery', 'title'=>'View image gallery']);
     ?>
     <div style="height:51px; overflow:hidden;" class="nicescroll">
         <div style="height:50px; width:1200px; margin:1px 0 0 0">
-        <?
+        <?php
         if ($theVenue['images'] != '') {
             if (substr($theVenue['images'], 0, 4) == 'http') {
                 $imgs = explode(';|', $theVenue['images']);
@@ -55,39 +57,42 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
         ?>
         </div>
     </div>
-    <div class="table-responsive">
-        <table class="table table-narrow table-framed" style="border-bottom:1px solid #ddd;">
+
+    <div class="card table-responsive">
+        <table class="table card-table table-narrow table-framed" style="border-bottom:1px solid #ddd;">
             <tr class="info">
                 <td colspan="2" class="text-center" style="padding-left:0!important; padding-right:0!important;">
-                    <div style="width:24%; float:left; height:50px;">
-                        <h4 style="margin:0"><?= $starNum ?></h4>
-                        <?= $starNum == '' ? 'rating' : 'stars' ?>
-                    </div>
-                    <div style="width:24%; float:left; height:50px;">
-                        <h4 style="margin:0"><?= $numYears ?></h4>
-                        years
-                    </div>
-                    <div style="width:24%; float:left; height:50px;">
-                        <h4 style="margin:0"><?= $numTours ?></h4>
-                        tours
-                    </div>
-                    <div style="width:24%; float:left; height:50px;">
-                        <h4 style="margin:0">
-                            <?php
-                            $y = date('y');
-                            $yyyy = '**';
-                            $contractYears = [$y + 2, $y + 1, $y];
-                            foreach ($theVenue['dvc'] as $dvc) {
-                                foreach ($contractYears as $contractYear) {
-                                    if ((strpos($dvc['valid_until_dt'], '20'.$contractYear) !== false || strpos($dvc['valid_until_dt'], '-'.$contractYear) !== false) && $contractYear > (int)$yyyy) {
-                                        $yyyy = $contractYear;
+                    <div class="row">
+                        <div class="col">
+                            <h4 style="margin:0"><?= $starNum ?></h4>
+                            <?= $starNum == '' ? 'rating' : 'stars' ?>
+                        </div>
+                        <div class="col">
+                            <h4 style="margin:0"><?= $numYears ?></h4>
+                            years
+                        </div>
+                        <div class="col">
+                            <h4 style="margin:0"><?= $numTours ?></h4>
+                            tours
+                        </div>
+                        <div class="col">
+                            <h4 style="margin:0">
+                                <?php
+                                $y = date('y');
+                                $yyyy = '**';
+                                $contractYears = [$y + 2, $y + 1, $y];
+                                foreach ($theVenue['dvc'] as $dvc) {
+                                    foreach ($contractYears as $contractYear) {
+                                        if ((strpos($dvc['valid_until_dt'], '20'.$contractYear) !== false || strpos($dvc['valid_until_dt'], '-'.$contractYear) !== false) && $contractYear > (int)$yyyy) {
+                                            $yyyy = $contractYear;
+                                        }
                                     }
                                 }
-                            }
-                            echo '20'.$yyyy;
-                            ?>
-                        </h4>
-                        contract
+                                echo '20'.$yyyy;
+                                ?>
+                            </h4>
+                            contract
+                        </div>
                     </div>
                 </td>
             </tr>
@@ -105,7 +110,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
             </tr>
             <tr style="display:none;" class="view_map">
                 <td colspan="2" style="padding:0!important;">
-                    <a target="_blank" href="https://www.google.com/maps/search/<?= urlencode($theVenue['name']) ?>+Hotel/@<?= $theVenue['latlng'] ?>,16z"><img class="img-responsive" src="https://maps.googleapis.com/maps/api/staticmap?markers=color:blue%7Clabel:V%7C<?= $theVenue['latlng'] ?>&center=<?= $theVenue['latlng'] ?>&zoom=16&scale=2&size=480x300&sensor=true"></a>
+                    <a target="_blank" href="https://www.google.com/maps/search/<?= urlencode($theVenue['name']) ?>+Hotel/@<?= $theVenue['latlng'] ?>,16z"><img class="img-fluid" src="https://maps.googleapis.com/maps/api/staticmap?markers=color:blue%7Clabel:V%7C<?= $theVenue['latlng'] ?>&center=<?= $theVenue['latlng'] ?>&zoom=16&scale=2&size=480x300&sensor=true"></a>
                 </td>
             </tr>
             <?php } ?>
@@ -174,7 +179,22 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
         </table>
     </div>
 </div>
-<div id="venuemain" class="col-sm-8">
+<div id="venuemain" class="col-sm-8 order-1">
+    <?php if (!empty($venueEvents)) { ?>
+    <div class="alert alert-warning">
+        <?php foreach ($venueEvents as $event) { ?>
+        <div>
+            <i class="fa fa-lock"></i>
+            <strong><?= Yii::t('x', 'TEMPORARY CLOSED') ?>:</strong>
+            <strong><?= date('j/n/Y', strtotime($event['from_dt'])) ?> -- <?= date('j/n/Y', strtotime($event['until_dt'])) ?></strong>
+            <br><?= $event['note'] ?>
+        </div>
+        <?php } ?>
+    </div>
+    <?php } ?>
+
+    <?php if (in_array($theVenue['stype'], ['hotel', 'homestay'])) { ?>
+
     <?php if (strpos($theVenue['new_tags'], 'new_o_new') !== false || strpos($theVenue['new_tags'], 'new_o_both') !== false) { ?>
     <?php $newTags = explode(';|', $theVenue['new_tags']); ?>
     <div style="padding:20px; background-color:#fcfcf3; border:1px solid #eee;">
@@ -196,7 +216,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
         <div class="row">
             <div class="col-sm-6">
                 <i class="fa fa-circle" style="font-size:0.5rem; vertical-align:middle;"></i> <strong style="display:inline-block; width:120px"><?= Yii::t('x', 'Type') ?>:</strong>
-                <?php foreach ($newTags as $newTag) {?>
+                <?php foreach ($newTags as $newTag) { ?>
                     <?php if (array_key_exists($newTag, $venueTypeList)) { ?>
                     <?= $venueTypeList[$newTag] ?>
                     <?php break; } ?>
@@ -245,7 +265,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
                     <?php if (substr($newTag, 0, 7) == 'vdistc_') { echo substr($newTag, 7), 'km ', Yii::t('x', 'from city center'), ';'; } ?>
                     <?php if (substr($newTag, 0, 7) == 'vdista_') { echo substr($newTag, 7), 'km ', Yii::t('x', 'from airport'), ';'; } ?>
                     <?php if (substr($newTag, 0, 7) == 'vdistb_') { echo substr($newTag, 7), 'km ', Yii::t('x', 'from beach'), ';'; } ?>
-                <?php } ?>        
+                <?php } ?>
             </div>
         </div>
         <?php } ?>
@@ -260,10 +280,27 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
         <?php } ?>
 
         <?php
+        /*
         $faciList = [];
-        $c_faci = ['5_02', '5_03', '5_51', '5_52', '5_30', '5_53', '5_21', '5_54', '5_55', '5_09', '5_56', '5_11', '5_18', '5_57', '5_20', '5_17', '5_14', '5_12', '5_68', '5_24', '5_01', '5_58', '5_06', '5_59'
-        ];
-        $c_faci_room = ['5_43', '5_42', '5_60', '5_33', '5_32', '5_31', '5_35', '5_69', '5_28', '5_34', '5_70', '5_71', '5_36', '5_61'];
+        foreach ($venueFaciList as $code=>$faci) {
+            if (strpos($theVenue['new_tags'], $code) !== false) {
+                $faciList[] = $faci;
+            }
+        }
+
+        if (!empty($faciList)) {
+        ?>
+        <div class="row">
+            <div class="col-sm-12"><i class="fa fa-circle" style="font-size:0.5rem; vertical-align:middle;"></i> <strong><?= Yii::t('x', 'Facilities/Services') ?>:</strong></div>
+        </div>
+        <div style="-webkit-column-count: 3; -moz-column-count: 3; column-count:3"><div> - <?= implode('</div><div> - ', $faciList) ?></div></div>
+        <?php
+        }
+        */
+
+        $faciList = [];
+        $c_faci = ['5_19', '5_47', '5_22', '5_25', '5_23', '5_02', '5_03', '5_51', '5_52', '5_30', '5_53', '5_21', '5_54', '5_55', '5_09', '5_56', '5_11', '5_18', '5_57', '5_20', '5_17', '5_14', '5_12', '5_68', '5_24', '5_01', '5_58', '5_06', '5_59'];
+        $c_faci_room = ['5_27', '5_43', '5_42', '5_60', '5_33', '5_32', '5_31', '5_35', '5_69', '5_28', '5_34', '5_70', '5_71', '5_36', '5_61'];
         $c_wellness = ['5_37', '5_62', '5_63', '5_38', '5_62'];
         $c_children = ['5_26', '5_50', '5_72', '5_64'];
         $c_mul_staff = ['5_41', '5_40', '5_48'];
@@ -277,7 +314,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
         foreach ($venueFaciList as $code=>$faci) {
             if (strpos($theVenue['new_tags'], $code) !== false) {
                 if(strpos($theVenue['new_tags'], $code.'_') !== false) {
-                    $faci .= ' <span class="text-muted"> (add change)</span>';
+                    $faci .= ' <i class="fa fa-dollar text-warning" title="Available at a fee"></i>';
                 }
                 if (in_array($code, $c_faci)) {
                     $c_faci_list[] = $faci;
@@ -337,8 +374,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
             <div class="col-sm-12"><i class="fa fa-circle" style="font-size:0.5rem; vertical-align:middle;"></i> <strong><?= Yii::t('x', 'Facilities for disabled guests') ?>:</strong></div>
         </div>
         <div style="-webkit-column-count: 3; -moz-column-count: 3; column-count:3"><div> - <?= implode('</div><div> - ', $c_faci_dis_guests_list) ?></div></div>
-        <?php }?>
-        <?php
+        <?php }
 
         $reccList = [];
         foreach ($venueReccList as $code=>$recc) {
@@ -359,6 +395,9 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
     </div>
     <?php } // if newTags ?>
     <br>
+
+    <?php } // if hotel ?>
+
     <div><?= $theVenue['info'] ?></div>
 
     <?php if (strpos($theVenue['new_tags'], 'new_o_new') === false || strpos($theVenue['new_tags'], 'new_o_both') !== false) { ?>
@@ -368,10 +407,10 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
     <p class="text-info"><i class="fa fa-info-circle"></i> Đây là phần thông tin đã được update cho đến hiện tại</p>
 
     <div class="row">
-        <div class="col-md-12" style="margin-top: -15px">       
+        <div class="col-md-12" style="margin-top: -15px">
             <h3>HOTEL INFORMATION</h3>
             <b>Hotel category: </b><?= $the_venue_temp['cat']?><br>
-            <?php if($the_venue_temp['cmt']!= ''){?>        
+            <?php if($the_venue_temp['cmt']!= ''){?>
             <b>Comment by Amica: </b>
             <p><?= $the_venue_temp['cmt']?></p>
             <?php }?>
@@ -388,7 +427,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
                 <li>Garden : <?= $the_venue_temp['fac_garden']?></li>
                 <li>Spa : <?= $the_venue_temp['fac_spa']?></li>
                 <li>Restaurant  to recommend : <?= $the_venue_temp['fac_restaurant']?> - Breakfast : <?= $the_venue_temp['fac_breakfast_type']?></li>
-            </ul>           
+            </ul>
             <b>Eco-Responsible Approach : </b><?= $the_venue_temp['is_eco']?><br>
         </div>
         <div class="col-md-6">
@@ -412,13 +451,13 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
                     <th style="text-align: center;">Category</th>
                     <th style="text-align: center;">Number</th>
                     <th style="text-align: center;">Features</th>
-                    <th style="text-align: center;">DBL\TWN</th>                
+                    <th style="text-align: center;">DBL\TWN</th>
                     <th style="text-align: center;">Triple</th>
                     <th style="text-align: center;">Connecting</th>
                     <th style="text-align: center;">Extra bed</th>
                     <th style="text-align: center;">Ok for selling</th>
-                    <th style="text-align: center;">Price</th>   
-                    <th style="text-align: center;">Note</th>             
+                    <th style="text-align: center;">Price</th>
+                    <th style="text-align: center;">Note</th>
                 </tr>
                 <?
                 $the_room = [];
@@ -461,7 +500,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
         </div>
     </div>
     <hr>
-    
+
     <div class="row">
         <div class="col-md-12" style="margin-top: -15px">
         <h3>INSPECTION HISTORY</h3>
@@ -484,7 +523,7 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
             <?
             $data = unserialize($theVenue['hotel_meta']);
             foreach ($data as $k=>$v) {
-                 if ($k != 'image2') { 
+                 if ($k != 'image2') {
             ?>
             <tr>
                 <th><?= ucfirst($k) ?></th>
@@ -493,26 +532,26 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
             <?
                 }
             }
-            ?>                  
+            ?>
         </tbody>
     </table>
     <?php } ?>
 
     <?php } // new_o_old or new_o_both ?>
-    
+
     <ul class="media-list">
         <?php foreach ($venueNotes as $li) { ?>
         <div style="padding:15px 0; margin:15px 0 0; border-top:1px solid #eee;">
-            <a class="pull-left" style="margin-right:15px;" href="<?= DIR ?>users/r/<?= $li['updatedBy']['id'] ?>"><img style="width:64px; height:64px;" class="media-object img-circle" src="<?= DIR.'timthumb.php?w=100&h=100&src='.$li['updatedBy']['image'] ?>" alt="Avatar"></a>
-            <?= Html::a('<i class="fa fa-trash-o"></i>', '@web/notes/d/'.$li['id'], ['class'=>'text-muted pull-right', 'title'=>'Delete']) ?>
-            <?= Html::a('<i class="fa fa-edit"></i>', '@web/notes/u/'.$li['id'], ['class'=>'text-muted pull-right', 'title'=>'Edit']) ?>
-            <h4 style="font-weight:bold; margin:0;"><?= Html::a($li['title'] == '' ? '( No title )' : $li['title'], '@web/notes/r/'.$li['id']) ?></h4>
-            <div><?= $li['updatedBy']['name'] ?> <em><?= $li['uo'] ?></em></div>
+            <a class="pull-left" style="margin-right:15px;" href="<?= DIR ?>users/<?= $li['updatedBy']['id'] ?>"><img style="width:64px; height:64px;" class="media-object img-circle" src="<?= DIR.'timthumb.php?w=100&h=100&src='.$li['updatedBy']['image'] ?>" alt="Avatar"></a>
+            <?= Html::a('<i class="fa fa-trash-o"></i>', '@web/posts/'.$li['id'].'/d', ['class'=>'text-muted pull-right', 'title'=>'Delete']) ?>
+            <?= Html::a('<i class="fa fa-edit"></i>', '@web/posts/'.$li['id'].'/u', ['class'=>'text-muted pull-right', 'title'=>'Edit']) ?>
+            <h4 style="font-weight:bold; margin:0;"><?= Html::a($li['title'] == '' ? Yii::t('x', '(No title)') : $li['title'], '@web/posts/'.$li['id']) ?></h4>
+            <div><?= $li['updatedBy']['name'] ?> <em><?= DateTimeHelper::convert(($li['updated_dt'] ?? $li['created_dt']), 'j/n/Y H:i') ?></em></div>
             <div style="margin-left:80px" class="clear clearfix">
-            <?php if ($li['files']) { ?>
+            <?php if (!empty($li['attachments'])) { ?>
             <div class="list list-files mb-1em">
-                <?php foreach ($li['files'] as $file) { ?>
-                <div>+ <?= Html::a($file['name'], '@web/files/r/'.$file['id']) ?></div>
+                <?php foreach ($li['attachments'] as $file) { ?>
+                <div>+ <?= Html::a($file['name'], '@web/attachments/'.$file['id']) ?></div>
                 <?php } ?>
             </div>
             <?php } ?>
@@ -523,3 +562,4 @@ $list_rate = ['1'=>'Poor','2'=>'Average', '3'=>'Good', '4'=>'Very good', '5'=>'E
     </ul>
 </div>
 
+</div>

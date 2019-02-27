@@ -4,7 +4,7 @@ namespace common\models;
 class Tournote extends MyActiveRecord
 {
 	public static function tableName() {
-		return '{{%tour_notes}}';
+		return 'tour_notes';
 	}
 
 	public function rules()
@@ -17,11 +17,6 @@ class Tournote extends MyActiveRecord
 	public function getTour()
 	{
 		return $this->hasOne(Product::className(), ['id'=>'product_id']);
-	}
-
-	public function getCreatedBy()
-	{
-		return $this->hasOne(User::className(), ['id'=>'created_by']);
 	}
 
 	public function getUpdatedBy()

@@ -1,7 +1,7 @@
 <?
 use yii\helpers\Markdown;
 
-// require_once('/var/www/vendor/textile/php-textile/Parser.php');
+require_once(Yii::getAlias('@webroot').'/../textile/php-textile/Parser.php');
 $parser = new \Netcarver\Textile\Parser();
 
 $dayIdList = explode(',', $theProduct['day_ids']);
@@ -129,8 +129,8 @@ for($i=1; $i< count($theProductpx); $i++){
 $optcnt = 0;
 $count = 0;
 foreach ($theProductpx as $theProductp) {
-$count++; 
-   
+$count++;
+
 if (substr($theProductp, 0, 7) == 'OPTION:') {
 $optcnt ++;
 if ($optcnt != 1) echo '</table>'.chr(10).'<table class="simple" style="width: 100%; margin: 0;border-collapse: collapse;border-spacing: 1mm;">';

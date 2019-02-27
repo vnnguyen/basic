@@ -27,6 +27,10 @@ use common\models\Campaign;
 use common\models\UsersUuForm;
 use common\models\Meta;
 
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
 class KaseController extends MyController
 {
     public function actionB2bc($id = 0)
@@ -151,7 +155,7 @@ class KaseController extends MyController
         ]);
     }
 
-    // Update 
+    // Update
     public function actionThy()
     {
         // 150806
@@ -168,24 +172,43 @@ class KaseController extends MyController
     }
 
     public function actionIndex(
+        $created = '',
+        $allocated = '',
+        $won = '',
+        $closed = '',
+
         $view = 'created',
-        $year = '',
-        $month = '',
+        // $year = '',
+        // $month = '',
+        $date_created = '',
+        $date_created_custom = '',
+        $date_assigned = '',
+        $date_assigned_custom = '',
+        $date_won = '',
+        $date_won_custom = '',
+        $date_closed = '',
+        $date_closed_custom = '',
+
+        $date_start = '',
+        $date_start_custom = '',
+        $date_end = '',
+        $date_end_custom = '',
 
         $name = '',
         $status = '',
         $deal_status = '',
-        $priority = '',
+        $is_priority = '',
         $language = '',
         $owner_id = '',
         $cofr = '',
+        $pv = '',
 
         $campaign_id = '',
         $company_id = '',
 
         $how_found = '', $how_contacted = '',
         $device = '', $site = '',
-        $kx = '', $tx = '',
+        $kx = '', $tx = '', $kxcost = '',
         $prospect = '',
 
         $source = '', $contacted = '', $found = '',
@@ -198,8 +221,8 @@ class KaseController extends MyController
 
         $req_start = '',
         $req_date = 'start',
-        $req_year = '',
-        $req_month = '',
+        // $req_year = '',
+        // $req_month = '',
         $daycount = '',
         $budget = '',
         $budget_currency = 'USD',
@@ -208,18 +231,20 @@ class KaseController extends MyController
         $req_theme = '',
         $req_tour = '',
         $req_extension = '',
+        array $export_column = [],
+        $downloadToken = '',
         $test = ''
         )
     {
-
+        session_write_close();
+        ignore_user_abort(true);
         $query = Kase::find()
-            ->where(['is_b2b'=>'no']);
+            ->select(['at_cases.id', 'name', 'kx_cost', 'at_cases.status', 'ref', 'is_priority', 'deal_status', 'opened', 'owner_id', 'at_cases.created_at', 'ao', 'how_found', 'web_referral', 'web_keyword', 'campaign_id', 'how_contacted', 'owner_id', 'company_id', 'info', 'closed', 'closed_note', 'created_at_vn'=>new \yii\db\Expression('DATE_ADD(at_cases.created_at, INTERVAL 7 HOUR)')])
+            ->where(['is_b2b'=>'no'])
+            ->innerJoinWith('stats');
 
-        if ($prospect != '' || $device != '' || $site != '' || $req_travel_type != '' || $req_theme != '' || $req_tour != '' || $req_extension != '' || $kx != '') {
-            $query->innerJoinWith('stats');
-        } else {
-            $query->innerJoinWith('stats');
-            // $query->joinWith('stats'); TODO
+        if (!in_array($view, ['created', 'assigned', 'closed', 'won'])) {
+            $view = 'created';
         }
 
         if (in_array($prospect, [1,2,3,4,5]) || $site != '' || $device != '') {
@@ -236,20 +261,95 @@ class KaseController extends MyController
             $query->andWhere($cond);
         }
 
-        if ($year != '') {
-            if ($view == 'created') {
-                $dateField = 'created_at';
-            } elseif ($view == 'assigned') {
-                $dateField = 'ao';
-            } else {
-                $dateField = 'closed';
-            }
-            if ($month == '') {
-                $query->andWhere('YEAR('.$dateField.')=:y', [':y'=>$year]);
-            } else {
-                $query->andWhere('YEAR('.$dateField.')=:y AND MONTH('.$dateField.')=:m', [':y'=>$year, ':m'=>$month]);
-            }
+        // if ($date1from != '' && $date1until != '') {
+            // if ($view == 'created') {
+            //     $dateField = 'created_at';
+            // } elseif ($view == 'assigned') {
+            //     $dateField = 'ao';
+            // } else {
+            //     $dateField = 'closed';
+            // }
+            // if ($view == 'created') {
+            //     $query->andHaving('(created_at_vn>=:d1f AND created_at_vn<=:d1u)', [':d1f'=>$date1from.' 00:00:00', ':d1u'=>$date1until.' 23:59:59']);
+            // } elseif ($view == 'won') {
+            //     // TODO khi ho so co nhieu booking WON thi co the bi loi
+            //     $query->select(['b.status_dt', 'at_cases.id', 'name', 'at_cases.status', 'ref', 'is_priority', 'deal_status', 'opened', 'owner_id', 'at_cases.created_at', 'ao', 'how_found', 'web_referral', 'web_keyword', 'campaign_id', 'how_contacted', 'owner_id', 'company_id', 'info', 'closed', 'closed_note', 'created_at_vn'=>new \yii\db\Expression('DATE_ADD(at_cases.created_at, INTERVAL 7 HOUR)')]);
+            //     $query->andWhere(['deal_status'=>'won']);
+            //     $query->innerJoinWith('bookings b')->onCondition(['b.status'=>'won']);
+            //     $query->andWhere('status_dt>=:d1f AND status_dt<=:d1u', [':d1f'=>$date1from.' 00:00:00', ':d1u'=>$date1until.' 23:59:59']);
+            // } else {
+            //     $query->andWhere($dateField.'>=:d1f AND '.$dateField.'<=:d1u', [':d1f'=>$date1from, ':d1u'=>$date1until]);
+            // }
+        // }
+
+        // Dates
+        $len1 = strlen($date_created);
+        $len1c = strlen($date_created_custom);
+        if ($len1 == 4 || $len1 == 7 || $len1 == 10) {
+            // yyyy OR yyyy-mm OR yyyy-mm-dd
+            $query->andWhere('SUBSTRING(created_at, 1, '.$len1.')=:date1', [':date1'=>$date_created]);
+        } elseif ($date_created == 'custom' && $len1c == 24 && strpos($date_created_custom, ' -- ') !== false) {
+            // yyyy-mm-dd -- yyyy-mm-dd
+            $date1 = explode(' -- ', $date_created_custom);
+            $query->andWhere('created_at>=:date1from AND created_at<=:date1until', [':date1from'=>$date1[0].' 00:00:00', ':date1until'=>$date1[1].' 23:59:59']);
         }
+
+        $len2 = strlen($date_assigned);
+        $len2c = strlen($date_assigned_custom);
+        if ($len2 == 4 || $len2 == 7 || $len2 == 10) {
+            $query->andWhere('SUBSTRING(ao, 1, '.$len2.')=:date2', [':date2'=>$date_assigned]);
+        } elseif ($date_assigned == 'custom' && $len2c == 24 && strpos($date_assigned_custom, ' -- ') !== false) {
+            // yyyy-mm-dd -- yyyy-mm-dd
+            $date2 = explode(' -- ', $date_assigned_custom);
+            $query->andWhere('ao>=:date2from AND ao<=:date2until', [':date2from'=>$date2[0], ':date2until'=>$date2[1]]);
+        }
+
+        $len3 = strlen($date_won);
+        $len3c = strlen($date_won_custom);
+        if ($len3 == 4 || $len3 == 7 || $len3 == 10) {
+            $query->andWhere(['deal_status'=>'won']);
+            $query->andWhere('SUBSTRING(deal_status_date, 1, '.$len3.')=:date3', [':date3'=>$date_won]);
+        } elseif ($date_won == 'custom' && $len3c == 24 && strpos($date_won_custom, ' -- ') !== false) {
+            // yyyy-mm-dd -- yyyy-mm-dd
+            $query->andWhere(['deal_status_date'=>'won']);
+            $date3 = explode(' -- ', $date_won_custom);
+            $query->andWhere('deal_status_date>=:date3from AND deal_status_date<=:date3until', [':date3from'=>$date3[0], ':date3until'=>$date3[1]]);
+        }
+
+        $len4 = strlen($date_closed);
+        $len4c = strlen($date_closed_custom);
+        if ($len4 == 4 || $len4 == 7 || $len4 == 10) {
+            $query->andWhere('SUBSTRING(closed, 1, '.$len4.')=:date4', [':date4'=>$date_closed]);
+        } elseif ($date_closed == 'custom' && $len4c == 24 && strpos($date_closed_custom, ' -- ') !== false) {
+            // yyyy-mm-dd -- yyyy-mm-dd
+            $date4 = explode(' -- ', $date_closed_custom);
+            $query->andWhere(['status'=>'closed']);
+            $query->andWhere('closed>=:date4from AND closed<=:date4until', [':date4from'=>$date4[0], ':date4until'=>$date4[1]]);
+        }
+
+        $len5 = strlen($date_start);
+        $len5c = strlen($date_start_custom);
+        if ($len5 == 4 || $len5 == 7) {
+            $query->andWhere('SUBSTRING(tour_start_date, 1, '.$len5.')=:date5', [':date5'=>$date_start]);
+        } elseif ($date_start == 'custom' && $len5c == 24 && strpos($date_start_custom, ' -- ') !== false) {
+            // yyyy-mm-dd -- yyyy-mm-dd
+            $date5 = explode(' -- ', $date_start_custom);
+            $query->andWhere('tour_start_date>=:date5from AND tour_start_date<=:date5until', [':date5from'=>$date5[0], ':date5until'=>$date5[1]]);
+        }
+
+        $len6 = strlen($date_end);
+        $len6c = strlen($date_end_custom);
+        if ($len6 == 4 || $len6 == 7) {
+            $query->andWhere('SUBSTRING(tour_end_date, 1, '.$len6.')=:date6', [':date6'=>$date_end]);
+        } elseif ($date_end == 'custom' && $len6c == 24 && strpos($date_end_custom, ' -- ') !== false) {
+            // yyyy-mm-dd -- yyyy-mm-dd
+            $date6 = explode(' -- ', $date_end_custom);
+            $query->andWhere('tour_end_date>=:date6from AND tour_end_date<=:date6until', [':date6from'=>$date6[0], ':date6until'=>$date6[1]]);
+        }
+
+        // if ($allocated != '') {
+        //     $query->andWhere('ao>=:d1f AND ao<=:d1u', [':d1f'=>$date1from, ':d1u'=>$date1until]);
+        // }
 
         if ($name != '') {
             $query->andWhere(['like', 'name', $name]);
@@ -260,8 +360,10 @@ class KaseController extends MyController
         if ($deal_status != '') {
             $query->andWhere(['deal_status'=>$deal_status]);
         }
-        if ($priority != '') {
-            $query->andWhere(['priority'=>$priority]);
+        if ($is_priority == 'yes') {
+            $query->andWhere(['is_priority'=>['yes',1,2,3,4]]);
+        } elseif ($is_priority != '') {
+            $query->andWhere(['is_priority'=>$is_priority]);
         }
         if ($language != '') {
             $query->andWhere(['language'=>$language]);
@@ -275,7 +377,7 @@ class KaseController extends MyController
                 $query->andWhere(['cofr'=>(int)substr($owner_id, 5)]);
             } else {
                 $query->andWhere(['owner_id'=>(int)$owner_id]);
-            }           
+            }
         }
         if ($cofr != '') {
             $query->andWhere(['cofr'=>(int)$cofr]);
@@ -288,10 +390,6 @@ class KaseController extends MyController
             }
         }
 
-        // Channel
-        if ($kx != '') {
-            $query->andWhere(['kx'=>$kx]);
-        }
         // Customer type
         // if ($tx != '') {
         //     if ($tx == 't2') {
@@ -306,7 +404,9 @@ class KaseController extends MyController
         //     }
         // }
 
-        if ($how_found != '') {
+        if ($how_found == 't0') {
+            $query->andWhere('how_found=""');
+        } elseif ($how_found != '') {
             $query->andWhere('LOCATE(:found, how_found)=1', [':found'=>$how_found]);
         }
         if ($how_contacted == 'unknown') {
@@ -336,7 +436,7 @@ class KaseController extends MyController
                 } elseif ($how_contacted == 'web-trip-connexion') {
                     $query->andWhere(['web_referral'=>'ad/trip-connexion']);
                 } else {
-                    $query->andWhere(['how_contacted'=>$how_contacted]);
+                    $query->andWhere('LOCATE(:hc, how_contacted)=1', [':hc'=>$how_contacted]);
                 }
             }
         }
@@ -361,20 +461,22 @@ class KaseController extends MyController
             $query->andWhere('day_count_min<=:max AND day_count_min>=:min', [':min'=>$day[0], ':max'=>$day[1]]);
         }
 
-        if ($req_year != '') {
-            if ($req_date == 'start') {
-                $query->andWhere('YEAR(tour_start_date)=:year', [':year'=>$req_year]);
-                if ($req_month != '') {
-                    $query->andWhere('MONTH(tour_start_date)=:month', [':month'=>$req_month]);
-                }
-            } else {
-                // TODO END DATE HERE
-                $query->andWhere('YEAR(tour_end_date)=:year', [':year'=>$req_year]);
-                if ($req_month != '') {
-                    $query->andWhere('MONTH(tour_end_date)=:month', [':month'=>$req_month]);
-                }
-            }
-        }
+
+        // if ($date2from != '' && $date2until != '') {
+        //     if ($req_date == 'start') {
+        //         if ($date2from == $date2until) {
+        //             $query->andWhere('tour_start_date=:d2f', [':d2f'=>$date2from]);
+        //         } else {
+        //             $query->andWhere('tour_start_date>=:d2f AND tour_start_date<=:d2u', [':d2f'=>$date2from, ':d2u'=>$date2until]);
+        //         }
+        //     } else {
+        //         if ($date2from == $date2until) {
+        //             $query->andWhere('tour_end_date=:d2f', [':d2f'=>$date2from]);
+        //         } else {
+        //             $query->andWhere('tour_end_date>=:d2f AND tour_end_date<=:d2u', [':d2f'=>$date2from, ':d2u'=>$date2until]);
+        //         }
+        //     }
+        // }
 
         if (isset($req_countries) && is_array($req_countries) && !empty($req_countries)) {
             if ($req_countries_select == 'all' || $req_countries_select == 'only') {
@@ -434,6 +536,20 @@ class KaseController extends MyController
             $query->andWhere('LOCATE(:n, req_extensions)!=0', [':n'=>$req_extension]);
         }
 
+        if ($kx == 'k0') {
+            $query->andWhere(['kx'=>'']);
+        } elseif ($kx == 'k17') {
+            $query->andWhere('kx!="" AND kx!="k8"');
+        } elseif ($kx != '') {
+            $query->andWhere(['kx'=>$kx]);
+        }
+
+        if ($kxcost == 'yes') {
+            $query->andWhere('kx_cost IS NOT NULL');
+        } elseif ($kxcost == 'no') {
+            $query->andWhere('kx_cost IS NULL');
+        }
+
         // Visiting countries
         // if ($req_countries != '') {
         //     $reqCountryList = explode(',', $req_countries);
@@ -445,8 +561,8 @@ class KaseController extends MyController
         // 170918 Ngo Hang muon xem nhung HS chua duoc edit request
         if (isset($_GET['editrequest'])) {
             $year = $_GET['year'] ?? 2017;
-            if (!in_array($year, [2016, 2017])) {
-                $year = 2017;
+            if (!in_array($year, [2016, 2017, 2018])) {
+                $year = 2018;
             }
             $query = Kase::find()
                 ->innerJoinWith('stats')
@@ -454,15 +570,112 @@ class KaseController extends MyController
                 ->andWhere('YEAR(created_at)=:year', [':year'=>$year]);
         }
 
+        // export to excel
+
+        $export_columns = [
+            'created_at' => Yii::t('x', 'Created date'),
+            'ao' => Yii::t('x', 'Assign date'),
+            'closed' => Yii::t('x', 'Closed date'),
+            'name' => Yii::t('x', 'Case name'),
+            'owner-nickname' => Yii::t('x', 'Owner'),
+            'stats-kx' => Yii::t('x', 'Source kx'),
+            'how_found' => Yii::t('x', 'Source tx'),
+            'stats-req_countries' => Yii::t('x', 'Destinations'),
+            'stats-day_count' => Yii::t('x', 'Days'),
+            'stats-pax_count' => Yii::t('x', 'Pax'),
+            'closed_note' => Yii::t('x', 'Note'),
+        ];
+        if (isset($export_column) && count($export_column) > 0 && $downloadToken != '') {
+            $arr_columns = array_diff($export_column, ['']);
+            if (!empty($arr_columns)) {
+                $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+                foreach ($arr_columns as $key => $col_name) {
+                    $columnIndex = $key + 1;
+                    $spreadsheet->getActiveSheet()->setCellValue($this->stringFromColumnIndex($columnIndex).'1', (isset($export_columns[$col_name])) ? $export_columns[$col_name] : 'unknown['. $col_name .']');
+                }
+                $rows_cols = [];
+                $countQuery = clone $query;
+                $limit = $countQuery->count() < 1000 ?$countQuery->count(): 1000;
+                $pages = ceil( $countQuery->count() / $limit );
+
+                $k = 3;
+                for ( $page = 0 ; $page < $pages ; $page++ ) {
+                    $offset = $page * $limit;
+                    $theCases = $query
+                        ->orderBy('at_cases.created_at DESC')
+                        ->offset( $offset )
+                        ->limit( $limit )
+                        ->with([
+                            'stats',
+                            'owner'=>function($query) {
+                                return $query->select(['id', 'nickname', 'image']);
+                            },
+                            'referrer'=>function($query) {
+                                return $query->select(['id', 'name', 'is_client']);
+                            },
+                            'company'=>function($query) {
+                                return $query->select(['id', 'name']);
+                            },
+                            ])
+                        ->asArray()
+                        ->all();
+                    foreach ($theCases as $case) {
+                        $row_data = [];
+                        foreach ($arr_columns as $col_name) {
+                            if (strpos($col_name, '-') !== false) {
+                                $cols = explode('-', $col_name);
+                                $arr_cols = [];
+                                foreach ($cols as $col) {
+                                    if (isset($case[$col]) && $case[$col] != null) {
+                                        $arr_cols = $case[$col];
+                                    } elseif (isset($arr_cols[$col])) {
+                                        $arr_cols = $arr_cols[$col];
+                                    } else {
+                                        $arr_cols = null;
+                                    }
+                                }
+                                $row_data[] = $arr_cols;
+                            } elseif (isset($case[$col_name])) {
+                                $row_data[] = $case[$col_name];
+                            } else {
+                                var_dump($arr_columns);die('not found index '. $col_name);
+                            }
+                        }
+                        $rows_cols[] = $row_data;
+                    }
+                    $spreadsheet->getActiveSheet()->fromArray($rows_cols, null, 'A'.$k);
+                    $k += count($rows_cols) + 1;
+                }
+
+                header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                header('Content-Disposition: attachment;filename='. rand(1, 100) . 'report.Xlsx');
+
+                sleep(6);
+
+                // Cookie will be expire after 20 seconds...
+                // $cookies = Yii::$app->response->cookies;
+                // $cookies->add(new \yii\web\Cookie([
+                //     'name' => 'fileDownloadToken',
+                //     'value' => $downloadToken,
+                //     'expire' => time() + 20
+                // ]));
+                setcookie("downloadToken", $downloadToken, time() + 20);
+
+                $writer = \PhpOffice\PhpSpreadsheet\IOFactory::createWriter($spreadsheet, 'Xlsx');
+                $writer->save('php://output');
+                exit;
+
+            }
+        }
         $countQuery = clone $query;
         $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
-            'pageSize'=>25,
+            'pageSize'=>USER_ID == 1 && isset($_GET['update-kx']) ? 100 : 25,
         ]);
 
         $theCases = $query
-            ->select(['id', 'name', 'status', 'ref', 'is_priority', 'deal_status', 'opened', 'owner_id', 'created_at', 'ao', 'how_found', 'web_referral', 'web_keyword', 'campaign_id', 'how_contacted', 'owner_id', 'company_id', 'info', 'closed_note'])
-            ->orderBy('created_at DESC')
+            // ->select(['id', 'name', 'status', 'ref', 'is_priority', 'deal_status', 'opened', 'owner_id', 'created_at', 'ao', 'how_found', 'web_referral', 'web_keyword', 'campaign_id', 'how_contacted', 'owner_id', 'company_id', 'info', 'closed', 'closed_note', 'created_at_vn'=>new \yii\db\Expression('DATE_FORMAT(DATE_ADD(created_at, INTERVAL 7 HOUR), "%Y-%m-%d")')])
+            ->orderBy('at_cases.created_at DESC')
             ->offset($pagination->offset)
             ->limit($pagination->limit)
             ->with([
@@ -486,24 +699,30 @@ class KaseController extends MyController
             $monthList[$m] = $m;
         }
         $ownerList = Yii::$app->db->createCommand('SELECT u.id, u.lname, u.email, u.status FROM at_cases c, users u WHERE u.id=c.owner_id GROUP BY u.id ORDER BY u.lname, u.fname')->queryAll();
-        $campaignList = Yii::$app->db->createCommand('SELECT c.id, c.name, c.start_dt FROM at_campaigns c ORDER BY c.start_dt DESC')->queryAll();
-        $companyList = Yii::$app->db->createCommand('SELECT c.id, c.name FROM at_cases k, at_companies c WHERE k.company_id=c.id GROUP BY k.company_id ORDER BY c.name')->queryAll();
+        $campaignList = Yii::$app->db->createCommand('SELECT c.id, c.name, c.start_dt FROM campaigns c ORDER BY c.start_dt DESC')->queryAll();
+        $companyList = Yii::$app->db->createCommand('SELECT c.id, c.name FROM at_cases k, clients c WHERE k.company_id=c.id GROUP BY k.company_id ORDER BY c.name')->queryAll();
+
+
 
         return $this->render('kase_index', [
+            'created'=>$created,
+            'allocated'=>$allocated,
+            'won'=>$won,
+            'closed'=>$closed,
+
             'pagination'=>$pagination,
             'theCases'=>$theCases,
             'view'=>$view,
 
             'view'=>$view,
-            'year'=>$year,
-            'month'=>$month,
 
             'name'=>$name,
             'status'=>$status,
             'deal_status'=>$deal_status,
-            'priority'=>$priority,
+            'is_priority'=>$is_priority,
             'owner_id'=>$owner_id,
             'cofr'=>$cofr,
+            'pv'=>$pv,
             'language'=>$language,
 
             'how_found'=>$how_found,
@@ -513,6 +732,7 @@ class KaseController extends MyController
             'device'=>$device,
             'site'=>$site,
             'kx'=>$kx,
+            'kxcost'=>$kxcost,
             'tx'=>$tx,
 
             'ownerList'=>$ownerList,
@@ -527,8 +747,7 @@ class KaseController extends MyController
             'req_countries'=>$req_countries,
             'req_countries_select'=>$req_countries_select,
             'req_date'=>$req_date,
-            'req_year'=>$req_year,
-            'req_month'=>$req_month,
+
             'daycount'=>$daycount,
             'budget'=>$budget,
             'budget_currency'=>$budget_currency,
@@ -540,8 +759,41 @@ class KaseController extends MyController
 
             'yearList'=>$yearList,
             'monthList'=>$monthList,
+
+            'date_created'=>$date_created,
+            'date_created_custom'=>$date_created_custom,
+            'date_assigned'=>$date_assigned,
+            'date_assigned_custom'=>$date_assigned_custom,
+            'date_won'=>$date_won,
+            'date_won_custom'=>$date_won_custom,
+            'date_closed'=>$date_closed,
+            'date_closed_custom'=>$date_closed_custom,
+
+            'date_start'=>$date_start,
+            'date_start_custom'=>$date_start_custom,
+            'date_end'=>$date_end,
+            'date_end_custom'=>$date_end_custom,
+            'export_column' => $export_column,
+            'export_columns' => $export_columns
+
         ]);
     }
+    public static function stringFromColumnIndex($columnIndex)
+    {
+        static $indexCache = [];
+        if (!isset($indexCache[$columnIndex])) {
+            $indexValue = $columnIndex;
+            $base26 = null;
+            do {
+                $characterValue = ($indexValue % 26) ?: 26;
+                $indexValue = ($indexValue - $characterValue) / 26;
+                $base26 = chr($characterValue + 64) . ($base26 ?: '');
+            } while ($indexValue > 0);
+            $indexCache[$columnIndex] = $base26;
+        }
+        return $indexCache[$columnIndex];
+    }
+
 
     // Testing: send CPL
     public function actionSendCpl($id = 0, $action = 'send', $cplink_id = 0)
@@ -559,17 +811,17 @@ class KaseController extends MyController
             ->one();
 
         if (!$theCase) {
-            throw new HttpException(404, 'Case not found.');            
+            throw new HttpException(404, 'Case not found.');
         }
         if (empty($theCase['bookings'])) {
-            throw new HttpException(404, 'No tour itineraries found.');         
+            throw new HttpException(404, 'No tour itineraries found.');
         }
         if (!in_array(USER_ID, [1, 4432, $theCase['owner_id']])) {
-            throw new HttpException(403, 'Access denied.');         
+            throw new HttpException(403, 'Access denied.');
         }
 
         if (!in_array($theCase['language'], ['en', 'fr', 'vi'])) {
-            throw new HttpException(403, 'Language not supported.');            
+            throw new HttpException(403, 'Language not supported.');
         }
 
         // Already sent links
@@ -895,7 +1147,7 @@ TXT;
 
     // Edit customer request
     public function actionRequest($id = 0)
-    { 
+    {
         if (USER_ID != 1) {
             // throw new HttpException(403, 'Page is being updated. Please come back later.');
         }
@@ -1353,7 +1605,7 @@ TXT;
             //         ->one();
             //     // User may not exist
             //     if (!$theOwner) {
-            //         throw new HttpException(404, 'Case owner not found.');                  
+            //         throw new HttpException(404, 'Case owner not found.');
             //     }
 
                 // sys note
@@ -1594,7 +1846,7 @@ TXT;
             ->asArray()
             ->one();
         if (!$theCase) {
-            var_dump($theCase);die;
+            var_dump($theCase);die('cases is empty!!');
             throw new HttpException(404, 'Case not found');
         }
 
@@ -2578,7 +2830,7 @@ TXT;
         $theEmails = Yii::$app->db->createCommand($sql, [':id'=>$theCase['id']])->queryColumn();
 
         $allCountries = Country::find()->select('code', 'name_vi')->asArray()->all();
-        
+
         if (USER_ID == 111) {
         return $this->render('cases_r_huan', [
             'theCase'=>$theCase,
@@ -2625,7 +2877,7 @@ TXT;
         }
 
         if (!in_array(USER_ID, [1,2,3,4, 4432, 11724, 36654, 26435, 35887, $theCase['owner_id']])) {
-            throw new HttpException(403, 'Access denied.');         
+            throw new HttpException(403, 'Access denied.');
         }
 
         $oldOwnerId = $theCase['owner_id'];
@@ -2651,7 +2903,7 @@ TXT;
                 ->execute();
 
             $theCaseLink = 'https://my.amicatravel.com/cases/r/'.$theCase['id'];
-    
+
             // Case search
             Yii::$app->db->createCommand()
                 ->update('at_search', [
@@ -2790,7 +3042,7 @@ TXT;
         ]);
     }
 
-    // 140723: PhAnh và ThyNN edit nguon HS 
+    // 140723: PhAnh và ThyNN edit nguon HS
     public function actionUpa($id = 0)
     {
         $theCase = Kase::find()
@@ -2804,7 +3056,7 @@ TXT;
         // 150921 Added Sophie N
         // 160614 Added Megan JB
         if (!in_array(USER_ID, [1,695,14671,33776,27510])) {
-            throw new HttpException(403, 'Access denied.');         
+            throw new HttpException(403, 'Access denied.');
         }
 
         $oldOwnerId = $theCase['owner_id'];
@@ -2935,7 +3187,7 @@ TXT;
             $theCase->updated_by = USER_ID;
             $theCase->status = 'closed';
             if ($theCase->deal_status == 'pending') {
-                $theCase->deal_status = 'lost';             
+                $theCase->deal_status = 'lost';
             }
             $theCase->status_date = NOW;
             $theCase->closed = NOW;

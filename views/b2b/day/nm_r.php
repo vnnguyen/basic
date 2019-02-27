@@ -6,8 +6,8 @@ Yii::$app->params['page_title'] = $theDay['title'];
 
 ?>
 <div class="col-md-8">
-    <div class="panel panel-default">
-        <table class="table table-condensed table-bordered">
+    <div class="card">
+        <table class="table table-narrow table-bordered">
             <tbody>
                 <tr>
                     <th>Tên</th>
@@ -35,6 +35,4 @@ Yii::$app->params['page_title'] = $theDay['title'];
             </tbody>
         </table>
     </div>
-</div>
-<div class="col-md-4">
 </div>

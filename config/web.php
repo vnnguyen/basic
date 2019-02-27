@@ -27,7 +27,7 @@ define('DIR', '/');
 $_REQUEST_URI = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/'); define('URI', DIR == '/' ? $_REQUEST_URI : substr($_REQUEST_URI, strlen(trim(DIR, '/').'/'))); $_URI_SEGMENTS = explode('/', URI); define('SEGS', empty($_URI_SEGMENTS) ? 0 : count($_URI_SEGMENTS)); for ($i = 1; $i <= 9; $i ++) define('SEG'.$i, isset($_URI_SEGMENTS[$i - 1]) ? $_URI_SEGMENTS[$i - 1] : '');
 
 
-yii::setAlias('@web', 'localhost/basic/web');
+// yii::setAlias('@web', 'localhost/basic/web');
 // Yii::setAlias('common', 'D:/wamp/www/basic/common-ims/');
 // Yii::setAlias('@web', 'http://amica.dev');
 
@@ -41,8 +41,10 @@ $config = [
     'name' => 'Amica Travel IMS',
     'language'=>'en',
     'basePath' => dirname(__DIR__),
-    'vendorPath' => __DIR__ . '../vendor',
-    'aliases'=>[
+    'vendorPath' => __DIR__ . '/../vendor',
+    'aliases' => [
+        '@bower' => '@vendor/bower-asset',
+        '@npm'   => '@vendor/npm-asset',
         '@www'=>'amica.xyz',
     ],
 
@@ -113,8 +115,10 @@ $config = [
                     'sourcePath' => null,
                     'js' => [
                         // "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js",
-                        "https://code.jquery.com/jquery-3.3.1.min.js"
-                        // 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js'
+                        "https://code.jquery.com/jquery-3.3.1.min.js",
+                        // 'https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js',
+                        'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js',
+                        // 'https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js',
                     ],
                 ],
             ],
@@ -155,8 +159,9 @@ $config = [
             ],
         ],
         'request'=>[
-            'enableCsrfValidation'=>false,
             'cookieValidationKey' => '*&%78v x5a6754',
+            'enableCookieValidation' => false,
+            'enableCsrfValidation' => false,
         ],
         'urlManager'=>[
             'enablePrettyUrl'=>true,
@@ -164,8 +169,77 @@ $config = [
             // 'suffix'=>'/',
             'rules'=>[
                 ''=>'default/index',
-                'filebrowser'=>'default/ckfinder',
-                'filebrowser/config'=>'default/ckfinder-config',
+
+                '<c_:assets/ckfinder/finder>'=>'ckfinder/finder',
+                '<c_:assets/ckfinder/config>'=>'ckfinder/config',
+
+                // HUAN, TEST DV CP
+                '<c_:testdv>'=>'<c_>/index',
+
+                // '<c>/<a>/<id:\d+>' => '<c>/<a>',
+                'demo/<a>/<id:\d+>' => 'demo/<a>',
+                'cptour/<a>/<id:\d+>' => 'cptour/<a>',
+
+                'persons/ajax'=>'contacts/ajax',
+                '<c_:files|tours|vendors>/r/<id:\d+>'=>'<c_>/r',
+
+                '<c_:accounts|attachments|c___s|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|products|programs|projects|referrals|reports|spaces|tasks|tours|u___s|vendors>'=>'<c_>/index',
+                '<c_:accounts|attachments|cases|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|products|programs|projects|referrals|reports|spaces|tasks|tours|users|vendors>/<id:\d+>'=>'<c_>/r',
+                '<c_:accounts|attachments|cases|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|products|programs|projects|referrals|reports|spaces|tasks|tours|u___s|vendors>/<id:\d+>/<a_>'=>'<c_>/<a_>',
+                '<c_:accounts|attachments|c___s|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|p______s|programs|projects|referrals|reports|spaces|tasks|tours|u___s|vendors>/<a_>'=>'<c_>/<a_>',
+
+                // MONEY
+                'm/<c_:accounts>'=>'m/<c_>/index',
+                'm/<c_:accounts>/<id:\d+>'=>'m/<c_>/r',
+                'm/<c_:accounts>/<id:\d+>/<a_>'=>'m/<c_>/<a_>',
+                'm/<c_:accounts>/<a_:\w+>'=>'m/<c_>/<a_>',
+
+                // NEW ROUTES
+                '<c_:location|member|sample-tour-day|sample-tour-program|sample-tour-segment|space|venue>s'=>'<c_>/index',
+                '<c_:location|member|sample-tour-day|sample-tour-program|sample-tour-segment|space|tour|venue>s/<id:\d+>'=>'<c_>/r',
+                '<c_:location|member|sample-tour-day|sample-tour-program|sample-tour-segment|space|venue>s/r/<id:\d+>'=>'<c_>/r',
+                '<c_:location|member|sample-tour-day|sample-tour-program|sample-tour-segment|space|tour|venue>s/<id:\d+>/<a_>'=>'<c_>/<a_>',
+                '<c_:location|member|sample-tour-day|sample-tour-program|sample-tour-segment|space|venue>s/<a_:\w+>'=>'<c_>/<a_>',
+
+                // Q = QHKH
+                'q'=>'q/q/index',
+                'q/<c_:account|item|itemgroup|price|product|service|transaction|vendor|warehouse>s'=>'q/<c_>/index',
+                'q/<c_:account|item|itemgroup|price|product|service|transaction|vendor|warehouse>s/<id:\d+>'=>'q/<c_>/r',
+                'q/<c_:account|item|itemgroup|price|product|service|transaction|vendor|warehouse>s/r/<id:\d+>'=>'q/<c_>/r',
+                'q/<c_:account|item|itemgroup|price|product|service|transaction|vendor|warehouse>s/<id:\d+>/<a_>'=>'q/<c_>/<a_>',
+                'q/<c_:account|item|itemgroup|price|product|service|transaction|vendor|warehouse>s/<a_:\w+>'=>'q/<c_>/<a_>',
+
+                'qhkh/club-amba'=>'qhkh/club-amba',
+
+                // X = PROJECT X : SERVICES & PRICES
+                'x'=>'x/x/index',
+                'x/<c_:price|product|service|vendor|venue>s'=>'x/<c_>/index',
+                'x/<c_:price|product|service|vendor|venue>s/<id:\d+>'=>'x/<c_>/r',
+                'x/<c_:price|product|service|vendor|venue>s/r/<id:\d+>'=>'x/<c_>/r',
+                'x/<c_:price|product|service|vendor|venue>s/<id:\d+>/<a_>'=>'x/<c_>/<a_>',
+                'x/<c_:price|product|service|vendor|venue>s/<a_:\w+>'=>'x/<c_>/<a_>',
+
+                // T = TEMP./TEST
+                't'=>'t/t/index',
+                't/<c_:account|item|group|warehouse>s'=>'t/<c_>/index',
+                't/<c_:account|item|group|warehouse>s/<id:\d+>'=>'t/<c_>/r',
+                't/<c_:account|item|group|warehouse>s/r/<id:\d+>'=>'t/<c_>/r',
+                't/<c_:account|item|group|warehouse>s/<id:\d+>/<a_>'=>'t/<c_>/<a_>',
+                't/<c_:account|item|group|warehouse>s/<a_:\w+>'=>'t/<c_>/<a_>',
+
+                // EB = ECOBUS
+                'eb/<a_:\w+>'=>'eb/<a_>',
+
+                // DIR
+                'inv'=>'inv/inv/index',
+                'inv/<c_:item|groups|warehouse>s'=>'inv/<c_>/index',
+                'inv/<c_:item|groups|warehouse>s/<id:\d+>'=>'inv/<c_>/r',
+                'inv/<c_:item|groups|warehouse>s/r/<id:\d+>'=>'inv/<c_>/r',
+                'inv/<c_:item|groups|warehouse>s/<id:\d+>/<a_>'=>'inv/<c_>/<a_>',
+                'inv/<c_:item|groups|warehouse>s/<a_:\w+>'=>'inv/<c_>/<a_>',
+
+                // 'filebrowser'=>'default/ckfinder',
+                // 'filebrowser/config'=>'default/ckfinder-config',
                 'select/lang/<lang>'=>'default/select-lang',
                 'cms'=>'cms/index',
 
@@ -173,20 +247,10 @@ $config = [
                 'gii/<controller>/<action>' => 'gii/<controller>/<action>',
                 'admin/<controller>/<action>' => 'gii/<controller>/<action>',
 
-                // '<c>/<a>/<id:\d+>' => '<c>/<a>',
-                'demo/<a>/<id:\d+>' => 'demo/<a>',
-                'cptour/<a>/<id:\d+>' => 'cptour/<a>',
-
                 'logout'=>'login/logout',
                 'help/report-a-bug'=>'help/bug',
-                'groups/type/<type>'=>'group/index',
 
-                 // NEW ROUTES
-                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|vendor>s'=>'<c_>/index',
-                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|tour|vendor>s/<id:\d+>'=>'<c_>/r',
-                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|vendor>s/r/<id:\d+>'=>'<c_>/r',
-                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|tour|vendor>s/<id:\d+>/<a_>'=>'<c_>/<a_>',
-                '<c_:account|contact|destination|location|member|program|sample-tour-day|sample-tour-program|sample-tour-segment|space|vendor>s/<a_:\w+>'=>'<c_>/<a_>',
+                'groups/type/<type>'=>'group/index',
 
                 // Account CP
                 'acp'=>'acp/acp/index',
@@ -194,9 +258,10 @@ $config = [
                 'acp/settings'=>'acp/settings',
                 'acp/settings/<c_>'=>'acp-settings-<c_>/index',
                 'acp/settings/<c_>/<_a>'=>'acp-settings-<c_>/<a_>',
-                'acp/<c_:user>s'=>'acp/<c_>/index',
-                'acp/<c_:user>s/<a_>'=>'acp/<c_>/<a_>',
-                'acp/<c_:user>s/<a_>/<a2_>'=>'acp/<c_>/<a_>-<a2_>',
+                'acp/<c_:permission|role|user>s'=>'acp/<c_>/index',
+                'acp/<c_:permission|role|user>s/<id:\d+>'=>'acp/<c_>/r',
+                'acp/<c_:permission|role|user>s/<id:\d+>/<a_>'=>'acp/<c_>/<a_>',
+                'acp/<c_:permission|role|user>s/<a_>'=>'acp/<c_>/<a_>',
 
                 // Master CP
                 'mcp'=>'mcp/mcp/index',
@@ -217,6 +282,7 @@ $config = [
                 'special/<_c>/<_a>'=>'special/<_c>/<_a>',
 
                 'b2b'=>'b2b/b2b/index',
+                'b2b/series'=>'b2b/b2b/series',
 
                 'b2b/<_c:case>s'=>'b2b/kase/index',
                 'b2b/<_c:case>s/<_a>/<id:\d+>'=>'b2b/kase/<_a>',
@@ -243,6 +309,8 @@ $config = [
                 'gallery/<c:collection>s/<a>'=>'gallery/<c>/<a>',
 
                 'me/'=>'me/profile',
+                'me/my-settings/password'=>'me/my-settings-password',
+                'me/my-settings/preferences|me/my-settings'=>'me/my-settings-preferences',
                 'me/vespa2013'=>'manager/vespa2013',
                 'me/sales-results'=>'manager/sales-results',
 
@@ -255,17 +323,13 @@ $config = [
                 'cases/<a>'=>'kase/<a>',
                 'cases/<a>/<id:\d+>'=>'kase/<a>',
 
-                '<c:compan|countr|inquir|taxonom>ies'=>'<c>y/index',
-                '<c:compan|countr|inquir|taxonom>ies/<a>/<id:\d+>'=>'<c>y/<a>',
-                '<c:compan|countr|inquir|taxonom>ies/<a>'=>'<c>y/<a>',
+                '<c:booking|cat|collection|complaint|day|event|group|incident|invoice|kase|message|node|note|option|permission|product|role|tag|proposal|venue|setting|xrate|user|destination|customer|campaign|package|promotion|setting|supplier|term>s'=>'<c>/index',
+                '<c:booking|cat|collection|complaint|day|event|group|incident|invoice|kase|message|node|note|option|permission|product|role|tag|proposal|venue|setting|xrate|user|destination|customer|campaign|package|promotion|setting|supplier|term>s/<a>/<id:\d+>'=>'<c>/<a>',
+                '<c:booking|cat|collection|complaint|day|event|group|incident|invoice|kase|message|node|note|option|permission|product|role|tag|proposal|venue|setting|xrate|user|destination|customer|campaign|package|promotion|setting|supplier|term>s/<a>'=>'<c>/<a>',
 
-                '<c:baccount|booking|cat|collection|day|driver|event|feedback|file|group|incident|complaint|invoice|kase|mail|member|message|node|note|option|payment|permission|person|product|referral|report|role|tag|task|tour|proposal|venue|setting|xrate|user|destination|customer|tourguide|campaign|package|promotion|space|supplier|term>s'=>'<c>/index',
-                '<c:baccount|booking|cat|collection|day|driver|event|feedback|file|group|incident|complaint|invoice|kase|mail|member|message|node|note|option|payment|permission|person|product|referral|report|role|tag|task|tour|proposal|venue|setting|xrate|user|destination|customer|tourguide|campaign|package|promotion|space|supplier|term>s/<a>/<id:\d+>'=>'<c>/<a>',
-                '<c:baccount|booking|cat|collection|day|driver|event|feedback|file|group|incident|complaint|invoice|kase|mail|member|message|node|note|option|payment|permission|person|product|referral|report|role|tag|task|tour|proposal|venue|setting|xrate|user|destination|customer|tourguide|campaign|package|promotion|space|supplier|term>s/<a>'=>'<c>/<a>',
-
-                '<c:cp|cpo|cpt|cpg|cpx|ct|dv|dvc|dvd|dvo|dvt|dvg|dvx|nm|tm>'=>'<c>/index',
-                '<c:cp|cpo|cpt|cpg|cpx|ct|dv|dvc|dvd|dvo|dvt|dvg|dvx|nm|tm>/<a>/<id:\d+>'=>'<c>/<a>',
-                '<c:cp|cpo|cpt|cpg|cpx|ct|dv|dvc|dvd|dvo|dvt|dvg|dvx|nm|tm>/<a>'=>'<c>/<a>',
+                '<c:cp|cpo|cpt|cpg|cpx|ct|diem|dv|dvc|dvd|dvo|dvt|dvg|dvx|nm|s|tm|tuyen>'=>'<c>/index',
+                '<c:cp|cpo|cpt|cpg|cpx|ct|diem|dv|dvc|dvd|dvo|dvt|dvg|dvx|nm|s|tm|tuyen>/<a>/<id:\d+>'=>'<c>/<a>',
+                '<c:cp|cpo|cpt|cpg|cpx|ct|diem|dv|dvc|dvd|dvo|dvt|dvg|dvx|nm|s|tm|tuyen>/<a>'=>'<c>/<a>',
 
                 // KB
                 'kb'=>'kb/index',
@@ -372,13 +436,6 @@ $config = [
                 'td/<c:tuyen|diem>/<id:\d+>'=>'about/<_c>/index',
                 'td/<c:tuyen|diem>/<id:\d+>/<a:r|u|d>'=>'about/<_c><_a>',
 
-                // About
-                'about'=>'about/index',
-                'about/<name>'=>'about/<name>',
-                'about/<name>/<id:\d+>'=>'about/<name>r',
-                'about/<name>/<a:r|u|d>/<id:\d+>'=>'about/<name><a>',
-
-
                 // App-wide setting
                 'app/change/site/<site>'=>'app/changesite',
                 'app/change/lang/<lang>'=>'app/changelanguage',
@@ -391,12 +448,6 @@ $config = [
                 'calendar'=>'calendar/index',
                 'calendar/get'=>'calendar/index',
                 'calendars'=>'calendar/index',
-
-                // ORGANIZATION
-                'org'=>'member/index',
-                'org/<c:member>s'=>'<c>/index',
-                'org/<c:member>s/<a>/<id:\d+>'=>'<c>/<a>',
-                'org/<c:member>s/<a>'=>'<c>/<a>',
 
                 // SYS
                 'sys'=>'sys/sys/index',

@@ -1,0 +1,40 @@
+{
+    "require": {
+        "php": ">=5.4.0",
+        "yidas/yii2-bower-asset": "~2.0.5",
+        "yiisoft/yii2": "~2.0",
+        "yiisoft/yii2-bootstrap4": "^2.0",
+        "yiisoft/yii2-authclient": "~2.0.0",
+        "yiisoft/yii2-debug": "~2.0.0",
+        "yiisoft/yii2-imagine": "~2.0.0",
+        "yiisoft/yii2-swiftmailer": "~2.1.0",
+        "yiisoft/yii2-gii": "~2.0.0",
+        "yiisoft/yii2-composer": "~2.0.0",
+
+        "swiftmailer/swiftmailer": "~6.0",
+        "mailgun/mailgun-php": "~1.8.0",
+        "flourish/flourish": "dev-master",
+        "michelf/php-markdown": "1.3.*@dev",
+        "mobiledetect/mobiledetectlib": "dev-master",
+        "kartik-v/yii2-mpdf": "*",
+
+        "ezyang/htmlpurifier":"4.6.*",
+
+        "creocoder/yii2-nested-sets": "^0.9.0",
+        "creocoder/yii2-taggable": "^2.0",
+        "kartik-v/yii2-widget-fileinput": "@dev",
+        "phpoffice/phpspreadsheet": "^1.1",
+        "mpdf/mpdf": "^7.0",
+        "hhxsv5/php-sse": "~1.0",
+        "bubasuma/yii2-simplechat": "^2.0",
+        "yiisoft/yii2-queue": "^2.1",
+        "yiicod/yii2-mailqueue": "*",
+        "webzop/yii2-notifications": "*"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://asset-packagist.org"
+        }
+    ]
+}

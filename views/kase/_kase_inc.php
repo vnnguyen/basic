@@ -1,14 +1,13 @@
-<?
-
+<?php
 yap('page_icon', 'briefcase');
 
 yap('page_breadcrumbs', [
-    ['Cases', 'cases'],
+    [Yii::t('x', 'Cases'), 'cases'],
 ]);
 
 Yii::$app->params['page_actions'] = [
     [
-        ['icon'=>'plus', 'title'=>'New case', 'link'=>'cases/c', 'active'=>SEG2 == 'c'],
+        ['icon'=>'plus', 'title'=>Yii::t('x', 'New case'), 'link'=>'cases/c', 'active'=>SEG2 == 'c'],
     ],
 ];
 
@@ -21,7 +20,8 @@ if (isset($theCase['id'])) {
             ['-'],
             ['icon'=>'user', 'label'=>'People in this case', 'link'=>'cases/people/'.$theCase['id'], 'active'=>SEG2 == 'people'],
             ['icon'=>'comment', 'label'=>'Customer\'s request', 'link'=>'cases/request/'.$theCase['id'], 'active'=>SEG2 == 'request'],
-            ['icon'=>'link', 'label'=>'Send Client page link', 'link'=>'cases/send-cpl/'.$theCase['id'], 'active'=>SEG2 == 'send-cpl'],
+            ['icon'=>'link', 'label'=>'Partners', 'link'=>'cases/partners/'.$theCase['id'], 'active'=>SEG2 == 'partners'],
+            // ['icon'=>'link', 'label'=>'Send Client page link', 'link'=>'cases/send-cpl/'.$theCase['id'], 'active'=>SEG2 == 'send-cpl'],
             ['-'],
             ['icon'=>'lock', 'label'=>'Close', 'link'=>'cases/close/'.$theCase['id'], 'active'=>SEG2 == 'close', 'hidden'=>$theCase['status'] == 'closed'],
             ['icon'=>'unlock', 'label'=>'Re-open', 'link'=>'cases/reopen/'.$theCase['id'], 'active'=>SEG2 == 'reopen', 'hidden'=>$theCase['status'] != 'closed'],
@@ -105,6 +105,7 @@ $caseHowContactedList = [
             'web/adonline/other'=>'Other',
         'web/email'=>'Mailing',
         'web/direct'=>'Direct access',
+        'web/unknown'=>'Web - unknown',
 
     'nweb'=>'Non-web',
         'nweb/phone'=>'Phone',
@@ -124,7 +125,7 @@ foreach ($caseHowContactedList as $k=>$v) {
     $caseHowContactedListFormatted[$k] = $v;
 }
 
-$_kaseHowFoundList = [
+$kaseHowFoundList = [
     'returning'=>'Returning',
         'returning/customer'=>'Returning customer',
     'new'=>'New',
@@ -190,7 +191,7 @@ $caseWhyClosedListAll = array(
     'lost/duplicate'=>'Doublon | Trùng với hồ sơ khác',
 
     'lost/nodeal'=>'Client non-potentiel | Khách không có tiềm năng',
-    
+
     'lost/nodeal/01'=>'Client non-potentiel – demande de groupe ou voyageur seul (Khách không tiềm năng – hỏi đi tour ghép hoặc pax đi 1 mình)',
     'lost/nodeal/02'=>'Client non-potentiel – pas de budget (Khách không tiềm năng – không có tiền)',
     'lost/nodeal/03'=>'Client non-potentiel – prestations sèches  (Khách không tiềm năng – chỉ hỏi dịch vụ nhỏ lẻ)',
@@ -200,7 +201,7 @@ $caseWhyClosedListAll = array(
     'lost/noreply'=>'Sans réponse - demande potentielle mais le client ne répond pas (HS tiềm năng nhưng khách không có hồi âm)',
 
     'lost/refused'=>'Refus | Khách từ chối mua tour',
-    
+
     'lost/refused/01'=>'Refus – autre agence ou/et prix trop cher (Khách từ chối – chọn 1 công ty khác hoặc/và vì giá Amica quá cao)',
     'lost/refused/02'=>'Refus – report du voyage, annulation, maladie, changement de destination (khách từ chối – hoãn chuyến đi, huỷ chuyến đi, bị ốm, thay đổi điểm đến)',
     'lost/refused/03'=>'Refus – le voyageur se débrouille seul (Khách từ chối – tự đặt dịch vụ, tự đi tour)',
@@ -416,4 +417,13 @@ $kaseSourceList = [
     't1'=>'New customer',
     't2'=>'Referred customer',
     't3'=>'Returning customer',
+];
+
+$priorityList = [
+    'no'=>Yii::t('x', 'No'),
+    'yes'=>Yii::t('x', 'Yes'),
+    1=>1,
+    2=>2,
+    3=>3,
+    4=>4,
 ];

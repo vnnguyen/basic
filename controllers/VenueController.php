@@ -21,6 +21,7 @@ use common\models\Cpt;
 use common\models\Tour;
 use common\models\Destination;
 use common\models\Supplier;
+use app\models\Post;
 
 /*
 RESET SEARCH
@@ -430,48 +431,123 @@ class VenueController extends MyController
             'search'=>$search
         ]);
     }
-
-    public function actionC()
-    {
-        if (!in_array(USER_ID, [1, 8, 9198])) {
-            throw new HttpException(403, 'Chức năng đang tạm bị hạn chế. Liên hệ Mr Huân để biết thêm chi tiết.');
-        }
-        $theVenue = new Venue;
-        $theVenue->scenario = 'venues_c';
-
-        $destinationList = Destination::find()
-            ->select(['id', 'name_en', 'country_code'])
+    public function actionCruises($dest = '', $type = '', $class = '', $price = '', $recc = '', $name = '', $search = '',
+         $vfrom = '', $vservice_include_price = '', $vservice_extra_charge = '', $itinerary = ''
+    ) {
+        $allDestinations = Destination::find()
+            ->select('id, name_en')
+            ->orderBy('country_code, name_en')
             ->asArray()
             ->all();
 
-        if ($theVenue->load(Yii::$app->request->post())) {
-            $theVenue['created_at'] = NOW;
-            $theVenue['created_by'] = Yii::$app->user->id;
-            $theVenue['updated_at'] = NOW;
-            $theVenue['updated_by'] = Yii::$app->user->id;
-            $theVenue['status'] = 'draft';
-            if ($theVenue->save()) {
-                Yii::$app->db
-                    ->createCommand()->insert('at_search', [
-                        'rtype'=>'venue',
-                        'rid'=>$theVenue->id,
-                        'search'=>str_replace('-', '', \fURL::makeFriendly($theVenue->name, '-')),
-                        'found'=>$theVenue->name.', '.$theVenue->destination->name_en,
-                    ])
-                    ->execute();
-                return $this->redirect('@web/venues/u/'.$theVenue['id']);
+        $query = Venue::find()
+            ->where('LENGTH(name)>3 AND stype = "cruise"');
+
+        if ($dest != '') {
+            if (in_array($dest, ['vn', 'la', 'kh', 'mm'])) {
+                $destIdList = Destination::find()
+                    ->select(['id'])
+                    ->where(['country_code'=>$dest])
+                    ->asArray()
+                    ->column();
+                $query->andWhere(['destination_id'=>$destIdList]);
+            } else {
+                $query->andWhere(['destination_id'=>$dest]);
             }
         }
 
-        return $this->render('venue_c', [
-            'theVenue'=>$theVenue,
-            'destinationList'=>$destinationList,
-        ]);
-    }
+        if ($type != '') {
+            $query->andWhere('LOCATE(:type, new_tags)!=0', [':type'=>$type]);
+        }
 
-    public function actionInfo($id = 0)
-    {
-        return $this->redirect('@web/venues/r/'.$id);
+        if ($class != '') {
+            $query->andWhere('LOCATE(:class, new_tags)!=0', [':class'=>$class]);
+        }
+
+        // if ($style != '') {
+        //     $query->andWhere('LOCATE(:style, new_tags)!=0', [':style'=>$style]);
+        // }
+
+        if ($price != '') {
+            $minp = 0; $maxp = 0;
+            $prices = explode('-', $price);
+            $minp = (int)$prices[0];
+            if (!isset($prices[1])) {
+                // // Chi co 1 so thi lay +- 10 USD
+                // $minp = max(0, $minp - 10);
+                // $maxp = max(0, $minp + 20);
+                $maxp = $minp;
+            } else {
+                if ((int)$prices[1] >= $minp) {
+                    $maxp = (int)$prices[1];
+                } else {
+                    $maxp = $minp;
+                }
+            }
+            if ($maxp != 0) {
+                $query->andWhere('new_pricemin<=:maxp', [':maxp'=>$maxp])
+                    ->andWhere('new_pricemax>=:minp', [':minp'=>$minp]);
+            }
+        }
+
+        // if ($faci != '') {
+        //     $query->andWhere('LOCATE(:faci, new_tags)!=0', [':faci'=>$faci]);
+        // }
+
+        if ($recc != '') {
+            $query->andWhere('LOCATE(:recc, new_tags)!=0', [':recc'=>$recc]);
+        }
+
+        if ($name != '') {
+            $query->andWhere(['or', ['like', 'name', $name], ['like', 'about', $name]]);
+        }
+
+        $searchParams = explode(' ', $search);
+        if (!empty($searchParams)) {
+            foreach ($searchParams as $param) {
+                $orParams = explode('|', $param);
+                if (count($orParams) > 1) {
+                    $query->andWhere(['or', 'LOCATE("'.$orParams[0].'", search)!=0', 'LOCATE("'.$orParams[1].'", search)!=0']);
+                } else {
+                    $query->andWhere('LOCATE("'.$param.'", search)!=0');
+                }
+            }
+        }
+        $countQuery = clone $query;
+        $pagination = new Pagination([
+            'totalCount' => $countQuery->count(),
+            'pageSize'=>25,
+            ]);
+
+        $theVenues = $query
+            ->select(['id', 'name', 'stype', 'about', 'search', 'destination_id', 'image', 'images', 'new_tags', 'new_pricemin', 'new_pricemax'])
+            ->orderBy('stype, name')
+            ->offset($pagination->offset)
+            ->limit($pagination->limit)
+            ->with([
+                'destination',
+                'metas',
+            ])
+            ->asArray()
+            ->all();
+        return $this->render('venue_cruise_index', [
+            'pagination'=>$pagination,
+            'theVenues'=>$theVenues,
+            'allDestinations'=>$allDestinations,
+            'dest'=>$dest,
+            'type'=>$type,
+            'class'=>$class,
+            // 'style'=>$style,
+            'price'=>$price,
+            // 'faci'=>$faci,
+            'recc'=>$recc,
+            'name'=>$name,
+            'vfrom'=>$vfrom,
+            'vservice_include_price'=>$vservice_include_price,
+            'vservice_extra_charge'=>$vservice_extra_charge,
+            'itinerary'=>$itinerary,
+            'search'=>$search
+        ]);
     }
     public function actionR($id = 0)
     {
@@ -556,57 +632,62 @@ class VenueController extends MyController
                 //return $this->redirect(DIR.URI);
             }
         }
-        /*
-            if (isset($_POST['html']) && $_POST['html'] != '') {
-                $html = trim($_POST['html']);
-                $pos = strpos($html, 'slideshow_photos');
-                if ($pos !== false) {
-                    $pos2 = strpos($html, '</script>');
-                    if (false !== $pos2) {
-                        $code = substr($html, $pos, $pos2 - $pos);
-                        $code = str_replace([chr(10), chr(13)], ['', ''], $code);
-                        $code = str_replace(['slideshow_photos = [', ',', '];'], ['<img src=', '><img src=', '>'], $code);
-                        $code = str_replace(['= '], ['='], $code);
-                        Yii::$app->db->createCommand()->update('venues', ['images'=>$code], ['id'=>$theVenue['id']])->execute();
-                        return $this->redirect(DIR.URI);
-                    } else {
-                        die('POS2 NF');
-                    }
-                } else {
-                    die('POS1 NF');
-                }
-            }
 
-            // Trip Advisor feedback
-            $fbTripadvisor = $theVenue['fb_tripadvisor'];
-            if ((Yii::$app->user->id == 111 && isset($_GET['get']) && $_GET['get'] == 'tripadvisor') || $theVenue['fb_tripadvisor'] == '') {
-                if ($theVenue['link_tripadvisor'] != '') {
-                    $html = ''; //file_get_contents($theVenue['link_tripadvisor']);
-                    $pos = strpos($html, '<div id="REVIEWS" class="deckB review_collection">');
-                    if (false !== $pos) {
-                        $pos2 = strpos($html, '<div id="HSCS">');
-                        if (false !== $pos2) {
-                            $code = substr($html, $pos, $pos2 - $pos - 1);
-                            $code = str_replace(['/ShowUserReviews', 'Review collected in partnership with this hotel '], ['http://www.tripadvisor.com/ShowUserReviews', ''], $code);
-                            Yii::$app->db->createCommand()->update('venues', ['fb_tripadvisor'=>$code], ['id'=>$theVenue['id']])->execute();
-                            $fbTripadvisor = $code;
+        $sql = 'SELECT a.*, u.nickname AS username FROM at_avails a, users u WHERE u.id=a.created_by AND  a.stype="closed" AND a.rtype="venue" AND a.rid=:id';
+        $venueEvents = Yii::$app->db->createCommand($sql, [':id'=>$theVenue['id']])
+            ->queryAll();
+
+        /*
+                    if (isset($_POST['html']) && $_POST['html'] != '') {
+                        $html = trim($_POST['html']);
+                        $pos = strpos($html, 'slideshow_photos');
+                        if ($pos !== false) {
+                            $pos2 = strpos($html, '</script>');
+                            if (false !== $pos2) {
+                                $code = substr($html, $pos, $pos2 - $pos);
+                                $code = str_replace([chr(10), chr(13)], ['', ''], $code);
+                                $code = str_replace(['slideshow_photos = [', ',', '];'], ['<img src=', '><img src=', '>'], $code);
+                                $code = str_replace(['= '], ['='], $code);
+                                Yii::$app->db->createCommand()->update('venues', ['images'=>$code], ['id'=>$theVenue['id']])->execute();
+                                return $this->redirect(DIR.URI);
+                            } else {
+                                die('POS2 NF');
+                            }
                         } else {
-                            $fbTripadvisor = 'POS2 NF!';
+                            die('POS1 NF');
                         }
-                    } else {
-                        $fbTripadvisor = 'POS1 NF!';
                     }
-                }
-            }
+
+                    // Trip Advisor feedback
+                    $fbTripadvisor = $theVenue['fb_tripadvisor'];
+                    if ((Yii::$app->user->id == 111 && isset($_GET['get']) && $_GET['get'] == 'tripadvisor') || $theVenue['fb_tripadvisor'] == '') {
+                        if ($theVenue['link_tripadvisor'] != '') {
+                            $html = ''; //file_get_contents($theVenue['link_tripadvisor']);
+                            $pos = strpos($html, '<div id="REVIEWS" class="deckB review_collection">');
+                            if (false !== $pos) {
+                                $pos2 = strpos($html, '<div id="HSCS">');
+                                if (false !== $pos2) {
+                                    $code = substr($html, $pos, $pos2 - $pos - 1);
+                                    $code = str_replace(['/ShowUserReviews', 'Review collected in partnership with this hotel '], ['http://www.tripadvisor.com/ShowUserReviews', ''], $code);
+                                    Yii::$app->db->createCommand()->update('venues', ['fb_tripadvisor'=>$code], ['id'=>$theVenue['id']])->execute();
+                                    $fbTripadvisor = $code;
+                                } else {
+                                    $fbTripadvisor = 'POS2 NF!';
+                                }
+                            } else {
+                                $fbTripadvisor = 'POS1 NF!';
+                            }
+                        }
+                    }
         */
         $venueMetas = Meta::find()
             ->where(['rtype'=>'venue', 'rid'=>$id])
             ->asArray()->all();
 
-        $venueNotes = Note::find()
+        $venuePosts = Post::find()
             ->where(['rtype'=>'venue', 'rid'=>$id])
-            ->with(['updatedBy', 'files'])
-            ->orderBy('uo DESC')
+            ->with(['updatedBy', 'attachments'])
+            ->orderBy('created_dt DESC')
             ->asArray()->all();
 
         $sql = 'SELECT f.*, t.day_from, t.op_code, t.op_name FROM at_tour_feedbacks f, at_ct t WHERE f.tour_id=t.id AND f.rtype="venue" AND f.rid=:id ORDER BY t.day_from DESC';
@@ -631,12 +712,20 @@ class VenueController extends MyController
 
         $table_price = $this->explodeHtml($theVenue['new_pricetable']);
 
+        $viewFile = 'venue_r';
+        if ($theVenue['stype'] == 'restaurant') {
+            // $viewFile = 'venue_r__restaurant';
+        }
+        if ($theVenue['stype'] == 'cruise') {
+            $viewFile = 'venue_r__cruise';
+        }
 
         // HUAN: test new view
-        return $this->render('venue_r', [
+        return $this->render($viewFile, [
             'theVenue'=>$theVenue,
             'venueMetas'=>$venueMetas,
-            'venueNotes'=>$venueNotes,
+            'venueNotes'=>$venuePosts,
+            'venueEvents'=>$venueEvents,
             'venueFeedbacks'=>$venueFeedbacks,
             'venueTours'=>$venueTours,
             'venueSupplier'=>$venueSupplier,
@@ -646,6 +735,88 @@ class VenueController extends MyController
             'table_price'=>$table_price,
         ]);
     }
+    public function actionC()
+    {
+        if (!in_array(USER_ID, [1, 8, 9198, 34718, 29739, 29013])) {
+            throw new HttpException(403, 'Access denied.');
+        }
+        $theVenue = new Venue;
+        $theVenue->scenario = 'venue/c';
+
+        $destinationList = Destination::find()
+            ->select(['id', 'name_en', 'country_code'])
+            ->asArray()
+            ->all();
+
+        if ($theVenue->load(Yii::$app->request->post())) {
+            $theVenue['created_at'] = NOW;
+            $theVenue['created_by'] = Yii::$app->user->id;
+            $theVenue['updated_at'] = NOW;
+            $theVenue['updated_by'] = Yii::$app->user->id;
+            $theVenue['status'] = 'draft';
+            if ($theVenue->save()) {
+                Yii::$app->db
+                    ->createCommand()->insert('at_search', [
+                        'rtype'=>'venue',
+                        'rid'=>$theVenue->id,
+                        'search'=>str_replace('-', '', \fURL::makeFriendly($theVenue->name, '-')),
+                        'found'=>$theVenue->name.', '.$theVenue->destination->name_en,
+                    ])
+                    ->execute();
+                return $this->redirect('@web/venues/u/'.$theVenue['id']);
+            }
+        }
+
+        return $this->render('venue_c', [
+            'theVenue'=>$theVenue,
+            'destinationList'=>$destinationList,
+        ]);
+    }
+
+    public function actionC_old()
+    {
+        if (!in_array(USER_ID, [1, 8, 9198])) {
+            throw new HttpException(403, 'Chức năng đang tạm bị hạn chế. Liên hệ Mr Huân để biết thêm chi tiết.');
+        }
+        $theVenue = new Venue;
+        $theVenue->scenario = 'venues_c';
+
+        $destinationList = Destination::find()
+            ->select(['id', 'name_en', 'country_code'])
+            ->asArray()
+            ->all();
+
+        if ($theVenue->load(Yii::$app->request->post())) {
+            $theVenue['created_at'] = NOW;
+            $theVenue['created_by'] = Yii::$app->user->id;
+            $theVenue['updated_at'] = NOW;
+            $theVenue['updated_by'] = Yii::$app->user->id;
+            $theVenue['status'] = 'draft';
+            if ($theVenue->save()) {
+                Yii::$app->db
+                    ->createCommand()->insert('at_search', [
+                        'rtype'=>'venue',
+                        'rid'=>$theVenue->id,
+                        'search'=>str_replace('-', '', \fURL::makeFriendly($theVenue->name, '-')),
+                        'found'=>$theVenue->name.', '.$theVenue->destination->name_en,
+                    ])
+                    ->execute();
+                return $this->redirect('@web/venues/u/'.$theVenue['id']);
+            }
+        }
+
+        return $this->render('venue_c', [
+            'theVenue'=>$theVenue,
+            'destinationList'=>$destinationList,
+        ]);
+    }
+
+    public function actionInfo($id = 0)
+    {
+        return $this->redirect('@web/venues/r/'.$id);
+    }
+
+
 
     // public function actionR_old($id = 0)
     // {
@@ -2344,7 +2515,7 @@ class VenueController extends MyController
         }
         return $dt;
     }
-    public function actionPrice_table($venue_id = 0, $date = NOW)
+    public function actionPriceTable($venue_id = 0, $date = NOW)//IS MY FUNCTION
     {
         if (Yii::$app->request->isAjax) {
 
@@ -2362,7 +2533,7 @@ class VenueController extends MyController
     /*
      * Update venue info
      */
-    public function actionU($id = 0) {
+    public function actionU_old($id = 0) {
         if (!in_array(USER_ID, [1, 8, 9198, 28722, 34718, 29739])) {
             throw new HttpException(403, 'Access denied');
         }
@@ -2518,7 +2689,6 @@ class VenueController extends MyController
         ];
 
         $newTags = explode(';|', $theVenue->new_tags);
-
         foreach ($newTags as $newTag) {
             if (substr($newTag, 0, 6) == 'new_o_') {
                 $theVenue->new_o = substr($newTag, 6);
@@ -2709,6 +2879,688 @@ class VenueController extends MyController
         Yii::$app->session->set('ckfinder_resource_name', 'files');
 
         return $this->render('venue_u', [
+            'theVenue'=>$theVenue,
+            'destinationList'=>$destinationList,
+            'supplierList'=>$supplierList,
+        ]);
+    }
+    /*
+     * Update venue info
+     */
+    public function actionU($id = 0) {
+        if (!in_array(USER_ID, [1, 8, 9198, 28722, 34718, 29739, 29013])) {
+            throw new HttpException(403, 'Access denied');
+        }
+
+        $theVenue = Venue::findOne($id);
+        if (!$theVenue) {
+            throw new HttpException(404, 'Venue not found');
+        }
+
+        $theVenue->scenario = 'venue/u';
+
+        if (substr($theVenue['info'], 0, 1) != '<') {
+            $theVenue['info'] = \yii\helpers\Markdown::process($theVenue['info']);
+        }
+
+        // 2018-05-28
+        $venueClassiList = [
+            '1_bud'=>Yii::t('xx', 'Budget'),
+            '1_sta'=>Yii::t('x', 'Standard'),
+            '1_sup'=>Yii::t('x', 'Superior'),
+            '1_del'=>Yii::t('x', 'Deluxe'),
+            '1_lux'=>Yii::t('x', 'Luxury'),
+        ];
+
+        $venueArchiList = [
+            '2_01'=>Yii::t('x', 'Small building'),
+            '2_02'=>Yii::t('x', 'Big building'),
+            '2_03'=>Yii::t('x', 'Colonial style'),
+            '2_04'=>Yii::t('x', 'Traditional house'),
+            '2_05'=>Yii::t('x', 'Bungalows'),
+            '2_06'=>Yii::t('x', 'Atypical'),
+        ];
+
+        $venueTypeList = [
+            '3_01'=>Yii::t('x', 'Hotel'),
+            '3_02'=>Yii::t('x', 'Apartment'),
+            '3_03'=>Yii::t('x', 'Villa'),
+            '3_04'=>Yii::t('x', 'Guesthouse'),
+            '3_05'=>Yii::t('x', 'Farm stay'),
+            '3_06'=>Yii::t('x', 'Resort'),
+            '3_07'=>Yii::t('x', 'Campsite'),
+            '3_08'=>Yii::t('x', 'Hostel'),
+            '3_09'=>Yii::t('x', 'Homestay'),
+            '3_10'=>Yii::t('x', 'Motel'),
+            '3_11'=>Yii::t('x', 'Lodge'),
+        ];
+
+        $venueStyleList = [
+            '4_01'=>Yii::t('x', 'Charming'),
+            '4_02'=>Yii::t('x', 'Boutique'),
+            '4_03'=>Yii::t('x', 'Character'),
+            '4_04'=>Yii::t('x', 'International'),
+        ];
+
+        $venueFaciList = [
+            '5_01'=>Yii::t('x', 'Lift'),
+            '5_02'=>Yii::t('x', 'Indoor swimming pool'),
+            '5_03'=>Yii::t('x', 'Outdoor swimming pool'),
+            '5_04'=>Yii::t('x', 'Kid’s pool'),
+            '5_05'=>Yii::t('x', 'Garden'),
+            '5_06'=>Yii::t('x', 'Private beach'),
+            '5_07'=>Yii::t('x', 'Spa'),
+            // '5_08'=>Yii::t('x', 'Massage sauna'),
+            '5_09'=>Yii::t('x', 'Bicycle or motorbike'),
+            '5_10'=>Yii::t('x', 'Restaurant to recommend'),
+            '5_11'=>Yii::t('x', 'Breakfast international buffet'),
+            '5_12'=>Yii::t('x', 'Gym/ Fitness centre'),
+            // '5_13'=>Yii::t('x', 'Conference room'),
+            '5_14'=>Yii::t('x', 'Meeting/ banquet facilities'),
+            '5_15'=>Yii::t('x', 'Disabled facilities'),
+            // '5_16'=>Yii::t('x', 'Eco-responsible approach'),
+            '5_17'=>Yii::t('x', 'Room service'),
+            '5_18'=>Yii::t('x', 'Free wifi outside'),
+            '5_19'=>Yii::t('x', 'Airport shuttle'),
+            '5_20'=>Yii::t('x', 'Laundry service'),
+            '5_21'=>Yii::t('x', 'Terrace'),
+            '5_22'=>Yii::t('x', 'Balcony'),
+            '5_23'=>Yii::t('x', 'Pet allowed'),
+            '5_24'=>Yii::t('x', 'Non-smoking room'),
+            '5_25'=>Yii::t('x', 'Family rooms'),
+            '5_26'=>Yii::t('x', 'Baby cot'),
+            '5_27'=>Yii::t('x', 'Air conditioning'),
+            '5_28'=>Yii::t('x', 'Bath tub'),
+            '5_30'=>Yii::t('x', 'Internet computers'),
+            '5_31'=>Yii::t('x', 'Coffee and tea facilities'),
+            '5_32'=>Yii::t('x', 'Electric kettle'),
+            '5_33'=>Yii::t('x', 'Iron'),
+            '5_34'=>Yii::t('x', 'Hair dresser'),
+            '5_35'=>Yii::t('x', 'Electric fan'),
+            '5_36'=>Yii::t('x', 'Refrigerator'),
+            '5_37'=>Yii::t('x', 'Massage'),
+            '5_38'=>Yii::t('x', 'Sauna'),
+            '5_40'=>Yii::t('x', 'French'),
+            '5_41'=>Yii::t('x', 'English'),
+            '5_42'=>Yii::t('x', 'Telephone'),
+            '5_43'=>Yii::t('x', 'TV'),
+            // '5_44'=>Yii::t('x', 'Airport drop off'),
+            // '5_45'=>Yii::t('x', 'Airport pick up'),
+            // '5_46'=>Yii::t('x', 'Children’s playground'),
+            '5_47'=>Yii::t('x', 'BBQ facilities'),
+            '5_50'=>Yii::t('x', 'Babysitter upon request'),
+
+            //bo sung 28/6
+            '5_48'=>Yii::t('x', 'German'),
+            '5_51'=>Yii::t('x', 'Restaurant'),
+            '5_52'=>Yii::t('x', 'Business Centre'),
+            '5_53'=>Yii::t('x', '24h reception'),
+            '5_54'=>Yii::t('x', 'Parking'),
+            '5_55'=>Yii::t('x', 'Car hire'),
+            '5_56'=>Yii::t('x', 'Library'),
+            // '5_57'=>Yii::t('x', 'Transportation'),
+            '5_58'=>Yii::t('x', 'Beauty salon'),
+            '5_59'=>Yii::t('x', 'Deck chair'),
+            '5_60'=>Yii::t('x', 'Desk'),
+            '5_61'=>Yii::t('x', 'Electronic safe'),
+            // '5_62'=>Yii::t('x', 'Fitness/spa locker rooms'),
+            '5_63'=>Yii::t('x', 'Yoga classes'),
+            '5_64'=>Yii::t('x', 'kid\'s menu'),
+            '5_65'=>Yii::t('x', 'Wheelchair access'),
+            '5_66'=>Yii::t('x', 'Mid-height light switches and power outlets'),
+            '5_67'=>Yii::t('x', 'Raised toilet'),
+            '5_68'=>Yii::t('x', 'Meeting room'),
+            '5_69'=>Yii::t('x', 'Free wifi in room'),
+            '5_70'=>Yii::t('x', 'Satellite TV'),
+            '5_71'=>Yii::t('x', 'TV channels'),
+            '5_72'=>Yii::t('x', 'Play ground'),
+
+            '5_73'=>Yii::t('x', 'Connecting room'),
+            '5_74'=>Yii::t('x', 'Triple room'),
+        ];
+
+        asort($venueFaciList);
+
+        $venueReccList = [
+            '6_01'=>Yii::t('x', 'Couple'),
+            '6_02'=>Yii::t('x', 'Family'),
+            '6_03'=>Yii::t('x', 'Group'),
+            '6_04'=>Yii::t('x', 'Honeymoon'),
+            '6_05'=>Yii::t('x', 'Demanding travelers'),
+            '6_06'=>Yii::t('x', 'Old people'),
+            '6_07'=>Yii::t('x', 'Young people'),
+        ];
+
+        $venueStraRecList = [
+            'sr_s'=>Yii::t('x', 'Strategic to Amica'),
+            'sr_r'=>Yii::t('x', 'Recommended by Amica'),
+        ];
+
+        $venueStarList = [
+            's_1s'=>Yii::t('x', '1 star'),
+            's_2s'=>Yii::t('x', '2 stars'),
+            's_3s'=>Yii::t('x', '3 stars'),
+            's_4s'=>Yii::t('x', '4 stars'),
+            's_5s'=>Yii::t('x', '5 stars'),
+        ];
+
+        $newTags = explode(';|', $theVenue->new_tags);
+
+        foreach ($newTags as $newTag) {
+            if (substr($newTag, 0, 6) == 'new_o_') {
+                $theVenue->new_o = substr($newTag, 6);
+            }
+            if (substr($newTag, 0, 6) == 'new_p_') {
+                $theVenue->new_p = substr($newTag, 6);
+            }
+            if ($newTag == 'c_amica') {
+                $theVenue->c_amica = 'yes';
+            }
+        }
+
+        foreach ($newTags as $newTag) {
+            if (substr($newTag, 0, 7) == 'vdista_') {
+                $theVenue->vdista = (int)substr($newTag, 7);
+            }
+            if (substr($newTag, 0, 7) == 'vdistb_') {
+                $theVenue->vdistb = (int)substr($newTag, 7);
+            }
+            if (substr($newTag, 0, 7) == 'vdistc_') {
+                $theVenue->vdistc = (int)substr($newTag, 7);
+            }
+        }
+
+        foreach ($venueStraRecList as $code=>$stra) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vstr = $code;
+                break;
+            }
+        }
+
+        foreach ($venueStarList as $code=>$star) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vstar = $code;
+                break;
+            }
+        }
+
+        foreach ($venueClassiList as $code=>$class) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vclassi = $code;
+                break;
+            }
+        }
+        foreach ($venueArchiList as $code=>$archi) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->varchi = $code;
+                break;
+            }
+        }
+        foreach ($venueTypeList as $code=>$type) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vtype = $code;
+                break;
+            }
+        }
+
+        $theVenue->vstyle = [];
+        foreach ($venueStyleList as $code=>$style) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vstyle[] = $code;
+            }
+        }
+        $theVenue->vfaci = [];
+        foreach ($venueFaciList as $code=>$faci) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vfaci[] = $code;
+            }
+        }
+        $theVenue->vreccfor = [];
+        foreach ($venueReccList as $code=>$recc) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vreccfor[] = $code;
+            }
+        }
+        $theVenue->vpricerange = trim($theVenue->new_pricemin.'-'.$theVenue->new_pricemax, '-');
+        // var_dump($theVenue->new_tags);die;
+        // \fCore::expose($theVenue);
+        // exit;
+
+        if ($theVenue->load(Yii::$app->request->post()) && $theVenue->validate()) {
+            if (isset($_GET['x'])) {
+                \fCore::expose($_POST);
+                exit;
+            }
+
+            $theVenue->updated_at = NOW;
+            $theVenue->updated_by = USER_ID;
+            // Neu link google map, tach LAT LNG ra khoi link
+            // VD https://www.google.com.vn/maps/place/Kh%C3%A1ch+s%E1%BA%A1n+H%E1%BA%A3i+Long+C%C3%A1t+B%C3%A0/@20.7233141,107.0505399,15z/data=!4m2!3m1!1s0x0:0xe0c05a258bce227f?hl=vi&sa=X&ved=0ahUKEwi-i_b8hKnWAhUD2LwKHY2DCAcQ_BIIgQEwCg
+            if (strpos($theVenue['latlng'], 'google') !== false) {
+                $pos1 = strpos($theVenue['latlng'], '/@');
+                if ($pos1 !== false) {
+                    $theVenue['latlng'] = substr($theVenue['latlng'], $pos1 + 2);
+                    $pos2 = strpos($theVenue['latlng'], 'z');
+                    if ($pos2 !== false) {
+                        $theVenue['latlng'] = substr($theVenue['latlng'], 0, $pos2 - 3);
+                    }
+                }
+            }
+            // Ghi nhan images
+            if (strpos($theVenue['images'], ';|') === false) {
+                $img = '';
+                $cnt = 0;
+                preg_match_all('/<img[^>]*?\s+src\s*=\s*"([^"]+)"[^>]*?>/i', $theVenue['images'], $matches);
+                foreach ($matches[1] as $match){
+                    if (
+                        (strpos($match, 'bstatic') !== false && strpos($match, 'images/hotel/') !== false)
+                        || (strpos($match, 'tripadvisor.com') !== false && strpos($match, 'media/photo-s') !== false)
+                        ) {
+                        $cnt ++;
+                        if ($cnt > 1) {
+                            $img .= ';|';
+                        }
+                        echo $match,';|';
+                        $img .= $match;
+                    }
+                }
+                $theVenue['images'] = $img;
+            }
+
+            // if (empty($theVenue->vclassi)) {
+            //     $theVenue->vclassi = ['1_sta'];
+            // }
+            if (empty($theVenue->vstyle)) {
+                $theVenue->vstyle = [];
+            }
+            if (empty($theVenue->vfaci)) {
+                $theVenue->vfaci = [];
+            }
+            if (empty($theVenue->vreccfor)) {
+                $theVenue->vreccfor = [];
+            }
+            if (isset($_POST['add_fee']) && count($_POST['add_fee']) > 0) {
+                $add_fee = $_POST['add_fee'];
+                foreach ($theVenue->vfaci as $k_faci => $faci) {
+                    if (in_array($faci, $add_fee)) {
+                        $theVenue->vfaci[$k_faci] .= '_';
+                    }
+                }
+            }
+
+            $newTags = ['new_o_'.$theVenue->new_o, 'new_p_'.$theVenue->new_p, $theVenue->vstr, $theVenue->vstar, $theVenue->varchi, $theVenue->vtype, $theVenue->vclassi, 'vdistc_'.$theVenue->vdistc, 'vdistb_'.$theVenue->vdistb, 'vdista_'.$theVenue->vdista];
+
+            $newTags = array_merge($newTags, $theVenue->vstyle, $theVenue->vfaci, $theVenue->vreccfor);
+            // var_dump($newTags);die;
+            $theVenue->new_tags = implode(';|', $newTags);
+
+            if ($theVenue->c_amica == 'yes') {
+                $theVenue->new_tags .= ';|c_amica';
+            }
+
+            // Min - Max price
+            $prices = explode('-', $theVenue->vpricerange);
+            $theVenue->new_pricemin = (int)$prices[0];
+            if (isset($prices[1]) && (int)$prices[1] > $theVenue->new_pricemin) {
+                $theVenue->new_pricemax = (int)$prices[1];
+            } else {
+                $theVenue->new_pricemax = $theVenue->new_pricemin;
+            }
+
+            if ($theVenue->save(false)) {
+                Yii::$app->db
+                    ->createCommand()->update('at_search', [
+                        'search'=>str_replace('-', '', \fURL::makeFriendly($theVenue->name, '-')),
+                        'found'=>$theVenue->name.', '.$theVenue->destination->name_en,
+                    ], [
+                        'rtype'=>'venue',
+                        'rid'=>$theVenue->id,
+                    ])
+                    ->execute();
+
+                return $this->redirect('@web/venues/r/'.$theVenue['id']);
+            }
+        }
+
+        $destinationList = Destination::find()
+            ->select(['id', 'name_en', 'country_code'])
+            ->asArray()
+            ->all();
+
+        $supplierList = Supplier::find()
+            ->select(['id', 'name'])
+            ->orderBy('name')
+            ->asArray()
+            ->all();
+
+        $folderPath = '/upload/venues/'.substr($theVenue['created_at'], 0, 7).'/'.$theVenue['id'];
+        FileHelper::createDirectory(Yii::getAlias('@webroot').$folderPath);
+        Yii::$app->session->set('ckfinder_authorized', true);
+        Yii::$app->session->set('ckfinder_base_url', Yii::getAlias('@www').$folderPath);
+        Yii::$app->session->set('ckfinder_base_dir', Yii::getAlias('@webroot').$folderPath);
+        Yii::$app->session->set('ckfinder_role', 'user');
+        Yii::$app->session->set('ckfinder_thumbs_dir', 'venues/'.substr($theVenue['created_at'], 0, 7).'/'.$theVenue['id']);
+        Yii::$app->session->set('ckfinder_resource_name', 'files');
+
+        return $this->render('venue_u', [
+            'theVenue'=>$theVenue,
+            'destinationList'=>$destinationList,
+            'supplierList'=>$supplierList,
+        ]);
+    }
+    public function actionUCruise($id = 0) {
+        if (!in_array(USER_ID, [1, 8, 9198, 28722, 34718, 29739, 29013])) {
+            throw new HttpException(403, 'Access denied');
+        }
+
+        $theVenue = Venue::findOne($id);
+        if (!$theVenue) {
+            throw new HttpException(404, 'Venue not found');
+        }
+
+        $theVenue->scenario = 'venue/u-cruise';
+
+        if (substr($theVenue['info'], 0, 1) != '<') {
+            $theVenue['info'] = \yii\helpers\Markdown::process($theVenue['info']);
+        }
+
+        // 2018-05-28
+        $venueClassiList = [
+            '1_bud'=>Yii::t('xx', 'Budget'),
+            '1_sta'=>Yii::t('x', 'Standard'),
+            '1_sup'=>Yii::t('x', 'Superior'),
+            '1_del'=>Yii::t('x', 'Deluxe'),
+            '1_lux'=>Yii::t('x', 'Luxury'),
+        ];
+
+        $venueTypeList = [
+            '3_01'=>Yii::t('x', 'Hotel'),
+            '3_02'=>Yii::t('x', 'Apartment'),
+            '3_03'=>Yii::t('x', 'Villa'),
+            '3_04'=>Yii::t('x', 'Guesthouse'),
+            '3_05'=>Yii::t('x', 'Farm stay'),
+            '3_06'=>Yii::t('x', 'Resort'),
+            '3_07'=>Yii::t('x', 'Campsite'),
+            '3_08'=>Yii::t('x', 'Hostel'),
+            '3_09'=>Yii::t('x', 'Homestay'),
+            '3_10'=>Yii::t('x', 'Motel'),
+            '3_11'=>Yii::t('x', 'Lodge'),
+        ];
+        $venueItinerary = [
+            'day'=>'Day use',
+            '2D1N'=>'2D1N',
+            '3D2N'=>'3D2N',
+            'other'=>'other',
+        ];
+        $venueReccList = [
+            '6_01'=>Yii::t('x', 'Couple'),
+            '6_02'=>Yii::t('x', 'Family with kids'),
+            '6_03'=>Yii::t('x', 'Group'),
+            '6_04'=>Yii::t('x', 'Honeymoon'),
+            '6_05'=>Yii::t('x', 'Demanding travelers'),
+            '6_06'=>Yii::t('x', 'Old people'),
+            '6_07'=>Yii::t('x', 'Young people'),
+            '6_08'=>Yii::t('x', 'Family with teens'),
+        ];
+        $venueServiceList_include_price = [
+            //include price
+            '5_1_01'=>Yii::t('x', 'Air conditioner'),
+            '5_1_02'=>Yii::t('x', 'Bathtub'),
+            '5_1_03'=>Yii::t('x', 'Breakfast'),
+            '5_1_04'=>Yii::t('x', 'Brunch'),
+            '5_1_05'=>Yii::t('x', 'Complimentary mineral water'),
+            '5_1_06'=>Yii::t('x', 'Cooking class'),
+            '5_1_07'=>Yii::t('x', 'Dinner'),
+            '5_1_08'=>Yii::t('x', 'Doulbe room'),
+            '5_1_09'=>Yii::t('x', 'English speaking guide on board'),
+            '5_1_10'=>Yii::t('x', 'Entrance fees as itinerary'),
+            '5_1_11'=>Yii::t('x', 'Family room'),
+            '5_1_12'=>Yii::t('x', 'Fruit or drink'),
+            '5_1_13'=>Yii::t('x', 'Gym / Fitness central'),
+            '5_1_14'=>Yii::t('x', 'Hair dryer'),
+            '5_1_15'=>Yii::t('x', 'LED TV'),
+            '5_1_16'=>Yii::t('x', 'Life jacket'),
+            '5_1_17'=>Yii::t('x', 'Lunch'),
+            '5_1_18'=>Yii::t('x', 'private toilet'),
+            '5_1_19'=>Yii::t('x', 'Room with balcony'),
+            '5_1_20'=>Yii::t('x', 'Safety box'),
+            '5_1_21'=>Yii::t('x', 'Shower'),
+            '5_1_22'=>Yii::t('x', 'Shuttle bus'),
+            '5_1_23'=>Yii::t('x', 'Sundeck'),
+            '5_1_24'=>Yii::t('x', 'Tai chi'),
+            '5_1_25'=>Yii::t('x', 'Twin room'),
+            '5_1_26'=>Yii::t('x', 'Wifi'),
+        ];
+
+        asort($venueServiceList_include_price);
+        $venueServiceList_extra_charge = [
+            // Extra charge
+            '5_2_01'=>Yii::t('x', 'Breakfast'),
+            '5_2_02'=>Yii::t('x', 'Casino'),
+            '5_2_03'=>Yii::t('x', 'Dinner'),
+            '5_2_04'=>Yii::t('x', 'English speaking guide on board'),
+            '5_2_05'=>Yii::t('x', 'Entrance fees as itinerary'),
+            '5_2_06'=>Yii::t('x', 'Family room'),
+            '5_2_07'=>Yii::t('x', 'French speaking guide on board'),
+            '5_2_08'=>Yii::t('x', 'Fruit or drink'),
+            '5_2_09'=>Yii::t('x', 'Gym / Fitness central'),
+            '5_2_10'=>Yii::t('x', 'Brunch'),
+            '5_2_11'=>Yii::t('x', 'Laundry'),
+            '5_2_12'=>Yii::t('x', 'Lunch'),
+            '5_2_13'=>Yii::t('x', 'Safety box'),
+            '5_2_14'=>Yii::t('x', 'Salon'),
+            '5_2_15'=>Yii::t('x', 'Shop'),
+            '5_2_16'=>Yii::t('x', 'Spa and massage serices'),
+            '5_2_17'=>Yii::t('x', 'Sundeck'),
+            '5_2_18'=>Yii::t('x', 'Tai chi'),
+            '5_2_19'=>Yii::t('x', 'Transportation to the deck'),
+            '5_2_20'=>Yii::t('x', 'Twin room'),
+            '5_2_21'=>Yii::t('x', 'WifiLunch'),
+            '5_2_22'=>Yii::t('x', 'Cooking class'),
+            '5_2_23'=>Yii::t('x', 'Other activities'),
+        ];
+
+        asort($venueServiceList_extra_charge);
+
+
+        $newTags = explode(';|', $theVenue->new_tags);
+
+
+        foreach ($newTags as $newTag) {
+            if (substr($newTag, 0, 6) == 'new_o_') {
+                $theVenue->new_o = substr($newTag, 6);
+            }
+            if (substr($newTag, 0, 6) == 'new_p_') {
+                $theVenue->new_p = substr($newTag, 6);
+            }
+            if (strpos($newTag, 'vship_profile_') !== false) {
+                $theVenue->vship_profile = str_replace('vship_profile_', '', $newTag);
+            }
+            if (strpos($newTag, 'vnote_itinerary_') !== false) {
+                $theVenue->vnote_itinerary = str_replace('vnote_itinerary_', '', $newTag);
+            }
+            if (strpos($newTag, 'contact_expried_') !== false) {
+                $theVenue->contact_expried = str_replace('contact_expried_', '', $newTag);
+            }
+            if (strpos($newTag, 'vdepart_from') !== false) {
+                $theVenue->vdepart_from = str_replace('vdepart_from_', '', $newTag);
+            }
+            if (strpos($newTag, 'vcheck_in') !== false) {
+                $theVenue->vcheck_in = str_replace('vcheck_in_', '', $newTag);
+            }
+            if (strpos($newTag, 'vcheck_out') !== false) {
+                $theVenue->vcheck_out = str_replace('vcheck_out_', '', $newTag);
+            }
+            if ($newTag == 'c_amica') {
+                $theVenue->c_amica = 'yes';
+            }
+        }
+
+        foreach ($venueClassiList as $code=>$class) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vclassi = $code;
+                break;
+            }
+        }
+        foreach ($venueTypeList as $code=>$type) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vtype = $code;
+                break;
+            }
+        }
+        $theVenue->vitinerary = [];
+        foreach ($venueItinerary as $code=>$type) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vitinerary[] = $code;
+            }
+        }
+        $theVenue->vservice_include_price = [];
+        foreach ($venueServiceList_include_price as $code => $service) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vservice_include_price[] = $code;
+            }
+        }
+        $theVenue->vservice_extra_charge = [];
+        foreach ($venueServiceList_extra_charge as $code => $service) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vservice_extra_charge[] = $code;
+            }
+        }
+        $theVenue->vreccfor = [];
+        foreach ($venueReccList as $code=>$recc) {
+            if (strpos($theVenue->new_tags, $code) !== false) {
+                $theVenue->vreccfor[] = $code;
+            }
+        }
+        $theVenue->vpricerange = trim($theVenue->new_pricemin.'-'.$theVenue->new_pricemax, '-');
+        // \fCore::expose($theVenue);
+        // exit;
+        if ($theVenue->load(Yii::$app->request->post()) && $theVenue->validate()) {
+            if (isset($_GET['x'])) {
+                \fCore::expose($_POST);
+                exit;
+            }
+            $theVenue->scenario = 'venues/u-cruise';
+            $theVenue->updated_at = NOW;
+            $theVenue->updated_by = USER_ID;
+            // Neu link google map, tach LAT LNG ra khoi link
+            // VD https://www.google.com.vn/maps/place/Kh%C3%A1ch+s%E1%BA%A1n+H%E1%BA%A3i+Long+C%C3%A1t+B%C3%A0/@20.7233141,107.0505399,15z/data=!4m2!3m1!1s0x0:0xe0c05a258bce227f?hl=vi&sa=X&ved=0ahUKEwi-i_b8hKnWAhUD2LwKHY2DCAcQ_BIIgQEwCg
+            if (strpos($theVenue['latlng'], 'google') !== false) {
+                $pos1 = strpos($theVenue['latlng'], '/@');
+                if ($pos1 !== false) {
+                    $theVenue['latlng'] = substr($theVenue['latlng'], $pos1 + 2);
+                    $pos2 = strpos($theVenue['latlng'], 'z');
+                    if ($pos2 !== false) {
+                        $theVenue['latlng'] = substr($theVenue['latlng'], 0, $pos2 - 3);
+                    }
+                }
+            }
+            // Ghi nhan images
+            if (strpos($theVenue['images'], ';|') === false) {
+                $img = '';
+                $cnt = 0;
+                preg_match_all('/<img[^>]*?\s+src\s*=\s*"([^"]+)"[^>]*?>/i', $theVenue['images'], $matches);
+                foreach ($matches[1] as $match){
+                    if (
+                        (strpos($match, 'bstatic') !== false && strpos($match, 'images/hotel/') !== false)
+                        || (strpos($match, 'tripadvisor.com') !== false && strpos($match, 'media/photo-s') !== false)
+                        ) {
+                        $cnt ++;
+                        if ($cnt > 1) {
+                            $img .= ';|';
+                        }
+                        echo $match,';|';
+                        $img .= $match;
+                    }
+                }
+                $theVenue['images'] = $img;
+            }
+
+            if (empty($theVenue->vitinerary)) {
+                $theVenue->vitinerary = [];
+            }
+            if (empty($theVenue->vservice_include_price)) {
+                $theVenue->vservice_include_price = [];
+            }
+            if (empty($theVenue->vservice_extra_charge)) {
+                $theVenue->vservice_extra_charge = [];
+            }
+            if (empty($theVenue->vreccfor)) {
+                $theVenue->vreccfor = [];
+            }
+
+            $newTags = ['new_o_'.$theVenue->new_o, 'new_p_'.$theVenue->new_p, $theVenue->vtype, $theVenue->vclassi];
+            if ($theVenue->contact_expried != '') {
+                $newTags[] = 'contact_expried_'. $theVenue->contact_expried;
+            }
+            if ($theVenue->vship_profile != '') {
+                $newTags[] = 'vship_profile_'. $theVenue->vship_profile;
+            }
+            if ($theVenue->vitinerary != '') {
+                $newTags[] = 'vnote_itinerary_'. $theVenue->vnote_itinerary;
+            }
+            if ($theVenue->vdepart_from != '') {
+                $newTags[] = 'vdepart_from_'. $theVenue->vdepart_from;
+            }
+            if ($theVenue->vcheck_in != '') {
+                $newTags[] = 'vcheck_in_'. $theVenue->vcheck_in;
+            }
+            if ($theVenue->vcheck_out != '') {
+                $newTags[] = 'vcheck_out_'. $theVenue->vcheck_out;
+            }
+            $newTags = array_merge($newTags, $theVenue->vitinerary, $theVenue->vservice_include_price, $theVenue->vservice_extra_charge, $theVenue->vreccfor);
+
+            $theVenue->new_tags = implode(';|', $newTags);
+
+            if ($theVenue->c_amica == 'yes') {
+                $theVenue->new_tags .= ';|c_amica';
+            }
+
+            // Min - Max price
+            $prices = explode('-', $theVenue->vpricerange);
+            $theVenue->new_pricemin = (int)$prices[0];
+            if (isset($prices[1]) && (int)$prices[1] > $theVenue->new_pricemin) {
+                $theVenue->new_pricemax = (int)$prices[1];
+            } else {
+                $theVenue->new_pricemax = $theVenue->new_pricemin;
+            }
+
+            if ($theVenue->save(false)) {
+                Yii::$app->db
+                    ->createCommand()->update('at_search', [
+                        'search'=>str_replace('-', '', \fURL::makeFriendly($theVenue->name, '-')),
+                        'found'=>$theVenue->name.', '.$theVenue->destination->name_en,
+                    ], [
+                        'rtype'=>'venue',
+                        'rid'=>$theVenue->id,
+                    ])
+                    ->execute();
+
+                return $this->redirect('@web/venues/r/'.$theVenue['id']);
+            }
+        }
+
+        $destinationList = Destination::find()
+            ->select(['id', 'name_en', 'country_code'])
+            ->asArray()
+            ->all();
+
+        $supplierList = Supplier::find()
+            ->select(['id', 'name'])
+            ->orderBy('name')
+            ->asArray()
+            ->all();
+
+        $folderPath = '/upload/venues/'.substr($theVenue['created_at'], 0, 7).'/'.$theVenue['id'];
+        FileHelper::createDirectory(Yii::getAlias('@webroot').$folderPath);
+        Yii::$app->session->set('ckfinder_authorized', true);
+        Yii::$app->session->set('ckfinder_base_url', Yii::getAlias('@www').$folderPath);
+        Yii::$app->session->set('ckfinder_base_dir', Yii::getAlias('@webroot').$folderPath);
+        Yii::$app->session->set('ckfinder_role', 'user');
+        Yii::$app->session->set('ckfinder_thumbs_dir', 'venues/'.substr($theVenue['created_at'], 0, 7).'/'.$theVenue['id']);
+        Yii::$app->session->set('ckfinder_resource_name', 'files');
+
+        return $this->render('venue_u_cruise', [
             'theVenue'=>$theVenue,
             'destinationList'=>$destinationList,
             'supplierList'=>$supplierList,

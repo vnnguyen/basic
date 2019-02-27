@@ -1,11 +1,10 @@
-<?
+<?php
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\widgets\ActiveForm;
 
 require_once('/var/www/vendor/textile/php-textile/Parser.php');
 $parser = new \Netcarver\Textile\Parser();
-
 
 include('_nm_inc.php');
 
@@ -25,10 +24,11 @@ foreach ($files as $k=>$v) {
 }
 
 ?>
-<? $form = ActiveForm::begin(); ?>
+
 <div class="col-md-8">
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <div class="card">
+        <div class="card-body">
+            <?php $form = ActiveForm::begin(); ?>
             <div class="row">
                 <div class="col-md-8"><?= $form->field($theDay, 'title')->label('Name') ?></div>
                 <div class="col-md-4"><?= $form->field($theDay, 'language')->dropdownList($languageList)->label('Language') ?></div>
@@ -43,11 +43,12 @@ foreach ($files as $k=>$v) {
             <?= $form->field($theDay, 'note')->textArea(['rows'=>5])->label('Note') ?>
             <div class="text-right"><?=Html::submitButton(Yii::t('mn', 'Submit'), ['class' => 'btn btn-primary']); ?></div>
         </div>
+        <?php ActiveForm::end(); ?>
     </div>
 </div>
 <div class="col-md-4">
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <div class="card">
+        <div class="card-body">
             <?= $form->field($theDay, 'image')->dropdownList($imageList, ['prompt'=>'( No image )'])->label('Image') ?>
             <div class="mb-1em" id="image-preview">
                 <?
@@ -57,15 +58,17 @@ foreach ($files as $k=>$v) {
                 ?>
             </div>
             <hr>
-            <? if (!$theDay->isNewRecord) { ?>
+            <?php if (!$theDay->isNewRecord) { ?>
             Update: <?= $theDay['updatedBy']['name'] ?> @<?= Yii::$app->formatter->asDate($theDay['updated_dt'], 'php:j/n/Y (l) H:i') ?>
-            <? } ?>
+            <?php } ?>
         </div>
     </div>
 </div>
-<? ActiveForm::end(); ?>
-<?
-$js = <<<TXT
+
+<?php
+Yii::$app->params['page_js'] = '';
+
+$js = <<<'TXT'
 $('#nm-image').change(function(){
     var image = $(this).val();
     $('#image-preview').html('<img src="/upload/devis-days/'+image+'" />');
@@ -82,7 +85,7 @@ $('#nm-body').ckeditor({
     //contentCss:'https://my.amicatravel.com/assets/css/ckeditor_160828.css'
 });
 TXT;
-$this->registerJs($js);
 
-$this->registerJsFile('https://cdn.ckeditor.com/4.5.11/basic/ckeditor.js', ['depends'=>'yii\web\JqueryAsset']);
-$this->registerJsFile('https://cdn.ckeditor.com/4.5.11/basic/adapters/jquery.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJs($js);
+$this->registerJsFile('https://cdn.ckeditor.com/4.10.1/basic/ckeditor.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdn.ckeditor.com/4.10.1/basic/adapters/jquery.js', ['depends'=>'yii\web\JqueryAsset']);

@@ -1,4 +1,4 @@
-<?
+<?php
 use yii\helpers\Html;
 use yii\helpers\Markdown;
 use yii\helpers\HtmlPurifier;
@@ -575,7 +575,7 @@ foreach ($theTour['bookings'] as $booking) {
                                 <? } ?>
                                 <i title="<?= $pax['pp_gender'] ?>" class="fa fa-fw fa-<?= $pax['pp_gender'] ?> color-<?= $pax['data']['pp_gender'] ?>"></i>
                                 <span title="" class="flag-icon flag-icon-<?= $pax['data']['pp_country_code'] ?>"></span>
-                                <?= $pax['contact_id'] == 0 ? $pax['name'] : Html::a($pax['name'], '#@web/users/r/'.$pax['contact_id'], ['title'=>$pax['data']['pp_name'].' / '.$pax['data']['pp_name2']]) ?>
+                                <?= $pax['person_id'] == 0 ? $pax['name'] : Html::a($pax['name'], '#@web/users/r/'.$pax['person_id'], ['title'=>$pax['data']['pp_name'].' / '.$pax['data']['pp_name2']]) ?>
                                 <?
                                 if ($pax['data']['pp_bday'] != 0 && $pax['data']['pp_bmonth'] != 0 && $pax['data']['pp_byear'] != 0) {
                                     $datetime1 = new DateTime($pax['data']['pp_byear'].'-'.$pax['data']['pp_bmonth'].'-'.$pax['data']['pp_bday']);
@@ -640,7 +640,7 @@ foreach ($theTour['bookings'] as $booking) {
             <? } // if not empty feedback ?>
 
             <hr>
-            <p class="text-muted"><i class="fa fa-info-circle"></i> <?= Yii::t('op', 'This tour was updated on') ?> <?= DateTimeHelper::convert($theTour['tour']['uo'], 'j/n/Y H:i') ?> <?= Yii::t('op', 'by') ?> ?. <?= Yii::t('op', 'The timezone of all messages is') ?> <?= $myTimeZone ?></p>
+            <p class="text-muted"><i class="fa fa-info-circle"></i> <?= Yii::t('op', 'This tour was updated on') ?> <?= DateTimeHelper::convert($theTour['tour']['updated_dt'], 'j/n/Y H:i') ?> <?= Yii::t('op', 'by') ?> ?. <?= Yii::t('op', 'The timezone of all messages is') ?> <?= $myTimeZone ?></p>
 
         </div>
     </div>

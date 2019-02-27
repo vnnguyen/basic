@@ -148,57 +148,57 @@ $('#livesearch').on('select2:select', function (evt) {
 });
 //-------------demo polling-----///
     console.log("Connection");
-    var UID = USER_ID;
-    var ntyNum = 0, repeatNtySound = 0;
+    // var UID = USER_ID;
+    // var ntyNum = 0, repeatNtySound = 0;
 
-    $.NotifierLongPolling = (function() {
-        return {
-            onMessage : function(data) {
-                if(ntyNum != data.updatedNotificationNum) {
-                    ntyNum = data.updatedNotificationNum;
-                    repeatNtySound = 0;
-                }
-                if(ntyNum > 0) {
-                    $('#headNotificationNum').data('load_ids', data.ids.join(',')).text(ntyNum).fadeIn('slow', function(){
-                            $(this).show();
-                            if(repeatNtySound == 0) {
-                                playSound('/sound/light');
-                                repeatNtySound ++;
-                            }
-                        });
+    // $.NotifierLongPolling = (function() {
+    //     return {
+    //         onMessage : function(data) {
+    //             if(ntyNum != data.updatedNotificationNum) {
+    //                 ntyNum = data.updatedNotificationNum;
+    //                 repeatNtySound = 0;
+    //             }
+    //             if(ntyNum > 0) {
+    //                 $('#headNotificationNum').data('load_ids', data.ids.join(',')).text(ntyNum).fadeIn('slow', function(){
+    //                         $(this).show();
+    //                         if(repeatNtySound == 0) {
+    //                             playSound('/sound/light');
+    //                             repeatNtySound ++;
+    //                         }
+    //                     });
 
-                }
-                if(!ntyNum> 0) {
-                    $('#headNotificationNum').text(0).hide();
-                }
-                setTimeout($.NotifierLongPolling.send, 2000);
-            },
-            send : function() {
-                $.ajax({
-                        url: '/demo/r_server',
-                        type: 'POST',
-                        dataType: 'json',
-                        data: {
-                            recipientUid: UID,
-                            displayedNotificationNum:
+    //             }
+    //             if(!ntyNum> 0) {
+    //                 $('#headNotificationNum').text(0).hide();
+    //             }
+    //             setTimeout($.NotifierLongPolling.send, 2000);
+    //         },
+    //         send : function() {
+    //             $.ajax({
+    //                     url: '/demo/r_server',
+    //                     type: 'POST',
+    //                     dataType: 'json',
+    //                     data: {
+    //                         recipientUid: UID,
+    //                         displayedNotificationNum:
 
-                             ntyNum                            },
-                        success: function(data) {
-                            $.NotifierLongPolling.onMessage(data);
-                        }
-                });
-            }
-        }
-    }());
-    $(document).ready(function() {
-       setTimeout($.NotifierLongPolling.send, 40);
-    });
-    function playSound(filename){
-        var mp3Source = '<source src="' + filename + '.mp3" type="audio/mpeg">';
-        var oggSource = '<source src="' + filename + '.ogg" type="audio/ogg">';
-        var embedSource = '<embed hidden="true" autostart="true" loop="false" src="' + filename +'.mp3">';
-        document.getElementById("sound").innerHTML='<audio autoplay="autoplay">' + mp3Source + oggSource + embedSource + '</audio>';
-    }
+    //                          ntyNum                            },
+    //                     success: function(data) {
+    //                         $.NotifierLongPolling.onMessage(data);
+    //                     }
+    //             });
+    //         }
+    //     }
+    // }());
+    // $(document).ready(function() {
+    //    setTimeout($.NotifierLongPolling.send, 40);
+    // });
+    // function playSound(filename){
+    //     var mp3Source = '<source src="' + filename + '.mp3" type="audio/mpeg">';
+    //     var oggSource = '<source src="' + filename + '.ogg" type="audio/ogg">';
+    //     var embedSource = '<embed hidden="true" autostart="true" loop="false" src="' + filename +'.mp3">';
+    //     document.getElementById("sound").innerHTML='<audio autoplay="autoplay">' + mp3Source + oggSource + embedSource + '</audio>';
+    // }
 ///----------end sse----------////
 //-------------demo sse-----///
     // (function(){

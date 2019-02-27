@@ -4,12 +4,29 @@
 
 namespace Composer\Autoload;
 
-class ComposerStaticInit00769acd830d2335a71601b999e47928
+class ComposerStaticInit90c2c387c2fc7dc2d6957408e15a5f84
 {
     public static $files = array (
         '2cffec82183ee1cea088009cef9a6fc3' => __DIR__ . '/..' . '/ezyang/htmlpurifier/library/HTMLPurifier.composer.php',
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
         '6124b4c8570aa390c21fafd04a26c69f' => __DIR__ . '/..' . '/myclabs/deep-copy/src/DeepCopy/deep_copy.php',
+        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
+        '9d8e013a5160a09477beb8e44f8ae97b' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/adjoint.php',
+        '6e78d1bdea6248d6aa117229efae50f2' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/antidiagonal.php',
+        '4623d87924d94f5412fe5afbf1cef31d' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/cofactors.php',
+        '901fd1f6950a637ca85f66b701a45e13' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/determinant.php',
+        '83057abc0e4acc99ba80154ee5d02a49' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/diagonal.php',
+        '07b7fd7a434451149b4fd477fca0ce06' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/identity.php',
+        'c8d43b340583e07ae89f2a3baef2cf89' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/inverse.php',
+        '499bb10ed7a3aee2ba4c09a31a85e8d1' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/minors.php',
+        '1cad2e6414d652e8b1c64e8967f6f37d' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/trace.php',
+        '95a7f134ac17161d07def442b3b737e8' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/functions/transpose.php',
+        'b3a6bc628377118d4b4b8ba08d1eb949' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/operations/add.php',
+        '5fef6d0e407f3f8887266dfa4a6c534c' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/operations/directsum.php',
+        '684ba247e1385946e3babdaa054119de' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/operations/subtract.php',
+        'aa53dcba601214d17ad405b7c291b7e8' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/operations/multiply.php',
+        '75c79eb1b25749b05a47976f32b0d8a2' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/operations/divideby.php',
+        '6ab8ad87a734f276a6bcd5a0fe1289be' => __DIR__ . '/..' . '/markbaker/matrix/classes/src/operations/divideinto.php',
         'abede361264e2ae69ec1eee813a101af' => __DIR__ . '/..' . '/markbaker/complex/classes/src/functions/abs.php',
         '21a5860fbef5be28db5ddfbc3cca67c4' => __DIR__ . '/..' . '/markbaker/complex/classes/src/functions/acos.php',
         '1546e3f9d127f2a9bb2d1b6c31c26ef1' => __DIR__ . '/..' . '/markbaker/complex/classes/src/functions/acosh.php',
@@ -52,7 +69,6 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         '883af48563631547925fa4c3b48ead07' => __DIR__ . '/..' . '/markbaker/complex/classes/src/operations/multiply.php',
         'f190e3308e6ca23234a2875edc985c03' => __DIR__ . '/..' . '/markbaker/complex/classes/src/operations/divideby.php',
         'ac9e33ce6841aa5bf5d16d465a2f03a7' => __DIR__ . '/..' . '/markbaker/complex/classes/src/operations/divideinto.php',
-        '2c102faa651ef8ea5874edb585946bce' => __DIR__ . '/..' . '/swiftmailer/swiftmailer/lib/swift_required.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -77,9 +93,9 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
             'yii\\debug\\' => 10,
             'yii\\composer\\' => 13,
             'yii\\bootstrap\\' => 14,
+            'yii\\bootstrap4\\' => 15,
             'yii\\authclient\\' => 15,
             'yii\\' => 4,
-            'yidas\\yii2BowerAsset\\' => 21,
         ),
         'w' => 
         array (
@@ -119,6 +135,7 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         'M' => 
         array (
             'Mpdf\\' => 5,
+            'Matrix\\' => 7,
         ),
         'H' => 
         array (
@@ -207,11 +224,11 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         ),
         'yii\\gii\\' => 
         array (
-            0 => __DIR__ . '/..' . '/yiisoft/yii2-gii',
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-gii/src',
         ),
         'yii\\debug\\' => 
         array (
-            0 => __DIR__ . '/..' . '/yiisoft/yii2-debug',
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-debug/src',
         ),
         'yii\\composer\\' => 
         array (
@@ -219,7 +236,11 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         ),
         'yii\\bootstrap\\' => 
         array (
-            0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap',
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap/src',
+        ),
+        'yii\\bootstrap4\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/yiisoft/yii2-bootstrap4/src',
         ),
         'yii\\authclient\\' => 
         array (
@@ -228,10 +249,6 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         'yii\\' => 
         array (
             0 => __DIR__ . '/..' . '/yiisoft/yii2',
-        ),
-        'yidas\\yii2BowerAsset\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/yidas/yii2-bower-asset',
         ),
         'webzop\\notifications\\' => 
         array (
@@ -292,6 +309,10 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
         'Mpdf\\' => 
         array (
             0 => __DIR__ . '/..' . '/mpdf/mpdf/src',
+        ),
+        'Matrix\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/markbaker/matrix/classes/src',
         ),
         'Hhxsv5\\SSE\\' => 
         array (
@@ -451,10 +472,10 @@ class ComposerStaticInit00769acd830d2335a71601b999e47928
     public static function getInitializer(ClassLoader $loader)
     {
         return \Closure::bind(function () use ($loader) {
-            $loader->prefixLengthsPsr4 = ComposerStaticInit00769acd830d2335a71601b999e47928::$prefixLengthsPsr4;
-            $loader->prefixDirsPsr4 = ComposerStaticInit00769acd830d2335a71601b999e47928::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit00769acd830d2335a71601b999e47928::$prefixesPsr0;
-            $loader->classMap = ComposerStaticInit00769acd830d2335a71601b999e47928::$classMap;
+            $loader->prefixLengthsPsr4 = ComposerStaticInit90c2c387c2fc7dc2d6957408e15a5f84::$prefixLengthsPsr4;
+            $loader->prefixDirsPsr4 = ComposerStaticInit90c2c387c2fc7dc2d6957408e15a5f84::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit90c2c387c2fc7dc2d6957408e15a5f84::$prefixesPsr0;
+            $loader->classMap = ComposerStaticInit90c2c387c2fc7dc2d6957408e15a5f84::$classMap;
 
         }, null, ClassLoader::class);
     }

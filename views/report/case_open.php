@@ -212,23 +212,26 @@ $info = $_GET;
 	</div>
 	<div class="clearfix">	</div>
 	<div class="report_content">
-		<div class="col-md-8">
-			<div id="chart" data-source='<?=$data?>'></div>
-		</div>
-		<div class="col-md-4">
-			<div id="piechart" style="height: 400px"></div>
-		</div>
+        <div class="row">
+            <div class="col-md-8">
+                <div id="chart" data-source='<?=$data?>'></div>
+            </div>
+            <div class="col-md-4">
+                <div id="piechart" style="height: 400px"></div>
+            </div>
+        </div>
+
 		<div class="clearfix"></div>
 		<p><strong>CASE IN MONTH VIEW</strong></p>
-		<ul class="nav nav-tabs mb-1em click_tab" data-tabs="tabs" id="btn-group"> 
+		<ul class="nav nav-tabs mb-1em click_tab" role="tablist" id="btn-group">
 			<? for ($yr = $minYear; $yr <= $maxYear; $yr ++) { ?>
-			<li class="<?= $yr == date('Y') ? 'active' : ''?>"><a data-toggle="tab" href="#year<?= $yr ?>"><?= $yr ?></a></li>
+			<li class="nav-item <?= $yr == date('Y') ? 'show active' : ''?>"><a class="nav-link" data-toggle="tab" href="#year<?= $yr ?>"><?= $yr ?></a></li>
 			<? } ?>
 		</ul>
 
 		<div id="tab-content" class="tab-content">
 			<? for ($yr = $minYear; $yr <= $maxYear; $yr ++) { ?>
-			<div id="year<?= $yr ?>" class="<?= $yr == date('Y') ? 'active' : '' ?> tab-pane">
+			<div id="year<?= $yr ?>" class="tab-pane fade <?= $yr == date('Y') ? 'active' : '' ?>">
 				<table class="table table-bordered table-condensed">
 					<thead>
 						<tr>
@@ -382,7 +385,7 @@ $js = <<<'TXT'
 		  title: 'Total this year ' + y,
 		  colors: ['#1b9e77', '#d95f02', '#53A8FB'],
 		  chartArea:{ width:'85%',height:'65%'},
-		  legend: {position: 'none'} 
+		  legend: {position: 'none'}
 		  // is3D: true
 		};
 		OPTION_CHART3 = options;
@@ -398,7 +401,7 @@ $js = <<<'TXT'
 			  title: 'Total this year ' + $(tab).text(),
 			  colors: ['#1b9e77', '#d95f02', '#53A8FB'],
 			  chartArea:{ width:'85%',height:'65%'},
-			  legend: {position: 'none'} 
+			  legend: {position: 'none'}
 			};
             CHART3.draw(data[y], options);
           }
@@ -406,10 +409,10 @@ $js = <<<'TXT'
 	}
 
 	$('#search_btn').click(function(){
-		if ($('#wrap_search').hasClass('hidden')) {
+		if ($('#wrap_search').hasClass('d-none')) {
 			$('#google-visualization-errors-all-1, #google-visualization-errors-all-3, #google-visualization-errors-all-5').empty();
 			$('#wrap_search').fadeIn(100, function(){
-				$('#wrap_search').removeClass('hidden');
+				$('#wrap_search').removeClass('d-none');
 			});
 			$('.text_search, .report_content').fadeOut(400,function(){
 				$('.text_search, .report_content').hide()
@@ -417,7 +420,7 @@ $js = <<<'TXT'
 			$(this).text('Hide Search Form');
 		} else {
 			$('#wrap_search').slideUp(300, function(){
-				$('#wrap_search').addClass('hidden');
+				$('#wrap_search').addClass('d-none');
 			});
 			$(this).text('Search');
 			$('.text_search, .report_content').fadeIn(400,function(){

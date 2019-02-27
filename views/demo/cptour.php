@@ -59,15 +59,16 @@ $js = <<<TXT
             delay: 250,
             data: function (params) {
                 return {
-                    q: params.term,
+                    search: params.term,
                     page: params.page || 1
                 };
             },
             processResults: function (data, params) {
+                // console.log(data);return false;
                 TERM = params.term;
                 params.page = params.page || 1;
                 return {
-                    results: $.map(data.items, displayItem),
+                    results: $.map(data.suggestions, displayItem),
                     pagination: {
                         more: (params.page * 20) < data.total_count
                     }

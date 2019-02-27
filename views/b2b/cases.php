@@ -157,11 +157,11 @@ Yii::$app->params['page_title'] = 'B2B cases ('.number_format($pages->totalCount
 						<td class="text-nowrap">
 							<?= Html::a($case['company']['name'], '@web/companies/r/'.$case['company_id'], ['rel'=>'external']) ?>
 						</td>
-						<td><?= $case['stats']['pa_destinations'] ?></td>
-						<? if ($case['stats']['pa_destinations'] != '') { ?>
+						<td><?= $case['stats']['req_countries'] ?></td>
+						<? if ($case['stats']['req_countries'] != '') { ?>
 						<td class="text-center"><?= $case['stats']['pa_start_date'] ?></td>
-						<td class="text-center"><?= $case['stats']['pa_days'] ?></td>
-						<td class="text-center"><?= $case['stats']['pa_pax'] ?></td>
+						<td class="text-center"><?= $case['stats']['day_count'] ?></td>
+						<td class="text-center"><?= $case['stats']['pax_count'] ?></td>
 						<? } else { ?>
 						<td colspan="3"  class="text-center"><?= Html::a('Edit request', '@web/cases/request/'.$case['id']) ?></td>
 						<? } ?>

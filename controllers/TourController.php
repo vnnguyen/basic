@@ -35,6 +35,7 @@ use yii\helpers\FileHelper;
 use yii\helpers\Url;
 use yii\web\HttpException;
 use \kartik\mpdf\Pdf;
+use \Mpdf\Mpdf as mPDF;
 
 class TourController extends MyController
 {
@@ -507,8 +508,438 @@ class TourController extends MyController
             'monthList' => $monthList,
         ]);
     }
+    public function actionIndex(
+        $orderby='operated', $time = 'today',
+        $fg = '', $status = '', $op_status = '',
+        $departure = '', $goto = '', $goto_cond = 'all',
+        $daycount = '', $paxcount = '',
+        $name = '', $dayname = '',
+        $seller = '', $operator = '', $cservice = '',
+        $guide = '', $driver = '',
+        $owner = '',
+        $output = 'view'
+    ) {
+        // var_dump($goto);die;
+        // Date range
+        if ($time == 'today') {
+            $dateRange = [date('Y-m-d'), date('Y-m-d')];
+        } elseif ($time == 'tomorrow') {
+            $dateRange = [date('Y-m-d', strtotime('tomorrow')), date('Y-m-d', strtotime('tomorrow'))];
+        } elseif ($time == 'thisweek') {
+            $dateRange = [date('Y-m-d', strtotime('this Sunday')), date('Y-m-d', strtotime('this Saturday'))];
+        } elseif ($time == 'next7days') {
+            $dateRange = [date('Y-m-d'), date('Y-m-d', strtotime('+6 days'))];
+        } elseif ($time == 'next30days') {
+            $dateRange = [date('Y-m-d'), date('Y-m-d', strtotime('+29 days'))];
+        } elseif ($time == 'last30days') {
+            $dateRange = [date('Y-m-d', strtotime('-29 days')), date('Y-m-d')];
+        } elseif (strlen($time) == 10) {
+            $dateRange = [$time, date('Y-m-d', strtotime('+6 days '.$time))];
+        } elseif (strlen($time) == 7) {
+            $dateRange = [$time.'-01', date('Y-m-t', strtotime($time.'-01'))];
+            // \fCore::expose($dateRange);
+        } elseif (strlen($time) == 4) {
+            $dateRange = [$time.'-01-01', $time.'-12-31'];
+        } else {
+            $time = date('Y-m');
+            $dateRange = [date('Y-m-01'), date('Y-m-t')];
+        }
 
-    public function actionIndex($view = 'normal', $orderby = 'startdate', $month = '', $fg = '', $status = '', $seller = 0, $operator = 0, $cservice = 0, $name = '', $dayname = '', $owner = '')
+        $query = Product::find();
+        if ($orderby == 'enddate' || $orderby == 'operated') {
+            $query->select(['id', 'ed'=>new \yii\db\Expression('IF(day_count=0, day_from, (SELECT DATE_ADD(day_from, INTERVAL day_count-1 DAY)))')]);
+        } else {
+            $query->select(['id']);
+        }
+
+        if ($orderby == 'enddate') {
+            $query->andHaving('ed BETWEEN :date1 AND :date2', [':date1'=>$dateRange[0], ':date2'=>$dateRange[1]]);
+            $tourIdList = $query->column();
+        } elseif ($orderby == 'startdate') {
+            $query->andWhere('day_from BETWEEN :date1 AND :date2', [':date1'=>$dateRange[0], ':date2'=>$dateRange[1]]);
+            $tourIdList = $query->column();
+        } elseif ($orderby == 'operated') {
+            $query->andWhere('day_from <=:date2', [':date2'=>$dateRange[1]])
+                ->andHaving('ed>=:date1', [':date1'=>$dateRange[0]]);
+            $tourIdList = $query->column();
+        } else {
+            // Created
+            $dateRange[0] = $dateRange[0].' 00:00:00';
+            $dateRange[1] = $dateRange[1].' 23:59:59';
+            $sql = 'SELECT ct_id FROM at_tours WHERE created_dt BETWEEN :date1 AND :date2 ORDER BY created_dt DESC';
+            $tourIdList = Yii::$app->db->createCommand($sql, [':date1'=>$dateRange[0], ':date2'=>$dateRange[1]])->queryColumn();
+        }
+
+        $tourOldIdList = Tour::find()
+            ->select(['id'])
+            ->where(['ct_id'=>$tourIdList])
+            ->column();
+
+        $sql = 'select b.created_by, u.id, u.nickname AS name, u.image, IF(u.status="on", "Current", "Retired") AS status FROM users u, at_bookings b WHERE u.id=b.created_by ORDER BY u.status, u.lname, u.fname';
+        $allSellers = Yii::$app->db->createCommand($sql)->queryAll();
+        $sql = 'select tu.tour_id, u.id, u.nickname AS name, u.image, IF(u.status="on", "Current", "Retired") AS status FROM users u, at_tour_user tu WHERE u.id=tu.user_id AND tu.role="operator" ORDER BY u.status, u.lname, u.fname';
+        $allOperators = Yii::$app->db->createCommand($sql)->queryAll();
+        $sql = 'select tu.tour_id, u.id, u.nickname AS name, u.image, IF(u.status="on", "Current", "Retired") AS status FROM users u, at_tour_user tu WHERE u.id=tu.user_id AND tu.role="cservice" ORDER BY u.status, u.lname, u.fname';
+        $allCRStaff = Yii::$app->db->createCommand($sql)->queryAll();
+
+        // Sellers
+        if ($seller != '' && !empty($tourIdList)) {
+            $sql = 'SELECT b.product_id FROM at_bookings b WHERE b.status="won" AND b.created_by=:op AND b.product_id IN ('.implode(',', $tourIdList).')';
+            $tourIdList = Yii::$app->db->createCommand($sql, [':op'=>(int)$seller])->queryColumn();
+            $tourOldIdList = Tour::find()
+                ->select(['id'])
+                ->where(['ct_id'=>$tourIdList])
+                ->column();
+        }
+
+        // Operators
+        if ($operator != '' && !empty($tourOldIdList)) {
+            $sql = 'SELECT tu.tour_id FROM at_tour_user tu WHERE tu.user_id=:op AND tu.role="operator" AND tour_id IN ('.implode(',', $tourOldIdList).')';
+            $tourOldIdList = Yii::$app->db->createCommand($sql, [':op'=>(int)$operator])->queryColumn();
+            $tourIdList = Tour::find()
+                ->select(['ct_id'])
+                ->where(['id'=>$tourOldIdList])
+                ->asArray()
+                ->column();
+        }
+
+        // CRStaff
+        if ($cservice != '' && !empty($tourOldIdList)) {
+            if ($cservice == 'no') {
+                $sql = 'SELECT tu.tour_id FROM at_tour_user tu WHERE tu.role="cservice" AND tour_id IN ('.implode(',', $tourOldIdList).')';
+                $tourWithCROldIdList = Yii::$app->db->createCommand($sql)->queryColumn();
+                // if (isset($_GET['xh'])) {
+                // \fCore::expose($tourOldIdList);
+                // \fCore::expose($tourWithCROldIdList);
+                // \fCore::expose(array_diff($tourOldIdList, $tourWithCROldIdList));
+                // exit;
+                $tourOldIdList = array_diff($tourOldIdList, $tourWithCROldIdList);
+            } else {
+                $sql = 'SELECT tu.tour_id FROM at_tour_user tu WHERE tu.user_id=:op AND tu.role="cservice" AND tour_id IN ('.implode(',', $tourOldIdList).')';
+                // $tourWithCROldIdList = Yii::$app->db->createCommand($sql, [':op'=>(int)$cservice])->queryColumn();
+                $tourOldIdList = Yii::$app->db->createCommand($sql, [':op'=>(int)$cservice])->queryColumn();
+            }
+            $tourIdList = Tour::find()
+                ->select(['ct_id'])
+                ->where(['id'=>$tourOldIdList])
+                ->asArray()
+                ->column();
+        }
+
+        // Tour guide
+        // 1 - Search for tour guides with name / phone
+        // 2 - Search for tour IDs with guides
+        // 3 - Limit search with found IDs
+        if ($guide != '') {
+            $sql = 'SELECT c.id FROM contacts c, tourguide_profiles p WHERE p.contact_id=c.id AND LOCATE(:guide, CONCAT_WS(" ", fname, lname, name, phone, email))!=0';
+            $guideIdList = Yii::$app->db->createCommand($sql, [':guide'=>trim($guide)])->queryColumn();
+
+            // \fCore::expose($guideIdList); exit;
+            if (!empty($guideIdList) && !empty($tourIdList)) {
+                // Tim cac tour co trong guideIdList va tourIdList
+                $sql = 'SELECT tour_id FROM at_tour_guides WHERE guide_user_id IN ('.implode(',', $guideIdList).') AND tour_id IN ('.implode(',', $tourIdList).')';
+                $tourIdList = Yii::$app->db->createCommand($sql)->queryColumn();
+            } else {
+                $tourIdList = [0];
+            }
+        }
+
+        // Tour driver
+        // 1 - Search for tour drivers with name / phone
+        // 2 - Search for tour IDs with drivers
+        // 3 - Limit search with found IDs
+        if ($driver != '') {
+            $sql = 'SELECT c.id FROM contacts c, driver_profiles p WHERE p.contact_id=c.id AND LOCATE(:s, CONCAT_WS(" ", fname, lname, name, phone, email))!=0';
+            $driverIdList = Yii::$app->db->createCommand($sql, [':s'=>trim($driver)])->queryColumn();
+
+            if (!empty($driverIdList) && !empty($tourIdList)) {
+                // Tim cac tour co trong guideIdList va tourIdList
+                $sql = 'SELECT tour_id FROM at_tour_drivers WHERE driver_user_id IN ('.implode(',', $driverIdList).') AND tour_id IN ('.implode(',', $tourIdList).')';
+                $tourIdList = Yii::$app->db->createCommand($sql)->queryColumn();
+            } else {
+                $tourIdList = [0];
+            }
+        }
+
+        // Day name
+        if (trim($dayname) != '') {
+            $tourIdList = Day::find()
+                ->select(['rid'])
+                ->distinct()
+                ->where(['like', 'name', $dayname])
+                ->andWhere(['rid'=>$tourIdList])
+                ->asArray()
+                // ->groupBy('rid')
+                ->column();
+        }
+
+        $tourOldIdList = Tour::find()
+            ->select(['id'])
+            ->where(['ct_id'=>$tourIdList])
+            ->column();
+
+        $query = Product::find()
+            ->from('at_ct p')
+            ->joinWith('tourStats s')
+            ->innerJoinWith('tour t')
+            ->where(['p.id'=>$tourIdList]);
+
+
+        if ($orderby == 'enddate' || $orderby == 'operated') {
+            $query->select(['p.*', 'ed'=>new \yii\db\Expression('IF(p.day_count=0, day_from, (SELECT DATE_ADD(day_from, INTERVAL p.day_count-1 DAY)))')]);
+        } else {
+            $query->select(['p.*']);
+        }
+
+        if (strlen(trim($name)) > 2) {
+            $query->andWhere(['like', 'op_name', trim($name)]);
+        }
+
+        if (in_array($fg, ['f', 'g'])) {
+            $query->andWhere('SUBSTRING(op_code,1,1)=:fg', [':fg'=>strtoupper($fg)]);
+        }
+
+        if ($op_status != '' && in_array($op_status, ['op', 'prebooked'])) {
+            $query->andWhere(['op_status' => $op_status]);
+        }
+
+        if (in_array($status, ['active', 'canceled'])) {
+            if ($status == 'active') {
+                $query->andWhere('op_finish!="canceled"');
+            } else {
+                $query->andWhere('op_finish="canceled"');
+            }
+        }
+
+        // Number of days
+        if (trim($daycount) != '') {
+            $dayrange = explode('-', trim($daycount));
+            $daymin = (int)$dayrange[0];
+            $daymax = isset($dayrange[1]) ? (int)$dayrange[1] : $daymin;
+            $query->andWhere('p.day_count>=:min AND p.day_count<=:max', [':min'=>$daymin, ':max'=>$daymax]);
+        }
+
+        // Number of pax
+        if (trim($paxcount) != '') {
+            $paxrange = explode('-', trim($paxcount));
+            $paxmin = (int)$paxrange[0];
+            $paxmax = isset($paxrange[1]) ? (int)$paxrange[1] : $paxmin;
+            $query->andWhere('s.pax_count>=:min AND s.pax_count<=:max', [':min'=>$paxmin, ':max'=>$paxmax]);
+        }
+
+        // Visiting dest
+        if (trim($goto) != '') {
+            $goto_cond = trim($goto_cond);
+            $arr_goto = explode(',', $goto);
+            if ($goto_cond == 'all') {
+                foreach ($arr_goto as $v) {
+                    $v = trim($v);
+                    $query->andWhere('LOCATE(:goto, IF(t.tour_regions!="", t.tour_regions, s.countries))!=0', [':goto'=>$v]);
+                }
+
+            } elseif ($goto_cond == 'any') {
+                foreach ($arr_goto as $v) {
+                    $v = trim($v);
+                    $query->orWhere('LOCATE(:goto, IF(t.tour_regions!="", t.tour_regions, s.countries))!=0', [':goto'=>$v]);
+                }
+            } elseif ($goto_cond == 'none') {
+                foreach ($arr_goto as $v) {
+                    $v = trim($v);
+                    $query->andWhere('LOCATE(:goto, IF(t.tour_regions!="", t.tour_regions, s.countries))=0', [':goto'=>$v]);
+                }
+            } elseif (strpos($goto_cond, 'any') !== false) {
+                $arr_keys = [];
+                $cnt = str_replace('any', '', $goto_cond);
+
+                if (count($arr_goto) < $cnt) {
+                    $cnt = count($arr_goto);
+                }
+                /*
+                tính tổ hợp
+
+                // $total_num = 1;
+                // $n_ = 1;
+                // $k_ = 1;
+                // $n_k_ = 1;
+                // for($j = 1; $j <= count($arr_goto); $j++) {
+                //     $n_ = $n_*$j;
+                // }
+                // for($j = 1; $j <= $cnt; $j++) {
+                //     $k_ = $k_*$j;
+                // }
+                // for($j = 1; $j <= count($arr_goto) - $cnt; $j++) {
+                //     $n_k_ = $n_k_*$j;
+                // }
+                // $total_num = ($n_/($k_ * $n_k_))* $k_;
+
+
+
+                // while (count($arr_keys) < $total_num) {
+                //     $arr_cnt = [];
+                //     while(count($arr_cnt) < $cnt) {
+                //         $key = rand(0, count($arr_goto)-1);
+                //         $arr_cnt[] = $arr_goto[$key];
+                //         $arr_cnt = array_unique($arr_cnt);
+                //     }
+                //     $arr_keys[] = implode(',', $arr_cnt);
+                //     $arr_keys = array_unique($arr_keys);
+                // }
+                */
+                $arr_keys = $this->uniqueCombination($arr_goto, $cnt, $cnt);
+                foreach ($arr_keys as $v) {
+                    $conds = [];
+                    $params = [];
+                    $cnt = 1;
+                    foreach ($v as $v1) {
+                        $conds[] = 'LOCATE(:goto' . $cnt . ', IF(t.tour_regions!="", t.tour_regions, s.countries))!=0';
+                        $params[':goto'.$cnt] = $v1;
+                        $cnt ++;
+                    }
+                    $cond = '';
+                    $query->orWhere(implode(' AND ', $conds), $params);
+                }
+            }
+        }
+
+
+
+        // Region of departure
+        if (trim($departure) != '') {
+            $query->andWhere('LOCATE(:r, SUBSTRING_INDEX(tour_regions, "|", 1))!=0', [':r'=>$departure]);
+        }
+
+        $theTours = $query
+            ->orderBy($orderby == 'enddate' ? 'ed' : ($orderby == 'startdate' || $orderby == 'operated' ? 'day_from' : 't.created_dt DESC'))
+            ->with([
+                'tour'=>function($q) {
+                    return $q->select(['id', 'ct_id', 'code', 'name', 'status', 'owner', 'created_dt']);
+                },
+                'updatedBy'=>function($q) {
+                    return $q->select(['id', 'name'=>'nickname', 'image']);
+                },
+                'tourStats',
+                'days'=>function($q) {
+                    return $q->select(['id', 'name', 'meals', 'rid']);
+                },
+                'bookings'=>function($q){
+                    return $q->select(['id', 'product_id', 'case_id', 'created_by', 'pax']);
+                },
+                'bookings.people'=>function($q){
+                    return $q->select(['id', 'name', 'country_code', 'bday', 'bmonth', 'byear', 'gender']);
+                },
+                'bookings.people.bookings'=>function($q){
+                    return $q->select(['id', 'created_at', 'product_id']);
+                },
+                'bookings.people.bookings.product'=>function($q){
+                    return $q->select(['id', 'day_from']);
+                },
+                'bookings.case'=>function($q) {
+                    return $q->select(['id', 'name', 'how_found', 'stype']);
+                },
+                'bookings.createdBy'=>function($q) {
+                    return $q->select(['id', 'name'=>'nickname', 'image'])->orderBy('lname, fname');
+                },
+                'tour.operators'=>function($q) {
+                    return $q->select(['id', 'name'=>'nickname', 'image'])->orderBy('lname, fname');
+                },
+                'incidents'=>function($q) {
+                    return $q->select(['id', 'tour_id', 'name', 'incident_date', 'severity'])->orderBy('severity DESC');
+                },
+                'complaints'=>function($q) {
+                    return $q->select(['id', 'tour_id', 'complaint_date', 'name', 'severity'])->orderBy('complaint_date DESC, severity DESC');
+                },
+                'servicesPlus'=>function($q) {
+                    return $q->select(['id', 'sv', 'tour_id']);
+                },
+                'presents'=>function($q){
+                    return $q->select(['id', 'tour_id', 'item_id', 'qty', 'purpose', 'transaction_dt'])->orderBy('transaction_dt DESC');
+                },
+                'presents.item'=>function($q){
+                    return $q->select(['id', 'name']);
+                },
+            ])
+            ->asArray()
+            ->all();
+
+        $sql = 'SELECT SUBSTRING(day_from,1,7) AS ym FROM at_ct WHERE op_status="op" GROUP BY ym ORDER BY ym DESC';
+        $tourMonthList = Yii::$app->db->createCommand($sql)->queryColumn();
+        foreach ($tourMonthList as $ym) {
+            $y = substr($ym, 0, 4);
+            if (!isset($monthList[$y])) {
+                $monthList[$y] = $y.' - All year';
+            }
+            $monthList[$ym] = $ym;
+        }
+
+        $sellerList = [];
+        foreach ($theTours as $tour) {
+            foreach ($tour['bookings'] as $booking) {
+                $sellerList[$booking['createdBy']['id']] = $booking['createdBy']['name'];
+            }
+        }
+
+        $tourIdList = [0];
+        foreach ($theTours as $tour) {
+            $tourIdList[] = $tour['id'];
+        }
+        $tourOldIdList = [0];
+        foreach ($theTours as $tour) {
+            $tourOldIdList[] = (int)$tour['tour']['id'];
+        }
+
+        $sql = 'select tour_id, points, use_from_dt, use_until_dt, IF (guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u where u.id=guide_user_id limit 1)) AS namephone from at_tour_guides where parent_id=0 AND tour_id IN ('.implode(',', $tourIdList).') ORDER BY use_from_dt';
+        $tourGuides = Yii::$app->db->createCommand($sql)->queryAll();
+        $sql = 'select tour_id, points, use_from_dt, use_until_dt, IF (driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u where u.id=driver_user_id limit 1)) AS namephone from at_tour_drivers where parent_id=0 AND tour_id IN ('.implode(',', $tourIdList).') ORDER BY use_from_dt';
+        $tourDrivers = Yii::$app->db->createCommand($sql)->queryAll();
+
+
+        return $this->render('tour_index', [
+            'theTours'=>$theTours,
+            'tourGuides'=>$tourGuides,
+            'tourDrivers'=>$tourDrivers,
+            'allSellers'=>$allSellers,
+            'allOperators'=>$allOperators,
+            'allCRStaff'=>$allCRStaff,
+
+            'time'=>$time,
+            'fg'=>$fg,
+            'op_status' => $op_status,
+            'status'=>$status,
+            'departure'=>$departure,
+            'goto'=>$goto,
+            'daycount'=>$daycount,
+            'paxcount'=>$paxcount,
+
+            'name'=>$name,
+            'dayname'=>$dayname,
+            'seller'=>$seller,
+            'operator'=>$operator,
+            'cservice'=>$cservice,
+            'guide'=>$guide,
+            'driver'=>$driver,
+
+            'orderby'=>$orderby,
+            'monthList'=>$monthList,
+            'owner'=>$owner,
+        ]);
+    }
+    public function uniqueCombination($in, $minLength = 2, $max = 2) {
+        $count = count($in);
+        $members = pow(2, $count);
+        $return = [];
+        for($i = 0; $i < $members; $i ++) {
+            $b = sprintf("%0" . $count . "b", $i);
+            $out = [];
+            for($j = 0; $j < $count; $j ++) {
+                $b{$j} == '1' and $out[] = $in[$j];
+            }
+
+            count($out) >= $minLength && count($out) <= $max and $return[] = $out;
+        }
+        return $return;
+    }
+
+    public function actionIndexOld($view = 'normal', $orderby = 'startdate', $month = '', $fg = '', $status = '', $seller = 0, $operator = 0, $cservice = 0, $name = '', $dayname = '', $owner = '')
     {
         if ($month == 'next30days') {
             $dateRange = [date('Y-m-d'), date('Y-m-d', strtotime('+30 days'))];
@@ -661,41 +1092,73 @@ class TourController extends MyController
         ]);
     }
 
+
     public function actionR($id = 0)
     {
-        $productId = Yii::$app->db->createCommand('SELECT ct_id FROM at_tours WHERE id=:id LIMIT 1', [':id' => $id])->queryScalar();
-        $theTour   = Product::find()
-            ->where(['id' => $productId])
+        $productId = Yii::$app->db->createCommand('SELECT ct_id FROM at_tours WHERE id=:id LIMIT 1', [':id'=>$id])->queryScalar();
+        $theTour = Product::find()
+            ->where(['id'=>$productId])
             ->with([
-                'pax'                  => function ($q) {
+                'days',
+                'pax'=>function($q){
                     return $q->orderBy('booking_id, name');
                 },
-                'tournotes',
                 'tourStats',
-                'tournotes.updatedBy'  => function ($q) {
-                    return $q->select(['id', 'name']);
+                'tournotes'=>function($q){
+                    return $q->orderBy('days, sorder');
+                },
+                'tournotes.updatedBy'=>function($q) {
+                    return $q->select(['id', 'name'=>'nickname']);
                 },
                 'bookings',
                 'bookings.createdBy',
                 'bookings.case',
-                'bookings.case.owner'  => function ($q) {
+                'bookings.case.owner'=>function($q) {
                     return $q->select(['id', 'nickname']);
                 },
                 'bookings.invoices',
                 'bookings.payments',
-                'days',
+                'incidents'=>function($q){
+                    return $q->select(['id', 'created_dt', 'updated_dt', 'created_by', 'updated_by', 'tour_id', 'incident_date', 'name', 'description']);
+                },
+                'incidents.createdBy'=>function($q){
+                    return $q->select(['id', 'name'=>'nickname', 'image']);
+                },
+                'complaints'=>function($q){
+                    return $q->select(['id', 'tour_id', 'complaint_date', 'name']);
+                },
+                'servicesPlus'=>function($q){
+                    return $q->select(['id', 'tour_id', 'sv']);
+                },
                 'tour',
+                'tour.parentTour',
+                'tour.childTours',
                 'tour.operators',
                 'tour.cskh',
                 'tour.guides',
-                'tour.tasks'           => function ($q) {
+                'tour.tasks'=>function($q) {
                     return $q->orderBy('status, due_dt');
                 },
-                'tour.tasks.assignees' => function ($q) {
-                    return $q->select(['id', 'name' => 'nickname']);
+                'tour.tasks.taskAssign',
+                'tour.tasks.taskAssign.assignee'=>function($q) {
+                    return $q->select(['id', 'name'=>'nickname']);
                 },
-                'tour.tasks.createdBy' => function ($q) {
-                    return $q->select(['id', 'name' => 'nickname']);
+                'tour.tasks.createdBy'=>function($q) {
+                    return $q->select(['id', 'name'=>'nickname']);
+                },
+                'tour.cpt'=>function($q) {
+                    return $q->select(['dvtour_id', 'tour_id', 'dvtour_name', 'dvtour_day', 'venue_id', 'qty', 'unit'])
+                        ->where('venue_id!=0')
+                        ->andWhere(['or', 'dvtour_name="Khách sạn"', 'dvtour_name="Hotel"', 'dvtour_name="Tàu ngủ đêm"', 'dvtour_name="Tàu Hạ Long"', 'dvtour_name="Tàu Cát Bà"', 'LOCATE("nhà dân", dvtour_name)!=0', 'dvtour_name="Accommodation"', 'LOCATE("Tàu ", dvtour_name)!=0']);
+                },
+                'tour.cpt.venue'=>function($q) {
+                    return $q->select(['id', 'name']);
+                },
+                'presents'=>function($q){
+                    return $q->select(['id', 'tour_id', 'item_id', 'qty', 'purpose', 'transaction_dt'])->orderBy('transaction_dt DESC');
+                },
+                'presents.item'=>function($q){
+                    return $q->select(['id', 'name']);
                 },
             ])
             ->asArray()
@@ -703,44 +1166,51 @@ class TourController extends MyController
         if (!$theTour) {
             throw new HttpException(404, 'Tour not found');
         }
+        // var_dump($theTour);die;
 
         // Amica all people
         $thePeople = User::find()
             ->select(['id', 'name', 'fname', 'lname', 'nickname', 'email'])
-            ->where(['status' => 'on', 'is_member' => 'yes'])
+            ->where(['status'=>'on'])
             ->orderBy('lname, fname')
             ->asArray()
             ->all();
 
         // Tour guides
-        // $sql = 'SELECT u.id, u.fname, u.lname, u.phone AS uphone, tg.* FROM persons u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:tour_id ORDER BY day LIMIT 100';
+        // $sql = 'SELECT u.id, u.fname, u.lname, u.phone AS uphone, tg.* FROM contacts u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:tour_id ORDER BY day LIMIT 100';
         // $tourGuidesOld = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour guides
-        $sql        = 'select g.*, IF(guide_user_id=0, "", (SELECT gender from persons u WHERE u.id=g.guide_user_id LIMIT 1)) AS gender FROM at_tour_guides g where tour_id=:tour_id limit 100';
-        $tourGuides = Yii::$app->db->createCommand($sql, [':tour_id' => $theTour['id']])->queryAll();
+        $sql = 'select g.*, IF(guide_user_id=0, "", (SELECT gender from contacts u WHERE u.id=g.guide_user_id LIMIT 1)) AS gender FROM at_tour_guides g where tour_id=:tour_id limit 100';
+        $tourGuides = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Tour operators
-        $sql           = 'select u.id, u.nickname from persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id=:tour_id';
-        $tourOperators = Yii::$app->db->createCommand($sql, [':tour_id' => $theTour['tour']['id']])->queryAll();
+        $sql = 'select u.id, u.nickname, tu.days from users u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id=:tour_id ORDER BY days';
+        $tourOperators = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour guides
-        $sql         = 'select u.id, u.nickname from persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id=:tour_id';
-        $tourCSStaff = Yii::$app->db->createCommand($sql, [':tour_id' => $theTour['tour']['id']])->queryAll();
+        $sql = 'select u.id, u.nickname from users u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id=:tour_id';
+        $tourCSStaff = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour feedbacks
-        $sql           = 'SELECT * FROM at_tour_feedbacks WHERE tour_id=:tour_id ORDER BY id DESC LIMIT 100';
-        $tourFeedbacks = Yii::$app->db->createCommand($sql, [':tour_id' => $theTour['id']])->queryAll();
+        $sql = 'SELECT * FROM at_tour_feedbacks WHERE tour_id=:tour_id ORDER BY id DESC LIMIT 100';
+        $tourFeedbacks = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Pax list
         $bookingIdList = [];
-        $tourPax       = [];
+        $tourPax = [];
+        $tourPaxCanceled = [];
         foreach ($theTour['bookings'] as $booking) {
             $bookingIdList[] = $booking['id'];
         }
+
+        $tourRegInfo = [];
         if (!empty($bookingIdList)) {
-            $sql     = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM persons u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status!="canceled" AND bu.booking_id IN (' . implode(',', $bookingIdList) . ')';
+            $sql = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM contacts u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status!="canceled" AND bu.booking_id IN ('.implode(',', $bookingIdList).')';
             $tourPax = Yii::$app->db->createCommand($sql)->queryAll();
+
+            $sql = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM contacts u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status="canceled" AND bu.booking_id IN ('.implode(',', $bookingIdList).')';
+            $tourPaxCanceled = Yii::$app->db->createCommand($sql)->queryAll();
             // Tour reg info
             //$sql = 'SELECT booking_id, reg_confirmed_dt FROM at_client_page_links WHERE reg_confirmed_dt!=0 AND booking_id IN ('.implode(',', $bookingIdList).')';
             $tourRegInfo = []; //Yii::$app->db->createCommand($sql)->queryAll();
@@ -754,26 +1224,27 @@ class TourController extends MyController
             }
         }
 
+
         // Tour referrals
         $tourRefs = [];
         if (!empty($caseIdList)) {
-            $sql      = 'SELECT r.*, u.name FROM at_referrals r, persons u WHERE u.id=r.user_id AND r.case_id IN (' . implode(',', $caseIdList) . ') LIMIT 100';
+            $sql = 'SELECT r.*, u.name FROM at_referrals r, contacts u WHERE u.id=r.user_id AND r.case_id IN ('.implode(',', $caseIdList).') LIMIT 100';
             $tourRefs = Yii::$app->db->createCommand($sql)->queryAll();
         }
 
         // Post a note
         if (isset($_POST['body'])) {
-            $utag  = false;
-            $itag  = false;
-            $title = isset($_POST['title']) ? trim($_POST['title']) : '';
-            $body  = $_POST['body'];
+            $utag = false;
+            $itag = false;
+            $title = isset($_POST['title']) ? trim($_POST['title']): '';
+            $body = $_POST['body'];
 
             if (strpos($title, '#urgent') !== false) {
-                $utag  = true;
+                $utag = true;
                 $title = str_replace('#urgent', '', $title);
             }
             if (strpos($title, '#important') !== false) {
-                $itag  = true;
+                $itag = true;
                 $title = str_replace('#important', '', $title);
             }
 
@@ -782,66 +1253,68 @@ class TourController extends MyController
             // $thePeople = $theTour['tour']['operators'];
 
             // Name mentions
-            $toList      = [];
+            $toList = [];
             $toEmailList = [];
-            $toIdList    = [];
+            $toIdList = [];
             if (isset($_POST['to']) && $_POST['to'] != '') {
                 foreach ($thePeople as $person) {
-                    $mention = '@[' . $person['nickname'] . ']';
+                    $mention = '@['.$person['nickname'].']';
                     // 160107 Quick fix cho Ha beo khong email duoc Quynh Giang
                     $mentionEmail = strstr(str_replace('.', '', $person['email']), '@', true);
                     if (strpos($_POST['to'], $mention) !== false || strpos($_POST['to'], $mentionEmail) !== false) {
                         $toList[$person['id']] = $person;
-                        $toEmailList[]         = $person['email'];
-                        $toIdList[]            = $person['id'];
+                        $toEmailList[] = $person['email'];
+                        $toIdList[] = $person['id'];
                     }
                 }
                 foreach ($thePeople as $person) {
-                    //TODO: foreach ($theCase['people'] as $person) {
-                    $fromEmail = 'from:' . $person['email'];
-                    $toEmail   = 'to:' . $person['email'];
+                //TODO: foreach ($theCase['people'] as $person) {
+                    $fromEmail = 'from:'.$person['email'];
+                    $toEmail = 'to:'.$person['email'];
                     if (strpos($_POST['to'], $fromEmail) !== false) {
-                        $noteFromId   = $person['id'];
-                        $noteToId     = USER_ID;
+                        $noteFromId = $person['id'];
+                        $noteToId = USER_ID;
                         $noteViaEmail = true;
                     } elseif (strpos($_POST['to'], $toEmail) !== false) {
-                        $noteFromId   = USER_ID;
-                        $noteToId     = $person['id'];
+                        $noteFromId = USER_ID;
+                        $noteToId = $person['id'];
                         $noteViaEmail = true;
                     }
                 }
             }
             /* OLD
             foreach ($thePeople as $person) {
-            $mention = '@['.$person['name'].']';
-            if (strpos($body, $mention) !== false) {
-            $body = str_replace($mention, '@'.Html::a($person['name'], 'https://my.amicatravel.com/users/r/'.$person['id']), $body);
-            $_POST['body'] = str_replace($mention, '@[user-'.$person['id'].']', $_POST['body']);
-            $toEmailList[] = $person['email'];
-            $toIdList[] = $person['id'];
+                $mention = '@['.$person['name'].']';
+                if (strpos($body, $mention) !== false) {
+                    $body = str_replace($mention, '@'.Html::a($person['name'], 'https://my.amicatravel.com/users/r/'.$person['id']), $body);
+                    $_POST['body'] = str_replace($mention, '@[user-'.$person['id'].']', $_POST['body']);
+                    $toEmailList[] = $person['email'];
+                    $toIdList[] = $person['id'];
+                }
             }
-            }
-             */
+            */
             $toEmailList = array_unique($toEmailList);
 
-            /*          \fCore::expose($title);
-            \fCore::expose($body);
-            \fCore::expose($toEmailList);
-            exit;
-             */
-            // Save note
+        /*          \fCore::expose($title);
+                    \fCore::expose($body);
+                    \fCore::expose($toEmailList);
+                    exit;
+        */
+                    // Save note
+
+
 
             define('ICT', date('Y-m-d H:i:s', strtotime('+7 hours')));
 
-            $theNote           = new Note;
+            $theNote = new Note;
             $theNote->scenario = 'notes_c';
 
-            $theNote->co       = NOW;
-            $theNote->cb       = USER_ID;
-            $theNote->uo       = NOW;
-            $theNote->ub       = USER_ID;
-            $theNote->status   = 'on';
-            $theNote->via      = isset($noteViaEmail) && $noteViaEmail ? 'email' : 'web';
+            $theNote->co = NOW;
+            $theNote->cb = USER_ID;
+            $theNote->uo = NOW;
+            $theNote->ub = USER_ID;
+            $theNote->status = 'on';
+            $theNote->via = isset($noteViaEmail) && $noteViaEmail ? 'email' : 'web';
             $theNote->priority = 'A1';
             if ($itag) {
                 $theNote->priority = 'C1';
@@ -850,11 +1323,11 @@ class TourController extends MyController
                 $theNote->priority = 'A3';
             }
             $theNote->from_id = isset($noteFromId) && isset($noteToId) ? $noteFromId : USER_ID;
-            $theNote->m_to    = isset($noteFromId) && isset($noteToId) ? $noteToId : 0;
-            $theNote->title   = $title;
-            $theNote->body    = $_POST['body'];
-            $theNote->rtype   = 'tour';
-            $theNote->rid     = $theTour['tour']['id'];
+            $theNote->m_to = isset($noteFromId) && isset($noteToId) ? $noteToId : 0;
+            $theNote->title = $title;
+            $theNote->body = $_POST['body'];
+            $theNote->rtype = 'tour';
+            $theNote->rid = $theTour['tour']['id'];
 
             if (!$theNote->save(false)) {
                 die('NOTE NOT SAVED');
@@ -868,76 +1341,86 @@ class TourController extends MyController
                 Yii::$app->db->createCommand()->batchInsert('at_message_to', ['message_id', 'user_id'], $nTo)->execute();
             }
 
-            $relUrl  = 'https://my.amicatravel.com/tours/r/' . $theTour['tour']['id'];
-            $relName = $theTour['tour']['code'] . ' - ' . $theTour['tour']['name'];
+        if (Yii::$app->request->isPost && isset($_GET['xh'])) {
+            \fCore::expose($_POST);
+            \fCore::expose($toList);
+            \fCore::expose($toEmail);
+            \fCore::expose($toEmailList);
+            \fCore::expose($toIdList);
+            \fCore::expose($nTo);
+            exit;
+        }
+
+            $relUrl = 'https://my.amicatravel.com/tours/r/'.$theTour['tour']['id'];
+            $relName = $theTour['tour']['code'].' - '.$theTour['tour']['name'];
 
             // Upload files
             $fileList = '';
-            if (isset($_POST['fileid']) && isset($_POST['filename']) && is_array($_POST['fileid']) && is_array($_POST['filename']) && count($_POST['fileid']) == count($_POST['filename'])) {
+            if (isset($_POST['fileid']) && isset($_POST['filename']) && is_array($_POST['fileid']) && is_array($_POST['filename']) &&  count($_POST['fileid']) == count($_POST['filename'])) {
                 foreach ($_POST['fileid'] as $i => $fileId) {
                     $newFileName = $_POST['filename'][$i];
-                    $rawFileExt  = strrchr($newFileName, '.');
-                    $rawFileName = $fileId . $rawFileExt;
-                    $rawFilePath = Yii::getAlias('@webroot') . '/assets/plupload_2.1.9/' . $rawFileName;
+                    $rawFileExt = strrchr($newFileName, '.');
+                    $rawFileName = $fileId.$rawFileExt;
+                    $rawFilePath = Yii::getAlias('@webroot').'/assets/plupload_2.1.9/'.$rawFileName;
                     if (file_exists($rawFilePath)) {
-                        $fileUid  = Yii::$app->security->generateRandomString(10);
+                        $fileUid = Yii::$app->security->generateRandomString(10);
                         $fileSize = filesize($rawFilePath);
-                        $imgSize  = @getimagesize($rawFilePath);
+                        $imgSize = @getimagesize($rawFilePath);
                         if ($imgSize) {
-                            $fileImgSize = $imgSize[0] . '×' . $imgSize[1];
+                            $fileImgSize = $imgSize[0].'×'.$imgSize[1];
                         } else {
                             $fileImgSize = '';
                         }
                         Yii::$app->db->createCommand()
                             ->insert('at_files', [
-                                'co'           => ICT,
-                                'cb'           => USER_ID,
-                                'uo'           => ICT,
-                                'ub'           => USER_ID,
-                                'name'         => $newFileName,
-                                'ext'          => $rawFileExt,
-                                'size'         => $fileSize,
-                                'img_size'     => $fileImgSize,
-                                'uid'          => $fileUid,
-                                'filegroup_id' => 1,
-                                'rtype'        => 'tour',
-                                'rid'          => $theTour['tour']['id'],
-                                'n_id'         => $theNote['id'],
+                                'co'=>ICT,
+                                'cb'=>USER_ID,
+                                'uo'=>ICT,
+                                'ub'=>USER_ID,
+                                'name'=>$newFileName,
+                                'ext'=>$rawFileExt,
+                                'size'=>$fileSize,
+                                'img_size'=>$fileImgSize,
+                                'uid'=>$fileUid,
+                                'filegroup_id'=>1,
+                                'rtype'=>'tour',
+                                'rid'=>$theTour['tour']['id'],
+                                'n_id'=>$theNote['id'],
                             ])
                             ->execute();
                         $newFileId = Yii::$app->db->getLastInsertID();
                         // New dir
-                        $newDir = Yii::getAlias('@webroot') . '/upload/user-files/' . substr(ICT, 0, 7) . '/';
+                        $newDir = Yii::getAlias('@webroot').'/upload/user-files/'.substr(ICT, 0, 7).'/';
                         @mkdir($newDir);
 
                         // New name
-                        $newName = 'file-' . USER_ID . '-' . $newFileId . '-' . $fileUid;
+                        $newName = 'file-'.USER_ID.'-'.$newFileId.'-'.$fileUid;
 
                         // Move upload file to new (official) location
-                        if (copy($rawFilePath, $newDir . $newName)) {
+                        if (copy($rawFilePath, $newDir.$newName)) {
                             unlink($rawFilePath);
-                            $fileList .= '<br>+ <a href="https://my.amicatravel.com/files/r/' . $newFileId . '">' . $newFileName . '</a>';
+                            $fileList .= '<br>+ <a href="https://my.amicatravel.com/files/r/'.$newFileId.'">'.$newFileName.'</a>';
                             //echo '<br><a href="/files/r/', $newFileId, '">', $newName, ' = ', $newFileName, '</a>';
                         } else {
-                            Yii::$app->db->createCommand()
-                                ->delete('at_files', [
-                                    'id' => $newFileId,
-                                ])
-                                ->execute();
+                        Yii::$app->db->createCommand()
+                            ->delete('at_files', [
+                                'id'=>$newFileId,
+                            ])
+                            ->execute();
                         }
                     }
                 }
             }
 
             if ($fileList != '') {
-                $body = $fileList . '<br>' . $body;
+                $body = $fileList.'<br>'.$body;
             }
 
             // Send email
 
             if (!empty($toEmailList)) {
                 // Tour staff names, to include at the end of email subject
-                $trail = $theTour['tour']['code'] . ' - ' . $theTour['tour']['name'];
+                $trail = $theTour['tour']['code'].' - '.$theTour['tour']['name'];
                 if (count($theTour['bookings']) > 1) {
                     $trail .= ' (combined)';
                 }
@@ -946,9 +1429,9 @@ class TourController extends MyController
                 foreach ($theTour['bookings'] as $booking) {
                     $tourPaxCount[] = $booking['pax'];
                 }
-                $trail .= ' - ' . implode('+', $tourPaxCount) . 'p ';
-                $trail .= $theTour['day_count'] . 'd ';
-                $trail .= date('j/n', strtotime($theTour['day_from'])) . ' - ';
+                $trail .= ' - '.implode('+', $tourPaxCount).'p ';
+                $trail .= $theTour['day_count'].'d ';
+                $trail .= date('j/n', strtotime($theTour['day_from'])).' - ';
 
                 $tourStaff = [];
                 foreach ($theTour['bookings'] as $booking) {
@@ -960,125 +1443,127 @@ class TourController extends MyController
 
                 $trail .= implode(', ', $tourStaff);
 
-                $subject = $theTour['tour']['code'] . ' - ' . $title;
-                $subject = str_replace($theTour['tour']['code'] . ' - ' . $theTour['tour']['code'] . ' - ', $theTour['tour']['code'] . ' - ', $subject);
+                $subject = $theTour['tour']['code'].' - '.$title;
+                $subject = str_replace($theTour['tour']['code'].' - '.$theTour['tour']['code'].' - ', $theTour['tour']['code'].' - ', $subject);
                 if ($itag) {
-                    $subject = '#important ' . $subject;
+                    $subject = '#important '.$subject;
                 }
                 if ($utag) {
-                    $subject = '#urgent ' . $subject;
+                    $subject = '#urgent '.$subject;
                 }
                 if ($subject == '') {
                     $subject = 'No title';
                 }
-                $subject .= ' | Tour: ' . $trail;
+                $subject .= ' | Tour: '.$trail;
 
                 $args = [
-                    ['from', 'notifications@amicatravel.com', Yii::$app->user->identity->nickname, ' on IMS'],
+                    ['from', 'notifications@my.amicatravel.com', Yii::$app->user->identity->nickname, ' on IMS'],
                     //['reply-to', Yii::$app->user->identity->email],
-                    ['reply-to', 'msg-' . $theNote->id . '-' . USER_ID . '@amicatravel.com'],
+                    ['reply-to', 'msg-'.$theNote->id.'-'.USER_ID.'@my.amicatravel.com'],
                     ['bcc', 'hn.huan@gmail.com', 'Huân', 'H.'],
                 ];
-                foreach ($toList as $id => $user) {
+                foreach ($toList as $id=>$user) {
                     $args[] = ['to', $user['email'], $user['lname'], $user['fname']];
                 }
-                $this->mgIt(
+                $this->mgItMy(
                     $subject,
                     '//mg/note_added',
                     [
-                        'toList'  => $toList,
-                        'theNote' => $theNote,
-                        'relUrl'  => $relUrl,
-                        'body'    => $body,
+                        'toList'=>$toList,
+                        'theNote'=>$theNote,
+                        'relUrl'=>$relUrl,
+                        'body'=>$body,
                     ],
                     $args
                 );
             }
         }
 
-        $inboxMails = Mail::find()
-            ->select(['id', 'from', 'to', 'cc', 'sent_dt', 'body', 'created_at', 'subject', 'attachment_count', 'files', 'updated_at', 'updated_by', 'tags', 'from_email'])
-            ->where(['case_id' => $caseIdList])
+        $inboxMails = \app\models\Mail::find()
+            ->select(['id', 'message_id', 'from', 'to', 'cc', 'sent_dt', 'created_at', 'subject', 'attachment_count', 'files', 'updated_at', 'updated_by', 'tags', 'from_email'])
+            ->where(['case_id'=>$caseIdList])
             ->andWhere(['or', 'LOCATE("[cs]", subject)!=0', ['like', 'tags', 'op']])
+            ->with(['body'])
             ->asArray()
             ->all();
 
         $theNotes = Note::find()
-            ->where(['rtype' => 'tour', 'rid' => $theTour['tour']['id']])
+            ->where(['rtype'=>'tour', 'rid'=>$theTour['tour']['id']])
             ->with([
                 'files',
-                'from' => function ($q) {
+                'from'=>function($q) {
                     return $q->select(['id', 'nickname', 'image']);
                 },
-                'to'   => function ($q) {
+                'to'=>function($q) {
                     return $q->select(['id', 'nickname']);
                 },
-            ])
+                ])
             ->asArray()
             ->orderBy('co DESC')
             ->all();
 
         $theSysnotes = Sysnote::find()
-            ->where(['rtype' => 'tour', 'rid' => $theTour['tour']['id']])
+            ->where(['rtype'=>'tour', 'rid'=>$theTour['tour']['id']])
             ->with([
-                'user' => function ($q) {
+                'user'=>function($q) {
                     return $q->select(['id', 'fname', 'lname', 'name']);
-                },
+                }
             ])
             ->asArray()
             ->all();
 
         // Old pax, older tours if any
-        $olderTours    = [];
+        $olderTours = [];
         $tourPaxIdList = [];
         foreach ($tourPax as $user) {
             $tourPaxIdList[] = $user['id'];
         }
         if (!empty($tourPaxIdList)) {
-            $sql        = 'SELECT t.id, t.code, t.name, t.status FROM at_tours t, at_ct p, at_booking_user bu, at_bookings b WHERE t.ct_id=p.id AND bu.booking_id=b.id AND b.product_id=p.id AND bu.user_id IN (' . implode(',', $tourPaxIdList) . ') AND p.day_from<:start_date GROUP BY t.id LIMIT 10';
-            $olderTours = Yii::$app->db->createCommand($sql, [':start_date' => $theTour['day_from']])->queryAll();
+            $sql = 'SELECT t.id, t.code, t.name, t.status FROM at_tours t, at_ct p, at_booking_user bu, at_bookings b WHERE t.ct_id=p.id AND bu.booking_id=b.id AND b.product_id=p.id AND bu.user_id IN ('.implode(',', $tourPaxIdList).') AND p.day_from<:start_date GROUP BY t.id LIMIT 10';
+            $olderTours = Yii::$app->db->createCommand($sql, [':start_date'=>$theTour['day_from']])->queryAll();
         }
 
         // Tour hang
         $companyIdList = [];
-        $tourAgents    = [];
+        $tourAgents = [];
         foreach ($theTour['bookings'] as $booking) {
             if ($booking['case']['company_id'] != 0) {
                 $companyIdList[] = $booking['case']['company_id'];
             }
         }
         if (!empty($companyIdList)) {
-            $sql        = 'SELECT id, name, image FROM at_companies WHERE id IN (' . implode(', ', $companyIdList) . ') LIMIT 1';
+            $sql = 'SELECT id, name, image FROM clients WHERE id IN ('.implode(', ', $companyIdList).') LIMIT 1';
             $tourAgents = Yii::$app->db->createCommand($sql)->queryAll();
         }
 
         // Drivers and vehicles
-        $sql         = 'select * from at_tour_drivers where tour_id=:tour_id limit 100';
-        $tourDrivers = Yii::$app->db->createCommand($sql, [':tour_id' => $productId])->queryAll();
+        $sql = 'select * from at_tour_drivers where tour_id=:tour_id limit 100';
+        $tourDrivers = Yii::$app->db->createCommand($sql, [':tour_id'=>$productId])->queryAll();
 
         // TEST HUAN
-        $theMessage           = false;
-        $theMessage           = new Message();
+        $theMessage = false;
+        $theMessage = new Message();
         $theMessage->scenario = 'message/c';
 
         // Render view
         return $this->render('tour_r', [
-            'theTour'       => $theTour,
-            'thePeople'     => $thePeople,
-            'inboxMails'    => $inboxMails,
-            'theNotes'      => $theNotes,
-            'theSysnotes'   => $theSysnotes,
-            'tourPax'       => $tourPax,
-            'tourRegInfo'   => $tourRegInfo,
-            'tourRefs'      => $tourRefs,
-            'olderTours'    => $olderTours,
-            'tourAgents'    => $tourAgents,
-            'tourDrivers'   => $tourDrivers,
-            'tourGuides'    => $tourGuides,
-            'tourOperators' => $tourOperators,
-            'tourCSStaff'   => $tourCSStaff,
-            'tourFeedbacks' => $tourFeedbacks,
-            'theMessage'    => $theMessage,
+            'theTour'=>$theTour,
+            'thePeople'=>$thePeople,
+            'inboxMails'=>$inboxMails,
+            'theNotes'=>$theNotes,
+            'theSysnotes'=>$theSysnotes,
+            'tourPax'=>$tourPax,
+            'tourPaxCanceled'=>$tourPaxCanceled,
+            'tourRegInfo'=>$tourRegInfo,
+            'tourRefs'=>$tourRefs,
+            'olderTours'=>$olderTours,
+            'tourAgents'=>$tourAgents,
+            'tourDrivers'=>$tourDrivers,
+            'tourGuides'=>$tourGuides,
+            'tourOperators'=>$tourOperators,
+            'tourCSStaff'=>$tourCSStaff,
+            'tourFeedbacks'=>$tourFeedbacks,
+            'theMessage'=>$theMessage,
         ]);
     }
 
@@ -2839,7 +3324,7 @@ class TourController extends MyController
     public function actionInLx($id = 0, $action = 'add', $lichxe = 0)
     {
         $theTour = Product::find()
-            ->where(['id' => $id, 'op_status' => 'op'])
+            ->where(['id' => $id])//, 'op_status' => 'op'
             ->with([
                 'bookings',
                 'bookings.people'       => function ($q) {
@@ -2858,13 +3343,14 @@ class TourController extends MyController
             ])
             ->asArray()
             ->one();
-
+        // var_dump($id);
+        // var_dump($theTour);die;
         if (!$theTour) {
             throw new HttpException(404, 'Tour not found.');
         }
 
         $theTourOld = Tour::find()
-            ->where(['ct_id' => $id, 'status' => 'on'])
+            ->where(['ct_id' => $id])//, 'status' => 'on'
             ->with([
                 'operators' => function ($q) {
                     return $q->select(['id', 'name' => new \yii\db\Expression('CONCAT(fname, " ", lname, " - ", phone)')]);
@@ -4254,11 +4740,11 @@ class TourController extends MyController
             ])
             ->asArray()
             ->one();
-
+            // var_dump($theTour);die('ok');
         if (!$theTour) {
             throw new HttpException(404, 'Tour not found.');
         }
-
+        // die('ok');
         $theTourOld = Tour::find()
             ->where(['ct_id' => $id, 'status' => 'on'])
             ->asArray()
@@ -4324,7 +4810,7 @@ class TourController extends MyController
                 'theCompany' => $theCompany,
                 'questions'  => $questions,
             ]);
-            $mpdf = new \mPDF();
+            $mpdf = new mPDF();
             $mpdf->SetTitle($docTitle . ' - ' . $theTour['op_code']);
             $mpdf->SetAuthor('Amica Travel');
             $mpdf->SetSubject($docTitle . ' v.170624');

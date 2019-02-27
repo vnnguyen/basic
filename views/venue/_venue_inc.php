@@ -136,7 +136,6 @@ if (isset($theVenue['id'])) {
         ['icon'=>'eye', 'title'=>Yii::t('app', 'View'), 'link'=>'venues/r/'.$theVenue['id'], 'active'=>SEG2 == 'r'],
         ['icon'=>'edit', 'title'=>Yii::t('app', 'Edit'), 'link'=>'venues/u/'.$theVenue['id'], 'active'=>SEG2 == 'u'],
         ['submenu'=>[
-            ['label'=>'Upload notes & files', 'link'=>'venues/old/'.$theVenue['id']],
             ['label'=>'Edit contact info', 'link'=>'venues/uold/'.$theVenue['id']],
             ['label'=>'Edit pricing/promo info', 'link'=>'venues/u-promo/'.$theVenue['id']],
             ['label'=>'Edit new price table', 'link'=>'x/venues/'.$theVenue['id'].'/u-pricetable'],
@@ -261,7 +260,7 @@ $venueFaciList = [
     '5_68'=>Yii::t('x', 'Meeting room'),
     '5_69'=>Yii::t('x', 'Free wifi in room'),
     '5_70'=>Yii::t('x', 'Satellite TV'),
-    '5_71'=>Yii::t('x', 'TV channels'),
+    '5_71'=>Yii::t('x', 'TV channels'), 
     '5_72'=>Yii::t('x', 'Play ground'),
 
     '5_73'=>Yii::t('x', 'Connecting room'),

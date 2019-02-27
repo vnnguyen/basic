@@ -9,6 +9,8 @@ class MainAsset extends AssetBundle
     public $baseUrl = '@web/assets/limitless_2_0';
     public $depends = [
         'yii\web\JqueryAsset',
+        'yii\bootstrap4\BootstrapAsset',
+        'yii\bootstrap4\BootstrapPluginAsset'
     ];
     public $css = [
         'https://fonts.googleapis.com/css?family=Roboto:100,300,400,500,700,900&subset=latin,vietnamese',
@@ -25,14 +27,12 @@ class MainAsset extends AssetBundle
         'css/colors.min.css',
     ];
     public $js = [
-        // 'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js',
-        'https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js',
-        'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js',
-        // 'js/main/bootstrap.bundle.min.js',
         'js/plugins/loaders/blockui.min.js',
         'https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.4.6/mousetrap.min.js',
         'js/main/app.js',
         'https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js',
+        'https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js',
         // 'js/plugins/notifications/pnotify.min.js',
     ];
 }

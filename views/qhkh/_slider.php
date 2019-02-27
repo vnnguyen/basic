@@ -158,25 +158,30 @@
 .slide-block > .ks-settings-list > li > .ks-checkbox-slider {
     margin: 0; }
 </style>
-    <?
-    $this->registerJs("
-        var ksSettingsSlideControl = $('.ks-settings-slide-control');
-        var ksSettingsSlideCloseControl = $('.ks-settings-slide-close-control');
-        ksSettingsSlideControl.on('click', function() {
-            $(this).closest('.slide-block').toggleClass('ks-open');
-        });
+<?
+$this->registerJs("
+    var ksSettingsSlideControl = $('.ks-settings-slide-control');
+    var ksSettingsSlideCloseControl = $('.ks-settings-slide-close-control');
+    ksSettingsSlideControl.on('click', function() {
+        $(this).closest('.slide-block').toggleClass('ks-open');
+    });
 
-        ksSettingsSlideCloseControl.on('click', function() {
-            $(this).closest('.slide-block').removeClass('ks-open');
-        });
-    ");
-    ?>
+    ksSettingsSlideCloseControl.on('click', function() {
+        $(this).closest('.slide-block').removeClass('ks-open');
+    });
+    new Clipboard('.action-copy-text');
+");
+
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js', ['depends'=>'yii\web\JqueryAsset']);
+?>
 <div class="slide-block">
     <div class="ks-header">
-        <h6 class="panel-title">Nội dung thư mẫu</h6>
-        <span class="btn btn-default" id="copy"><i class="fa fa-clone" aria-hidden="true"></i></span>
+        <h4 class="panel-title" id="ks-title">Nội dung thư mẫu</h4>
         <i class="pull-right fa fa-times ks-settings-slide-close-control"></i>
     </div>
     <hr>
-    <div class="ks-body" id="ks-body"></div>
+    <p><button class="action-copy-text" data-clipboard-target="#ks-body">Copy text</button> (Note: có thể sửa text trực tiếp trước khi copy)</p>
+    <div class="ks-body" id="ks-body" contenteditable="true">
+        (Nội dung thư mẫu)
+    </div>
 </div>

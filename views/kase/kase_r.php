@@ -95,6 +95,7 @@ foreach ($inboxMails as $mail) {
     $timeTable[$time] = ['object'=>'mail', 'id'=>$mail['id'], 'title'=>$mail['subject']];
 }
 
+var_dump($caseInquiries);die;
 foreach ($caseInquiries as $inquiry) {
     $time = DateTimeHelper::convert($inquiry['created_at'], 'Y-m-d H:i:s', 'UTC', $myTimeZone);
     $timeTable[$time] = ['object'=>'inquiry', 'id'=>$inquiry['id'], 'title'=>$inquiry['name']];
@@ -555,7 +556,7 @@ foreach ($timeTable as $time=>$item) {
                         <div>+ <?= Html::a($file['name'], $file['link']) ?> <span class="text-muted"><?= Yii::$app->formatter->asShortSize($file['size'], 0) ?></span></div>
                         <? } ?>
                     </div>
-            <!--        
+            <!--
             <ul class="list-unstyled">
                 <? foreach ($theCase['files'] as $file) { ?>
                 <li>+ <?= Html::a($file['name'], '@web/files/r/'.$file['id']) ?> (<?= number_format($file['size'] / 1024, 2) ?> KB)</li>
@@ -680,8 +681,8 @@ foreach ($timeTable as $time=>$item) {
                                                     'en_contact_130920', 'en_quote_130920',
                                                     'fr_devis_130920', 'fr_devis_140905', 'fr_booking_130920', 'fr_booking_140905',
                                                     'fr_contact_130920', 'fr_contactce_130920', 'fr_rdv_130920',
-                                                    'val_contact_130920', 'val_rdv_130920', 'val_devis_130920', 'val_devis_140905', 'val_booking_130920', 'val_booking_140905', 
-                                                    'vac_contact_130920', 'vac_rdv_130920', 'vac_devis_130920', 'vac_devis_140905', 'vac_booking_130920', 'vac_booking_140905', 
+                                                    'val_contact_130920', 'val_rdv_130920', 'val_devis_130920', 'val_devis_140905', 'val_booking_130920', 'val_booking_140905',
+                                                    'vac_contact_130920', 'vac_rdv_130920', 'vac_devis_130920', 'vac_devis_140905', 'vac_booking_130920', 'vac_booking_140905',
                                                     ])) {
                                                     echo $this->render('//inquiry/_render_'.$inquiry['form_name'], [
                                                         'theInquiry'=>$inquiry,
@@ -709,6 +710,7 @@ foreach ($timeTable as $time=>$item) {
                                         $ok .= Html::encode($part);
                                     }
                                 }
+                                var_dump($ok);die;
                                 echo nl2br($ok);
                             // END PARSE INQUIRY
                             } else {

@@ -1,8 +1,7 @@
 <?php
-
+use app\widgets\LinkPager;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\widgets\LinkPager;
 
 include('_kase_inc.php');
 Yii::$app->params['body_class'] = 'sidebar-xs';
@@ -25,6 +24,7 @@ $kaseViewList = [
     'created'=>Yii::t('x', 'Created'),
     'assigned'=>Yii::t('x', 'Assigned'),
     'closed'=>Yii::t('x', 'Closed'),
+    'won'=>Yii::t('x', 'Won'),
 ];
 
 $countryList = \common\models\Country::find()
@@ -34,7 +34,11 @@ $countryList = \common\models\Country::find()
     ->asArray()
     ->all();
 $countryList = ArrayHelper::map($countryList, 'code', 'name');
-
+// $cookies = Yii::$app->response->cookies; //Yii::$app->request->cookies;//Yii::$app->response->cookies->get('fileDownloadToken')
+// if (($cookie = $cookies->get('fileDownloadToken')) !== null) {
+//     // var_dump($cookie);die;
+//     Yii::$app->response->cookies->remove('fileDownloadToken');
+// }
 $kaseDestList = \common\models\Country::find()
     ->select(['code', 'name_en'])
     ->where(['code'=>['vn', 'la', 'kh', 'mm', 'th', 'my', 'id', 'cn']])
@@ -58,10 +62,7 @@ $kaseLanguageList = [
     'en'=>'English',
     'vi'=>'Tiếng Việt',
 ];
-$kasePriorityList = [
-    'yes'=>'Priority',
-    'no'=>'Non-priority',
-];
+
 $kaseStatusList = ['open'=>'Open', 'onhold'=>'On hold', 'closed'=>'Closed'];
 $kaseDealStatusList = ['pending'=>'Pending', 'won'=>'Won', 'lost'=>'Lost'];
 $kaseOwnerList = [];
@@ -153,8 +154,39 @@ $dkdiemdenList = [
     'only'=>Yii::t('x', 'Only selected countries'),
 ];
 
+// Date list
+$humanDateList = [
+    'custom'=>Yii::t('x', 'Custom date'),
+];
+
+$yList = [];
+$yMin = 2007;
+$yMax = date('Y') + 1;
+foreach ($humanDateList as $lkey=>$lvalue) {
+    $yList[] = [
+        'name'=>$lkey,
+        'value'=>$lvalue,
+        'group'=>Yii::t('x', 'Quick select'),
+    ];
+}
+for ($y = $yMax; $y >= $yMin; $y --) {
+    $yList[] = [
+        'name'=>$y,
+        'value'=>$y.' - '.Yii::t('x', 'All year'),
+        'group'=>$y,
+    ];
+    for ($m = 12; $m >= 1; $m --) {
+        $yList[] = [
+            'name'=>$y.'-'.str_pad($m, 2, '0', STR_PAD_LEFT),
+            'value'=>$y.'-'.str_pad($m, 2, '0', STR_PAD_LEFT),
+            'group'=>$y,
+        ];
+    }
+}
+$createdDateList = ArrayHelper::map($yList, 'name', 'value', 'group');
 ?>
 <style type="text/css">
+.form-control:focus {background-color:#ddf}
 .select2.select2-container {width:100%!important;}
 .form-group {margin-bottom:4px;}
 .bg-prospect-5 {background-color:#930;}
@@ -171,54 +203,39 @@ $dkdiemdenList = [
 .color-prospect-0 {color:#fff;}
 </style>
 <div class="col-md-12">
-    <?/*
-    <select class="form-control" name="contacted">
-
-        <option value="all">How customer contacted us</option>
-        <option value="link" <?= $getHowContacted == 'link' ? 'selected="selected"' : ''?>>Link</option>
-        <option value="web" <?= $getHowContacted == 'web' ? 'selected="selected"' : ''?>>Web inquiry</option>
-        <option value="web-direct" <?= $getHowContacted == 'web-direct' ? 'selected="selected"' : ''?>>- Direct web access</option>
-        <option value="web-bingad" <?= $getHowContacted == 'web-bingad' ? 'selected="selected"' : ''?>>- Bing Ad</option>
-        <option value="web-adsense" <?= $getHowContacted == 'web-adsense' ? 'selected="selected"' : ''?>>- Adsense</option>
-        <option value="web-adwords" <?= $getHowContacted == 'web-adwords' ? 'selected="selected"' : ''?>>- Adwords</option>
-        <option value="web-adwords-amica" <?= $getHowContacted == 'web-adwords-amica' ? 'selected="selected"' : ''?>>- - Adwords Amica</option>
-        <option value="web-otherad" <?= $getHowContacted == 'web-otherad' ? 'selected="selected"' : ''?>>- Other Ad</option>
-        <option value="web-search" <?= $getHowContacted == 'web-search' ? 'selected="selected"' : ''?>>- Search</option>
-        <option value="web-search-amica" <?= $getHowContacted == 'web-search-amica' ? 'selected="selected"' : ''?>>- - Search Amica</option>
-        <option value="web-trip-connexion" <?= $getHowContacted == 'web-trip-connexion' ? 'selected="selected"' : ''?>>- Via TripConnexion</option>
-        <option value="email" <?= $getHowContacted == 'email' ? 'selected="selected"' : ''?>>Email</option>
-        <option value="phone" <?= $getHowContacted == 'phone' ? 'selected="selected"' : ''?>>Phone</option>
-        <option value="direct" <?= $getHowContacted == 'direct' ? 'selected="selected"' : ''?>>In person</option>
-        <option value="agent" <?= $getHowContacted == 'agent' ? 'selected="selected"' : ''?>>Via a travel agency</option>
-        <option value="social" <?= $getHowContacted == 'social' ? 'selected="selected"' : ''?>>Social media</option>
-        <option value="other" <?= $getHowContacted == 'other' ? 'selected="selected"' : ''?>>Other</option>
-        <option value="unknown" <?= $getHowContacted == 'unknown' ? 'selected="selected"' : ''?>>Not known / Not recorded</option>
-    </select>
-    <select class="form-control" name="found">
-        <option value="all">How customer knew about us</option>
-        <option value="web" <?= $getHowFound == 'web' ? 'selected="selected"' : ''?>>Web search/ad</option>
-        <option value="print" <?= $getHowFound == 'print' ? 'selected="selected"' : ''?>>Press / print</option>
-        <option value="event" <?= $getHowFound == 'event' ? 'selected="selected"' : ''?>>Event / Seminar</option>
-        <option value="word" <?= $getHowFound == 'word' ? 'selected="selected"' : ''?>>Word of mouth</option>
-        <option value="returning" <?= $getHowFound == 'returning' ? 'selected="selected"' : ''?>>Returning customer</option>
-        <option value="other" <?= $getHowFound == 'other' ? 'selected="selected"' : ''?>>Other</option>
-    </select>
-    <select class="form-control" name="campaign_id" style="width:200px;">
-        <option value="all">Campaigns</option>
-        <option value="0"  <?= $campaign_id == '0' ? 'selected="selected"' : '' ?>>No campaign</option>
-        <option value="yes"  <?= $campaign_id == 'yes' ? 'selected="selected"' : '' ?>>Any campaign</option>
-        <?php foreach ($campaignList as $case) { ?>
-        <option value="<?= $case['id'] ?>" <?= $case['id'] == $campaign_id ? 'selected="selected"' : '' ?>><?= date('d/m/Y', strtotime($case['start_dt'])) ?>: <?= $case['name'] ?></option>
-        <?php } ?>
-    </select>*/?>
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <div class="card">
+        <div class="card-body">
             <div id="div-toggle-filters">
                 <strong class="text-info"><?= Yii::t('x', 'Viewing {count} B2C cases', ['count'=>number_format($pagination->totalCount)]) ?></strong>
                 &middot;
-                <?php if ($year != '') { ?><strong><?= $kaseViewList[$view] ?>:</strong> <?= $month ?>/<?= $year ?>; <?php } ?>
+                <?php if ($date_created != '') { ?>
+                    <strong><?= Yii::t('x', 'Case created') ?>:</strong>
+                    <?php if ($date_created == 'custom' && $date_created_custom != '') { ?>
+                    <?= $date_created_custom ?>;
+                    <?php } else { ?>
+                    <?= $date_created ?>;
+                    <?php } ?>
+                <?php } ?>
+                <?php if ($date_assigned != '') { ?>
+                    <strong><?= Yii::t('x', 'Case assigned') ?>:</strong>
+                    <?php if ($date_assigned == 'custom' && $date_assigned_custom != '') { ?>
+                    <?= $date_assigned_custom ?>;
+                    <?php } else { ?>
+                    <?= $date_assigned ?>;
+                    <?php } ?>
+                <?php } ?>
+                <?php if ($date_won != '') { ?><strong><?= Yii::t('x', 'Deal won') ?>:</strong> <?= $date_won ?>; <?php } ?>
+                <?php if ($date_closed != '') { ?>
+                    <strong><?= Yii::t('x', 'Case closed') ?>:</strong>
+                    <?php if ($date_closed == 'custom' && $date_closed_custom != '') { ?>
+                    <?= $date_closed_custom ?>;
+                    <?php } else { ?>
+                    <?= $date_closed ?>;
+                    <?php } ?>
+                <?php } ?>
+
                 <?php if ($name != '') { ?><strong><?= Yii::t('x', 'Name') ?>:</strong> <?= $name ?>; <?php } ?>
-                <?php if ($priority != '') { ?><strong><?= Yii::t('x', 'Priority') ?>:</strong> <?= $kasePriorityList[$priority] ?? $priority ?>; <?php } ?>
+                <?php if ($is_priority != '') { ?><strong><?= Yii::t('x', 'Priority') ?>:</strong> <?= $priorityList[$is_priority] ?? $is_priority ?>; <?php } ?>
                 <?php if ($status != '') { ?><strong><?= Yii::t('x', 'Status') ?>:</strong> <?= $kaseStatusList[$status] ?? $status ?>; <?php } ?>
                 <?php if ($deal_status != '') { ?><strong><?= Yii::t('x', 'Sale status') ?>:</strong> <?= $kaseDealStatusList[$deal_status] ?? $deal_status ?>; <?php } ?>
                 <?php if ($owner_id != '') { ?><strong><?= Yii::t('x', 'Seller') ?>:</strong>
@@ -240,9 +257,14 @@ $dkdiemdenList = [
                     }
                     ?>; <?php } ?>
 
+                <?php if ($pv != '') { ?><strong><?= Yii::t('x', 'Pacific Voyages') ?>:</strong> <?= $yesNoList[$pv] ?? $pv ?>; <?php } ?>
+
                 <?php if ($how_contacted != '') { ?><strong><?= Yii::t('x', 'How customer contacted us') ?>:</strong> <?= $caseHowContactedList[$how_contacted] ?? '' ?>; <?php } ?>
-                <?php if ($kx != '') { ?><strong><?= Yii::t('x', 'Channel') ?>:</strong> <?= strtoupper($kx) ?>; <?php } ?>
-                <?php if ($how_found != '') { ?><strong><?= Yii::t('x', 'Source') ?>:</strong> <?= $kaseHowFoundList[$how_found] ?? '' ?>; <?php } ?>
+
+                <?php if ($kx != '') { ?><strong><?= Yii::t('x', 'Channel') ?>:</strong> <?= $kx == 'k0' ? '(No data)' : strtoupper($kx) ?>; <?php } ?>
+                <?php if ($kxcost == 'yes' || $kxcost == 'no') { ?><strong><?= Yii::t('x', 'K cost applied') ?>:</strong> <?= ucwords($kxcost) ?>; <?php } ?>
+
+                <?php if ($how_found != '') { ?><strong><?= Yii::t('x', 'Source') ?>:</strong> <?= $how_found == 't0' ? '(No data)' : $kaseHowFoundList[$how_found] ?? '' ?>; <?php } ?>
 
                 <?php if ($prospect != '') { ?><strong><?= Yii::t('x', 'Prospect') ?>:</strong> <?= $prospectList[$prospect] ?? $prospect ?>; <?php } ?>
                 <?php if ($device != '') { ?><strong><?= Yii::t('x', 'Browser device used') ?>:</strong> <?= $kaseDeviceList[$device] ?? $device ?>; <?php } ?>
@@ -251,7 +273,7 @@ $dkdiemdenList = [
                 <?php if ($nationality != '') { ?><strong><?= Yii::t('x', 'Nationality of travelers') ?>:</strong> <span class="flag-icon flag-icon-<?= $nationality ?>"></span> <?= strtoupper($nationality) ?>; <?php } ?>
                 <?php if ($age != '') { ?><strong><?= Yii::t('x', 'Age of travelers') ?>:</strong> <?= $paxAgeGroupList[$age] ?? $age ?>; <?php } ?>
                 <?php if ($paxcount != '') { ?><strong><?= Yii::t('x', 'Number of travelers') ?>:</strong> <?= $paxcount ?>; <?php } ?>
-                <?php if (!empty($req_countries)) { ?><strong><?= Yii::t('x', 'Countries wishing to visit') ?>:</strong> 
+                <?php if (!empty($req_countries)) { ?><strong><?= Yii::t('x', 'Countries wishing to visit') ?>:</strong>
                     <?= $dkdiemdenList[$req_countries_select] ?? $req_countries_select ?>
                     <?php
                     $reqCountries = [];
@@ -261,7 +283,24 @@ $dkdiemdenList = [
                     echo implode(' ', $reqCountries);
                     ?>
                 ; <?php } ?>
-                <?php if ($req_year != '') { ?><strong><?= $req_date == 'start' ? Yii::t('x', 'Travel start date') : Yii::t('x', 'Travel end date') ?>:</strong> <?= $req_month ?>/<?= $req_year ?>; <?php } ?>
+
+                <?php if ($date_start != '') { ?>
+                    <strong><?= Yii::t('x', 'Tour start date') ?>:</strong>
+                    <?php if ($date_start == 'custom' && $date_start_custom != '') { ?>
+                    <?= $date_start_custom ?>;
+                    <?php } else { ?>
+                    <?= $date_start ?>;
+                    <?php } ?>
+                <?php } ?>
+                <?php if ($date_end != '') { ?>
+                    <strong><?= Yii::t('x', 'Tour end date') ?>:</strong>
+                    <?php if ($date_end == 'custom' && $date_end_custom != '') { ?>
+                    <?= $date_end_custom ?>;
+                    <?php } else { ?>
+                    <?= $date_end ?>;
+                    <?php } ?>
+                <?php } ?>
+
                 <?php if ($daycount != '') { ?><strong><?= Yii::t('x', 'Number of days available') ?>:</strong> <?= $daycount ?>; <?php } ?>
                 <?php if ($budget != '') { ?><strong><?= Yii::t('x', 'Budget') ?>:</strong> <?= $budget ?> <?= $budget_currency ?>; <?php } ?>
                 <?php if ($req_travel_type != '') { ?><strong><?= Yii::t('x', 'Type of travel group') ?>:</strong> <?= $kaseTravelTypeList[$req_travel_type] ?? $req_travel_type ?>; <?php } ?>
@@ -274,23 +313,43 @@ $dkdiemdenList = [
                 &middot;
                 <a href="?" class="action-reset-filters"><?= Yii::t('x', 'Reset') ?></a>
             </div>
-            <div id="div-filters" style="display:none">
+            <div id="div-filters" style="<?= isset($_GET['filter']) ? '' : 'display:none' ?>">
                 <hr>
-                <form class="form-horizontal">
+                <form class="form-horizontal" id="search_form">
                     <div class="row">
                         <div class="col-sm-6">
                             <p><span class="text-bold text-uppercase"><?= Yii::t('x', 'Case') ?></span></p>
+                            <?php if (isset($_GET['filter'])) {
+                                echo Html::hiddenInput('filter', 'yes');
+                            } ?>
+                            <!--
                             <div class="row form-group">
                                 <div class="col-sm-3">
                                     <?= Html::dropdownList('view', $view, $kaseViewList, ['class'=>'form-control']) ?>
                                 </div>
-                                <div class="col-sm-9">
-                                    <div class="row">
-                                        <div class="col-xs-6"><?= Html::dropdownList('year', $year, ArrayHelper::map($yearList, 'y', 'y'), ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any year)')]) ?></div>
-                                        <div class="col-xs-6"><?= Html::dropdownList('month', $month, $monthList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any month)')]) ?></div>
-                                    </div>
-                                </div>
                             </div>
+                            -->
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Case created') ?>:</label>
+                                <div class="col-sm-4"><?= Html::dropdownList('date_created', $date_created, $createdDateList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Any time')]) ?></div>
+                                <div class="col-sm-5 <?= $date_created != 'custom' ? 'd-none' : '' ?> has-drp"><?= Html::textInput('date_created_custom', $date_created_custom, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Select date')]) ?></div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3"><?= Yii::t('x', 'Case assigned') ?>:</label>
+                                <div class="col-sm-4"><?= Html::dropdownList('date_assigned', $date_assigned, $createdDateList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Any time')]) ?></div>
+                                <div class="col-sm-5 <?= $date_assigned != 'custom' ? 'd-none' : '' ?> has-drp"><?= Html::textInput('date_assigned_custom', $date_assigned_custom, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Select date')]) ?></div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Deal won') ?>:</label>
+                                <div class="col-sm-4"><?= Html::dropdownList('date_won', $date_won, $createdDateList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Any time')]) ?></div>
+                                <div class="col-sm-5 <?= $date_won != 'custom' ? 'd-none' : '' ?> has-drp"><?= Html::textInput('date_won_custom', $date_won_custom, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Select date')]) ?></div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Case closed') ?>:</label>
+                                <div class="col-sm-4"><?= Html::dropdownList('date_closed', $date_closed, $createdDateList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Any time')]) ?></div>
+                                <div class="col-sm-5 <?= $date_closed != 'custom' ? 'd-none' : '' ?> has-drp"><?= Html::textInput('date_closed_custom', $date_closed_custom, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Select date')]) ?></div>
+                            </div>
+
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Case name') ?>:</label>
                                 <div class="col-sm-9"><?= Html::textInput('name', $name, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Name')]) ?></div>
@@ -301,7 +360,7 @@ $dkdiemdenList = [
                             </div>
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Priority') ?>:</label>
-                                <div class="col-sm-9"><?= Html::dropdownList('is_priority', $priority, $kasePriorityList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
+                                <div class="col-sm-9"><?= Html::dropdownList('is_priority', $is_priority, $priorityList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
                             </div>
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Status') ?>:</label>
@@ -337,11 +396,14 @@ $dkdiemdenList = [
                                 <div class="col-sm-9"><?= Html::dropdownList('site', $site, $kaseSiteList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
                             </div>
                             <div class="row form-group">
-                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Channel') ?>:</label>
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Channel - K') ?>:</label>
                                 <div class="col-sm-9">
                                     <div class="row">
                                         <div class="col-sm-6">
-                                            <?= Html::dropdownList('kx', $kx, $kaseChannelList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?>
+                                            <?= Html::dropdownList('kx', $kx, array_merge(['k0'=>'Chưa điền K', 'k17'=>'K1-K7'], $kaseChannelList), ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <?= Html::dropdownList('kxcost', $kxcost, ['yes'=>Yii::t('x', 'K cost applied'), 'no'=>Yii::t('x', 'K cost not applied')], ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?>
                                         </div>
                                     </div>
                                 </div>
@@ -355,7 +417,7 @@ $dkdiemdenList = [
                             </div>
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'How customer found us') ?>:</label>
-                                <div class="col-sm-9"><?= Html::dropdownList('how_found', $how_found, $kaseHowFoundListFormatted, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
+                                <div class="col-sm-9"><?= Html::dropdownList('how_found', $how_found, array_merge($kaseHowFoundListFormatted, ['t0'=>'(No data)']), ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
                             </div>
 
 <!--                             <div class="row form-group">
@@ -373,16 +435,16 @@ $dkdiemdenList = [
 
                             <p><span class="text-bold text-uppercase"><?= Yii::t('x', 'Request') ?></span></p>
                             <div class="row form-group">
-                                <div class="col-sm-3">
-                                    <?= Html::dropdownList('req_date', $req_date, ['start'=>Yii::t('x', 'Travel start date'), 'end'=>Yii::t('x', 'Travel end date')], ['class'=>'form-control']) ?>
-                                </div>
-                                <div class="col-sm-9">
-                                    <div class="row">
-                                        <div class="col-xs-6"><?= Html::textInput('req_year', $req_year, ['class'=>'form-control', 'type'=>'number', 'min'=>date('Y'), 'max'=>10 + date('Y'), 'placeholder'=>Yii::t('x', 'Year, eg. {year}', ['year'=>date('Y')])]) ?></div>
-                                        <div class="col-xs-6 "><?= Html::dropdownList('req_month', $req_month, $monthList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any month)')]) ?></div>
-                                    </div>
-                                </div>
+                                <label class="col-sm-3"><?= Yii::t('x', 'Tour start') ?>:</label>
+                                <div class="col-sm-4"><?= Html::dropdownList('date_start', $date_start, $createdDateList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Any time')]) ?></div>
+                                <div class="col-sm-5 <?= $date_start != 'custom' ? 'd-none' : '' ?> has-drp"><?= Html::textInput('date_start_custom', $date_start_custom, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Select date')]) ?></div>
                             </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3"><?= Yii::t('x', 'Tour end') ?>:</label>
+                                <div class="col-sm-4"><?= Html::dropdownList('date_end', $date_end, $createdDateList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Any time')]) ?></div>
+                                <div class="col-sm-5 <?= $date_end != 'custom' ? 'd-none' : '' ?> has-drp"><?= Html::textInput('date_end_custom', $date_end_custom, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Select date')]) ?></div>
+                            </div>
+
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Number of days available') ?>:</label>
                                 <div class="col-sm-9 has-select2"><?= Html::textInput('daycount', $daycount, ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Min[-Max], eg. 10 or 10-20')]) ?></div>
@@ -428,19 +490,25 @@ $dkdiemdenList = [
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Requested extensions') ?>:</label>
                                 <div class="col-sm-9 has-select2"><?= Html::dropdownList('req_extension', $req_extension, $kaseFormuleList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
                             </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Export columns') ?>:</label>
+                                <div class="col-sm-9 has-select2"><?= Html::dropdownList('export_column', $export_column, $export_columns, ['class'=>'form-control', 'multiple'=>'multiple', 'id' => 'export_fields']) ?>
+                                    <?= Html::input('hidden', 'downloadToken', '', ['id' => 'download_token_value']) ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="-text-right">
-                        <button class="btn btn-primary" type="submit"><?= Yii::t('app', 'Go') ?></button>
-                        <a class="action-cancel-filters"><?= Yii::t('app', 'Cancel') ?></a>
+                    <div>
+                        <button class="btn btn-primary" type="submit"><?= Yii::t('x', 'Go') ?></button>
+                        <a class="action-cancel-filters"><?= Yii::t('x', 'Cancel') ?></a>
                         &middot;
-                        <a class="action-reset-filters" href="?"><?= Yii::t('app', 'Reset') ?></a>
+                        <a class="action-reset-filters" href="?"><?= Yii::t('x', 'Reset') ?></a>
                     </div>
                 </form>
             </div>
         </div>
         <?php if (empty($theCases)) { ?>
-        <div class="panel-body text-danger"><?= Yii::t('x', 'No data found.') ?></div>
+        <div class="card-body text-danger"><?= Yii::t('x', 'No data found.') ?></div>
         <?php } else { ?>
 
         <div class="table-responsive">
@@ -448,60 +516,49 @@ $dkdiemdenList = [
                 <thead>
                     <tr>
                         <th width="20"></th>
-                        <th><?= $kaseViewList[$view] ?></th>
+                        <th><?= Yii::t('x', 'Created') ?></th>
+                        <?php if ($view != 'created') { ?><th><?= Yii::t('x', $kaseViewList[$view]) ?></th><?php } ?>
                         <th><?= Yii::t('x', 'Case name') ?></th>
-                        <th>Owner & assign date</th>
+                        <th><?= Yii::t('x', 'Owner & assign date') ?></th>
+                        <?php if (USER_ID == 1) { ?><th><?= Yii::t('x', 'reK') ?></th><?php } ?>
+                        <?php if (in_array(USER_ID, [1, 695]) && $kxcost == 'yes') { ?>
+                        <th class="text-right"><?= Yii::t('x', 'K cost') ?></th>
+                        <?php } ?>
                         <th><?= Yii::t('x', 'Source') ?></th>
-                        <th>Destinations</th>
-                        <th>Avail. time</th>
-                        <th>Days</th>
-                        <th>Pax</th>
-                        <th>Note</th>
+                        <th><?= Yii::t('x', 'Destinations') ?></th>
+                        <th><?= Yii::t('x', 'Avail. time') ?></th>
+                        <th class="text-center"><?= Yii::t('x', 'Days') ?></th>
+                        <th class="text-center"><?= Yii::t('x', 'Pax') ?></th>
+                        <th><?= Yii::t('x', 'Note') ?></th>
                     </tr>
                 </thead>
                 <tbody>
-                <?php if (empty($theCases)) { ?><tr><td colspan="7">No cases found. New entries will appear here as soon as someone submits a web form on our site.</td></tr><?php } ?>
                 <?php foreach ($theCases as $case) { ?>
-                <?php
-            $_channel = '';
-            // K1
-            if ($case['how_contacted'] == 'web/adwords/google') {
-                $_channel = 'k1';
-            }
+                    <?php
+                    $reK = '-';
+                    if ($case['how_contacted'] == 'web/adwords/google') {
+                        $reK = 'k1';
+                    } elseif ($case['how_contacted'] == 'web/adwords/bing') {
+                        $reK = 'k2';
+                    } elseif (substr($case['how_contacted'], 0, 10) == 'web/search') {
+                        $reK = 'k3';
+                    } elseif (substr($case['how_contacted'], 0, 8) == 'web/link' || substr($case['how_contacted'], 0, 12) == 'web/adonline' || $case['how_contacted'] == 'web/unknown') {
+                        // REF, AD ONLINE, WEB UNKNOWN
+                        $reK = 'k4';
+                    } elseif ($case['how_contacted'] == 'web/direct') {
+                        $reK = 'k5';
+                    } elseif ($case['how_contacted'] == 'web/email') {
+                        $reK = 'k6';
+                    } elseif (substr($case['how_contacted'], 0, 4) == 'nweb') {
+                        $reK = 'k7';
+                    }
+                    if ($case['stats']['kx'] == 'k8') {
+                        $reK = 'k8';
+                    }
+                        if ($reK != 'k8' && $reK != '-' && $reK != $case['stats']['kx'] && USER_ID == 1 && isset($_GET['update-kx'])) {
+                            \Yii::$app->db->createCommand()->update('at_case_stats', ['kx'=>$reK], ['case_id'=>$case['id']])->execute();
+                        }
 
-            // K2
-            if ($case['how_contacted'] == 'web/adwords/bing') {
-                $_channel = 'k2';
-            }
-
-            // K3
-            if (strpos($case['how_contacted'], 'web/search') !== false) {
-                $_channel = 'k3';
-            }
-
-            // K4
-            if (strpos($case['how_contacted'], 'web/link') !== false || strpos($case['how_contacted'], 'web/adonline') !== false || $case['how_contacted'] == 'web') {
-                $_channel = 'k4';
-            }
-            // K5
-            if ($case['how_contacted'] == 'web/direct') {
-                $_channel = 'k5';
-            }
-            // K6
-            if ($case['how_contacted'] == 'web/email') {
-                $_channel = 'k6';
-            }
-            // K7
-            if (strpos($case['how_contacted'], 'nweb') !== false) {
-                $_channel = 'k7';
-            }
-            // K8
-            if ($case['stats']['kx'] == 'k8') {
-                $_channel = 'k8';
-            }
-            if ($case['stats']['kx'] == '') {
-                $case['stats']['kx'] = $_channel;
-            }
 
                     ?>
                     <tr>
@@ -509,10 +566,14 @@ $dkdiemdenList = [
                             <a title="<?=Yii::t('mn', 'Edit')?>" rel="external" class="text-muted" href="<?=DIR?>cases/u/<?=$case['id']?>"><i class="fa fa-edit"></i></a>
                         </td>
                         <td class="text-nowrap"><?= str_replace('/'.date('Y'), '', date_format(date_timezone_set(date_create($case['created_at']), timezone_open('Asia/Saigon')), 'j/n/Y \<\s\p\a\n\ \c\l\a\s\s\=\"\t\e\x\t\-\m\u\t\e\d\"\>H:i\<\/\s\p\a\n\>')) ?></td>
+                        <?php if ($view == 'assigned') { ?><td class="text-nowrap"><?= date('j/n', strtotime($case['ao'])) ?></td><?php } ?>
+                        <?php if ($view == 'closed') { ?><td class="text-nowrap"><?= date('j/n', strtotime($case['closed'])) ?></td><?php } ?>
+                        <?php if ($view == 'won') { ?><td class="text-nowrap"><?= date('j/n', strtotime($case['status_dt'])) ?></td><?php } ?>
                         <td class="text-nowrap">
                             <?php if ($case['stats']['prospect'] != 0 && $case['stats']['prospect'] != '') { ?>
-                            <sup><a href="?prospect=<?= $case['stats']['prospect'] ?>" class="text-bold color-prospect-<?= $case['stats']['prospect'] ?>"><?= $case['stats']['prospect'] ?></a></sup>
+                            <span class="badge badge-flat badge-pill border-warning"><a href="?prospect=<?= $case['stats']['prospect'] ?>" class="text-bold color-prospect-<?= $case['stats']['prospect'] ?>"><?= $case['stats']['prospect'] ?></a></span>
                             <?php } ?>
+                            <?php if (in_array($case['is_priority'], [1,2,3,4])) { ?><?= str_repeat('<i class="text-orange fa fa-caret-right"></i>', $case['is_priority']) ?><?php } ?>
                             <?= Html::a($case['name'], '@web/cases/r/'.$case['id'], ['style'=>$case['is_priority'] == 'yes' ? 'font-weight:bold' : '']) ?>
                             <?php if ($case['status'] == 'onhold') { ?><i class="text-warning fa fa-clock-o"></i><?php } ?>
                             <?php if ($case['status'] == 'closed') { ?><i class="text-muted fa fa-lock"></i><?php } ?>
@@ -521,25 +582,31 @@ $dkdiemdenList = [
                         </td>
                         <td class="text-nowrap">
                             <?php if ($case['owner_id'] !== null) { ?>
-                            <img class="img-circle" src="<?= DIR ?>timthumb.php?src=<?= $case['owner']['image'] ?>&w=100&h=100" style="width:20px; height:20px">
+                            <img class="rounded-circle" src="<?= DIR ?>timthumb.php?src=<?= $case['owner']['image'] ?>&w=100&h=100" style="width:20px; height:20px">
                             <?=Html::a($case['owner']['nickname'], '?owner_id='.$case['owner']['id'])?>
                             <span class="text-muted"><?= str_replace('/'.date('Y'), '', date('j/n/Y', strtotime($case['ao']))) ?></span>
                             <?php } else { ?>
                             <?= Yii::t('x', 'No seller') ?>
                             <?php } ?>
                         </td>
+                        <?php if (USER_ID == 1) { ?>
+                        <td title="<?= $case['how_found'] ?> - <?= $case['how_contacted'] ?>" class="<?= $reK != $case['stats']['kx'] ? 'text-danger' : '' ?>"><?= strtoupper($reK) ?></td>
+                        <?php } ?>
+                        <?php if (in_array(USER_ID, [1, 695]) && $kxcost == 'yes') { ?>
+                        <td title="" class="text-slate text-right text-nowrap"><?= number_format($case['kx_cost'], 1) ?></td>
+                        <?php } ?>
                         <td class="text-nowrap">
                             <?= $case['campaign_id'] != 0 ? '<span class="label label-info">C</span> ' : '' ?>
                             <span class="text-muted" title="<?= Yii::t('x', 'Source') ?>: <?= $kaseHowFoundList[$case['how_found']] ?? $case['how_found'] ?>"><?= strtoupper(substr($case['how_found'], 0, 1)) ?></span>
                             <?php if (substr($case['how_found'], 0, 8) == 'referred') { ?>
-                            <?= Html::a($case['referrer']['name'], '@web/persons/r/'.$case['ref'], ['rel'=>'external']) ?>
+                            <?= Html::a($case['referrer']['name'], '@web/contacts/'.$case['ref'], ['rel'=>'external']) ?>
                             <?php } ?>
                             &middot;
-                            <span class="text-muted " title="Contacted: <?= $caseHowContactedList[$case['how_contacted']] ?? $case['how_contacted'] ?>"><?= $case['stats']['kx'] == '' ? 'KU' : strtoupper($case['stats']['kx']) ?></span>
+                            <span class="text-muted " title="Contacted: <?= $caseHowContactedList[$case['how_contacted']] ?? $case['how_contacted'] ?>"><?= $case['stats']['kx'] == '' ? '-' : strtoupper($case['stats']['kx']) ?></span>
                             <?php if ($case['web_keyword'] != '') { ?>
                             <span class="text-pink"><?= $case['web_keyword'] ?></span>
                             <?php } ?>
-                            
+
                             <?php
                             /*
                             if ($case['how_contacted'] == 'agent') {
@@ -567,7 +634,7 @@ $dkdiemdenList = [
                         <td class="text-center"><?= $case['stats']['day_count'] ?></td>
                         <td class="text-center"><?= $case['stats']['pax_count'] ?></td>
                         <?php } else { ?>
-                        <td colspan="4"  class="text-center"><?= Html::a('Edit request', '@web/cases/request/'.$case['id']) ?></td>
+                        <td colspan="4"  class="text-center"><?= Html::a(Yii::t('x', 'Edit request'), '/cases/request/'.$case['id']) ?></td>
                         <?php } ?>
 
                         <td>
@@ -584,25 +651,125 @@ $dkdiemdenList = [
                 </tbody>
             </table>
         </div>
-    </div>
-    <?php } ?>
 
-    <?php if ($pagination->pageSize < $pagination->totalCount) { ?>
-    <div class="text-center">
+        <?php } ?>
+    </div>
+
     <?= LinkPager::widget([
         'pagination' => $pagination,
         'firstPageLabel' => '<<',
         'prevPageLabel' => '<',
         'nextPageLabel' => '>',
         'lastPageLabel' => '>>',
-    ]); ?>
-    </div>
-    <?php } ?>
-
+    ]) ?>
+</div><!-- haha -->
+<div id="domMessage" style="display:none;">
+    <h2 class="text-center"><img style="width: 20px; height: 20px" src="/img/busy1.gif" /> We are processing your request.  Please be patient.</h1>
 </div>
+
 <?php
 
 $js = <<<'JS'
+    var downloadToken = new Date().getTime();
+    $('#search_form').submit(function(){
+        if ($('#export_fields').val().length > 0) {
+            // downloadToken = new Date().getTime(); //use the current timestamp as the token value
+            // $('[name="downloadToken"]').val(downloadToken);
+            // timer();
+            blockUIForDownload();
+        }
+        return true;
+    });
+
+    // function timer() {
+    //     var attempts = 1000;
+    //     var downloadTimer = window.setInterval(function () {
+    //         var token = getCookie("downloadToken");
+    //         attempts--;
+
+    //         if (token == downloadToken || attempts == 0) {
+    //             $(".log").prepend("Browser received file from server<br/>");
+    //             window.clearInterval(downloadTimer);
+    //         }
+    //         else {
+    //             $(".log").prepend("Browser not received file from server yet<br/>");
+    //         }
+    //     }, 1000);
+    // }
+
+    // function parse(str) {
+    //     var obj = {};
+    //     var pairs = str.split(/ *; */);
+    //     var pair;
+    //     if ('' == pairs[0]) return obj;
+    //     for (var i = 0; i < pairs.length; ++i) {
+    //         pair = pairs[i].split('=');
+    //         obj[decodeURIComponent(pair[0])] = decodeURIComponent(pair[1]);
+    //     }
+    //     return obj;
+    // }
+
+    // function getCookie(name) {
+    //     var parts = parse(document.cookie);
+    //     console.log(parts);
+    //     return parts[name] === undefined ? null : parts[name];
+    // }
+
+    var fileDownloadCheckTimer;
+    function blockUIForDownload() {
+        var attempts = 10000;
+        var token = new Date().getTime(); //use the current timestamp as the token value
+        $('#download_token_value').val(token);
+        $.blockUI({
+            message: $('#domMessage'),
+            css: {
+                borderRadius: '5px'
+            }
+            });
+        fileDownloadCheckTimer = window.setInterval(function () {
+            var cookieValue = $.cookie('downloadToken');
+            attempts--;
+            if (cookieValue == token || attempts == 0)
+                finishDownload();
+        }, 1000);
+    }
+    function finishDownload() {
+        window.clearInterval(fileDownloadCheckTimer);
+        $.cookie('downloadToken', null); //clears this cookie value
+        $.unblockUI();
+    }
+    $('.has-drp input').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            format: 'YYYY-MM-DD',
+            cancelLabel: 'Any date'
+        },
+        ranges: {
+           'Last year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+           'Last month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+           'Last week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+           'Last 30 days': [moment().subtract(29, 'days'), moment()],
+           'Last 7 days': [moment().subtract(6, 'days'), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Today': [moment(), moment()],
+           'Tomorrow': [moment().add(1, 'days'), moment().add(1, 'days')],
+           'Next 7 Days': [moment(), moment().add(6, 'days')],
+           'Next 30 Days': [moment(), moment().add(29, 'days')],
+           'This month': [moment().startOf('month'), moment().endOf('month')],
+           'This year': [moment().startOf('year'), moment().endOf('year')],
+           'Next month': [moment().add(1, 'months').startOf('month'), moment().add(1, 'months').endOf('month')],
+           'Next year': [moment().add(1, 'years').startOf('year'), moment().add(1, 'years').endOf('year')],
+        },
+    })
+    $('.has-drp input').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' -- ' + picker.endDate.format('YYYY-MM-DD'));
+    });
+
+    $('.has-drp input').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        $(this).parent().addClass('d-none')
+    });
+
     $('.selectpicker').selectpicker();
     $('[data-toggle="popover"]').popover()
     $('.action-show-filters').on('click', function(e){
@@ -618,7 +785,20 @@ $js = <<<'JS'
         $('.action-cancel-filters').hide()
     })
     $('.has-select2 select').select2()
-JS;
 
+    $('[name="date_created"], [name="date_assigned"], [name="date_closed"], [name="date_won"], [name="date_start"], [name="date_end"]').on('change', function(){
+        var val = $(this).val()
+        if (val == 'custom') {
+            $(this).parent().parent().find('.col-sm-5.has-drp').removeClass('d-none').find(':input:eq(0)').focus();
+        } else {
+            $(this).parent().parent().find('.col-sm-5.has-drp').addClass('d-none').find(':input:eq(0)').val('');
+        }
+    })
+JS;
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js', ['depends'=>'app\assets\MainAsset']);
+$this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.3/daterangepicker.min.css', ['depends'=>'yii\web\JqueryAsset']);
+
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.3/daterangepicker.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJs($js);

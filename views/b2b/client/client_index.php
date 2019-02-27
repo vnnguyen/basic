@@ -1,42 +1,71 @@
-<?
+<?php
 use yii\helpers\Html;
 
-$this->title = 'B2B - Client Accounts ('.count($theAccounts).')';
-$this->params['breadcrumb'] = [
-    ['B2B', 'b2b'],
-    ['Clients'],
-];
+include('_client_inc.php');
+
+$idList = [];
+foreach ($theClients as $client) {
+    $idList[] = $client['id'];
+}
+    // \Yii::$app->db->createCommand()
+    //     ->update('metas', ['rtype'=>'client'], ['rtype'=>'company', 'rid'=>$idList])
+    //     ->execute();
 
 ?>
 <div class="col-md-12">
-    <div class="panel panel-default">
+    <div class="form-inline mb-2">
+        <?= Html::textInput('name', '', ['class'=>'form-control', 'placeholder'=>Yii::t('x', 'Search name')]) ?>
+        <?= Html::submitButton(Yii::t('app', 'Go'), ['class'=>'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('app', 'Reset'), '?') ?>
+    </div>
+    <div class="card mb-0">
         <div class="table-responsive">
-            <table class="table table-responsive table-striped table-condensed table-bordered">
+            <table class="table card-table table-striped table-narrow">
                 <thead>
                     <tr>
-                        <th>Company name</th>
-                        <th>Login name</th>
+                        <th width="16"></th>
+                        <th colspan="2">Company name & Login</th>
+                        <th>Country</th>
+                        <th>Email</th>
                         <th>Website</th>
-                        <th>Actions</th>
+                        <th colspan="2" class="text-center">Stats</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <? foreach ($theAccounts as $account) { ?>
+                    <?php foreach ($theClients as $client) { 
+                        if ($client['image'] == '') {
+                            $client['image'] = '/assets/img/placeholder.jpg';
+                        }
+                        ?>
                     <tr>
-                        <td><?= Html::a($account['name'], '@web/b2b/clients/r/'.$account['id']) ?></td>
-                        <td><? if ($account['profileTA']) { echo $account['profileTA'][0]['login']; } ?></td>
-                        <td><? foreach ($account['metas'] as $meta) { if ($meta['k'] == 'website') { echo Html::a($meta['v'], $meta['v'], ['target'=>'_blank']); } } ?></td>
-                        <td><!--
-                            <?= Html::a('View company', '@web/companies/r/'.$account['id']) ?>
-                            - -->
-                            <?= Html::a('Cases', '@web/b2b/clients/r/'.$account['id']) ?>
-                            -
-                            <?= Html::a('Tours', '@web/b2b/clients/r/'.$account['id'].'?view=tour') ?>
-                            -
-                            <?= Html::a('Edit login', '@web/b2b/clients/login/'.$account['id']) ?>
+                        <td><?= Html::a('<i class="fa fa-edit"></i>', '/b2b/clients/u/'.$client['id'], ['class'=>'text-muted']) ?></td>
+                        <td style="padding-right:0!important;" width="60"><?= Html::img('/timthumb.php?w=100&h=100&zc=2&src='.$client['image'], ['class'=>'img-responsive img-lg']) ?></td>
+                        <td>
+                            <?= Html::a($client['name'], '@web/b2b/clients/r/'.$client['id']) ?>
+                            <div class="text-muted"><?= $client['login'] ?></div>
+                        </td>
+                        <td><?php foreach ($client['metas'] as $meta) { if ($meta['name'] == 'address') { echo '<div>', $meta['value'], '</div>'; } } ?></td>
+                        <td><?php foreach ($client['metas'] as $meta) { if ($meta['name'] == 'tel') { echo '<div>', $meta['value'], '</div>'; } } ?></td>
+                        <td><?php foreach ($client['metas'] as $meta) { if ($meta['name'] == 'email') { echo '<div>', Html::a($meta['value'], 'mailto:'.$meta['value']), '</div>'; } } ?></td>
+                        <td class="text-center">
+                            <div style="font-size:1.5em"><?= count($client['cases']) ?></div>
+                            <?= Html::a('cases', '/b2b/cases?company='.$client['id']) ?>
+                        </td>
+                        <td class="text-center">
+                            <?php
+                            $client['tours'] = 0;
+                            foreach ($client['cases'] as $case) {
+                                foreach ($case['bookings'] as $booking) {
+                                    if ($booking['status'] == 'won') {
+                                        $client['tours'] ++;
+                                    }
+                                }
+                            } ?>
+                            <div style="font-size:1.5em" class="<?= $client['tours'] == 0 ? 'text-muted' : '' ?>"><?= $client['tours'] ?></div>
+                            <?= Html::a('tours', '/b2b/tours?company='.$client['id']) ?>
                         </td>
                     </tr>
-                    <? } ?>
+                    <?php } ?>
                 </tbody>
             </table>
         </div>

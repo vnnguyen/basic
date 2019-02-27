@@ -20,6 +20,7 @@ use common\models\Venue;
 use common\models\Invoice;
 use common\models\Payment;
 use common\models\Meta;
+use yii\helpers\Html;
 
 class ProgramController extends \app\controllers\MyController
 {
@@ -148,7 +149,7 @@ class ProgramController extends \app\controllers\MyController
 
     public function actionC($type = '') {
         $theProgram = new Product;
-        
+
         $theProgram->created_at = NOW;
         $theProgram->created_by = USER_ID;
         $theProgram->updated_at = NOW;
@@ -222,12 +223,18 @@ class ProgramController extends \app\controllers\MyController
                 'bookings',
                 'bookings.case',
                 'bookings.createdBy',
+                'metas'=>function($q){
+                    return $q->select(['rid', 'name', 'value'])->indexBy('name');
+                },
             ])
             ->one();
 
         if (!$theProgram) {
             throw new HttpException(404, 'Product not found.');
         }
+
+        @\yii\helpers\FileHelper::createDirectory(Yii::getAlias('@webroot').'/upload/products/'.$theProgram['id'].'/map');
+
 
         $theDays = Day::find()->where(['rid'=>$id])->asArray()->all();
 
@@ -354,7 +361,7 @@ class ProgramController extends \app\controllers\MyController
         }
 
         if ($action == 'json') {
-            require_once('/var/www/vendor/textile/php-textile/Parser.php');
+            require_once('/../textile/php-textile/Parser.php');
             $parser = new \Netcarver\Textile\Parser();
 
             $searchIn = $_POST['search_in'];
@@ -377,9 +384,9 @@ class ProgramController extends \app\controllers\MyController
                 }
                 if (strlen($searchTags) > 2) {
                     $tagArray = explode(',', str_replace([' '], [','], $searchTags));
-                    foreach ($tagArray as $tag) {
+                    foreach ($tagArray as $i=>$tag) {
                         if (trim($tag) != '') {
-                            $query->andWhere('LOCATE(:tags, tags) !=0', [':tags'=>$searchTags]);
+                            $query->andWhere('LOCATE(:tag'.$i.', tags)!=0', [':tag'.$i=>trim($tag)]);
                         }
                     }
                 }
@@ -419,7 +426,7 @@ class ProgramController extends \app\controllers\MyController
                         'guides'=>$day['guides'],
                         'transport'=>$day['transport'],
                     ];
-                }                
+                }
             } elseif ($searchIn == 'ap' || $searchIn == 'mp') {
                 // All programs
                 $query = Product::find()
@@ -441,13 +448,13 @@ class ProgramController extends \app\controllers\MyController
 
                 if (strlen($searchTags) > 2) {
                     $tagArray = explode(',', str_replace([' '], [','], $searchTags));
-                    foreach ($tagArray as $tag) {
+                    foreach ($tagArray as $i=>$tag) {
                         if (trim($tag) != '') {
-                            $query->andWhere('LOCATE(:tags, tags) !=0', [':tags'=>$searchTags]);
+                            $query->andWhere('LOCATE(:tag'.$i.', tags)!=0', [':tag'.$i=>trim($tag)]);
                         }
                     }
                 }
-                
+
                 $countQuery = clone $query;
                 $pagination = new Pagination([
                     'page'=>$searchPage,
@@ -511,7 +518,7 @@ class ProgramController extends \app\controllers\MyController
                             }
                         }
                     }
-                }                
+                }
             } else {
                 exit;
                 // All programs
@@ -576,7 +583,7 @@ class ProgramController extends \app\controllers\MyController
             // Save product
             $sql = 'UPDATE at_ct SET day_ids=:di WHERE id=:id LIMIT 1';
             Yii::$app->db->createCommand($sql, [':di'=>implode(',', $dayIdList), ':id'=>$theProgram['id']])->execute();
-            return true;   
+            return true;
         }
 
         // Add blank after
@@ -593,7 +600,7 @@ class ProgramController extends \app\controllers\MyController
             $theDay->image = '';
             if ($theDay->save(false)) {
                 array_splice($dayIdList, (int)$_POST['at'], 0, $theDay->id);
-            
+
                 // Save product
                 $sql = 'UPDATE at_ct SET day_ids=:di WHERE id=:id LIMIT 1';
                 Yii::$app->db->createCommand($sql, [':di'=>implode(',', $dayIdList), ':id'=>$theProgram['id']])->execute();
@@ -616,17 +623,24 @@ class ProgramController extends \app\controllers\MyController
         }
 
         $metaData = [];
-        $sql = 'SELECT * FROM at_meta WHERE rtype="product" AND rid=:id AND SUBSTRING(k,1,3)="td/" ORDER BY k';
+        $sql = 'SELECT * FROM metas WHERE rtype="product" AND rid=:id AND SUBSTRING(name,1,3)="td/" ORDER BY name';
         $metas = Yii::$app->db->createCommand($sql, [':id'=>$theProgram['id']])->queryAll();
 
         foreach ($metas as $meta) {
-            $items = explode('|', $meta['v']);
+            $items = explode('|', $meta['value']);
             if (count($items) == 4) {
                 $metaData[] = $items;
             }
         }
 
-        return $this->render($theProgram['offer_type'] == 'b2b-prod' ? 'program_r_b2bprod' : 'program_r', [
+        $tbl = $this->upgradeTextHotels($theProgram['prices']);
+        /*
+        170802 Converted price:
+        INSERT INTO metas (created_dt, created_by, updated_dt, updated_by, rtype, rid, name, value)
+        (SELECT created_at, created_by, updated_at, updated_by, "product", id, "text_hotels", concat("OLD;|", prices) FROM at_ct WHERE owner="si" AND prices!="")
+        UPDATE at_ct SET prices ="" WHERE owner="si"
+        */
+        return $this->render('program_r', [
             'theProgram'=>$theProgram,
             'theDay'=>$theDay,
             'theDays'=>$theDays,
@@ -634,7 +648,58 @@ class ProgramController extends \app\controllers\MyController
             'theCases'=>$theCases,
             'theTour'=>$theTour,
             'metaData'=>$metaData,
+
         ]);
+    }
+    public function upgradeTextHotels($oldtext)
+    {
+        $optcnt = 0;
+        $lines = explode(chr(10), $oldtext);
+        $newtext = '';
+        foreach ($lines as $line) {
+            if (trim($line) != '') {
+                $newtext .= "\n";
+                $line = explode(':', $line);
+                if (isset($line[1]) && trim($line[0]) == 'OPTION') {
+                    $optcnt ++;
+
+                    $newtext .= '_option;|'.(trim($line[1]) == '' ? 'Option '.$optcnt : trim($line[1]));
+                }
+                if (isset($line[1]) && substr(trim($line[0]), 0, 1) == '+') {
+                    for ($i = 1; $i < 4; $i ++) {
+                        if (!isset($line[$i])) {
+                            $line[$i] = '';
+                        }
+                    }
+                    $line[0] = trim(substr($line[0], 1));
+                    if (trim($line[3]) != '') {
+                        if (isset($line[4]) && in_array(trim($line[3]), ['http', 'https'])) {
+                            $line[3] = trim($line[3]).':'.trim($line[4]);
+                        } else {
+                            $line[3] = 'http://'.trim($line[3]);
+                        }
+                    }
+                    $newtext .= '_hotel;|'.$line[0]
+                        .';|'.(trim($line[3]) == '' ? trim($line[1]) : trim($line[1]).' : '.trim($line[3]))
+                        .';|'.($line[4] ?? '')
+                        .';|'.$line[2];
+                }
+                if (isset($line[1]) && substr(trim($line[0]), 0, 1) == '-') {
+                    for ($i = 1; $i < 3; $i ++) {
+                        if (!isset($line[$i])) {
+                            $line[$i] = '';
+                        }
+                    }
+                    $line[0] = trim(substr($line[0], 1));
+                    $line[1] = str_replace([',', ' USD', ' EUR', ' VND'], ['', '', '', ''], $line[1]);
+                    $line[1] = (int)trim($line[1]);
+
+                    $newtext .= '_price;|'.$line[0]
+                        .';|'.$line[1];
+                }
+            }
+        }
+        return $newtext;
     }
 
     // Mot so thao tac khi lam ct
@@ -754,7 +819,7 @@ class ProgramController extends \app\controllers\MyController
 
         $theInvoice = new Invoice();
 
-        $thePayment = new Payment;      
+        $thePayment = new Payment;
         $thePayment->scenario = 'payments_c';
 
         if ($thePayment->load(Yii::$app->request->post()) && $thePayment->validate()) {
@@ -1082,7 +1147,7 @@ class ProgramController extends \app\controllers\MyController
                         throw new HttpException (401, 'Error saving extension');
                     }
                 }
-                
+
             } else {
                 if ($meta_extension != null) {
                     $meta_extension->delete();
@@ -1102,7 +1167,7 @@ class ProgramController extends \app\controllers\MyController
             'arr_ext_days' => $arr_ext_days,
         ]);
 
-        
+
 
 /*
         Yii::$app->session->set('ckfinder_authorized', true);
@@ -1404,6 +1469,351 @@ class ProgramController extends \app\controllers\MyController
         return $this->render('products_upload', [
             'theProgram'=>$theProgram,
             'model'=>$model,
+        ]);
+    }
+    public function actionPrintB2b($id = 0, $code = 0) {
+
+        $theProduct = Product::find()
+            ->where(['id'=>$id])
+            ->with([
+                'days',
+                'createdBy'=>function($q) {
+                    return $q->select(['id', 'fname', 'lname', 'name', 'email', 'image']);
+                },
+                'metas'=>function($q) {
+                    return $q->select(['rid', 'name', 'value'])->indexBy('name');
+                },
+            ])
+            ->asArray()
+            ->one();
+        if (!$theProduct) {
+            throw new HttpException(404, 'Program not found.');
+        }
+
+        // Create docx file
+        if (isset($_GET['docx'])) {//Yii::getAlias('@webroot')
+require_once(Yii::getAlias('@webroot').'/../textile/php-textile/Parser.php');///var/www/my.amicatravel.com/www/assets
+$parser = new \Netcarver\Textile\Parser();
+
+require_once Yii::getAlias('@webroot').'/assets/phpdocx-basic-8.0/classes/CreateDocx.php';
+$docx = new \CreateDocxFromTemplate(Yii::getAlias('@webroot').'/assets/tools/docx/b2b/_SecretIndochina.docx');
+$docx->setLanguage('fr-FR');
+
+if ($theProduct['language'] != 'fr') {
+    $docx = new \CreateDocxFromTemplate(Yii::getAlias('@webroot').'/assets/tools/docx/b2b/_SecretIndochina_en.docx');
+    $docx->setLanguage('en-US');
+}
+
+$docx->setDefaultFont('Bell MT');
+
+$dayIdList = explode(',', $theProduct['day_ids']);
+
+$clientName = $theProduct['about'];
+$programName = $theProduct['title'];
+$textEsprit = '<div style="font-family:Bell MT; font-size:11pt; line-height:20pt; margin-top:0; text-align:justify;">'.($theProduct['metas']['text_esprit']['value'] ?? '').'</div>';
+$textEsprit = str_replace(['<p>'], ['<p style="font-family:Bell MT; font-size:11pt; line-height:20pt; margin-top:0; text-align:justify;">'], $textEsprit);
+$textPoints = '<div style="font-family:Bell MT; font-size:11pt; line-height:20pt; margin-top:0;">'.($theProduct['metas']['text_points']['value'] ?? '').'</div>';
+$textPoints = str_replace(['<p>'], ['<p style="font-family:Bell MT; font-size:11pt; line-height:20pt; margin-top:0;">'], $textPoints);
+
+$textAccom = '';
+$textSummary = '';
+$textSummary .= '<table style="width: 100%; border-collapse: collapse; border:1px solid rgb(191,191,191);">';
+$textSummary .= '<thead>
+        <tr style="margin: 2mm 0;">
+            <th style="text-align:center;border-bottom: 1px solid;border-right: 1px solid; border-color: rgb(191,191,191);width: 10%; padding: 2mm 1mm 2mm 0;"><h3 style="font-family:Bell MT; font-size:11pt; color:rgb(228,58,146); margin:0;">'.($theProduct['language'] == 'fr' ? 'Jour' : 'Day').'</h3></th>';
+if ($theProduct['offer_type'] != 'b2b-prod') {
+    $textSummary .= '<th style="text-align:center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191); width:  18%;"><h3 style="font-family:Bell MT; font-size:11pt; color:rgb(228,58,146); margin:0; padding-right: 1mm;">Date</h3></th>';
+}
+$textSummary .= '<th style="text-align:center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);width:  39.1%;"><h3 style="font-family:Bell MT; font-size:11pt; color:rgb(228,58,146); margin:0;padding-right: 1mm;">'.($theProduct['language'] == 'fr' ? 'Itinéraire' : 'Itinerary').'</h3></th>
+            <th style="text-align:center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);width: 22.6%;"><h3 style="font-family:Bell MT; font-size:11pt; color:rgb(228,58,146); margin:0;padding-right: 1mm;">'.($theProduct['language'] == 'fr' ? 'Accompagnement' : 'Guide/Driver').'</h3></th>
+            <th style="text-align:center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);width: 17%;"><h3 style="font-family:Bell MT; font-size:11pt; color:rgb(228,58,146); margin:0;">'.($theProduct['language'] == 'fr' ? 'Repas inclus' : 'Meals').'</h3></th>
+        </tr>
+    </thead>';
+$cnt = 0;
+foreach ($dayIdList as $di) {
+    foreach ($theProduct['days'] as $ng) {
+        if ($ng['id'] == $di) {
+            $cnt ++;
+            $ngay = date('D d|m|Y', strtotime($theProduct['day_from'] . ' + ' . ($cnt - 1) . 'days'));
+            if ($theProduct['language'] == 'fr') {
+                $ngay_en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                $ngay_fr = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di'];
+                $ngay = str_replace($ngay_en, $ngay_fr, $ngay);
+            }
+            if ($theProduct['offer_type'] == 'b2b-prod') {
+                $ngay = '';
+                $textSummary .= '
+                <tr>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'.($theProduct['language'] == 'fr' ? 'Jour' : 'Day').' '.$cnt.'</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'. $ng['name']. '</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'. $ng['guides'] .'</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">(';
+            } else {
+                $textSummary .= '
+                <tr>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'.($theProduct['language'] == 'fr' ? 'Jour' : 'Day').' '.$cnt.'</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'. $ngay .'</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'. $ng['name']. '</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">'. $ng['guides'] .'</td>
+                    <td style="text-align: center;border-bottom: 1px solid;border-right: 1px solid;border-color: rgb(191,191,191);font-family:Bell MT; font-size:11pt;padding: 5pt 2pt;">(';
+            }
+            $textSummary .= implode(', ', str_split($ng['meals']));
+            $textSummary .= ')</td></tr>';
+        }
+    }
+}
+$textSummary .= '</table>';
+
+$textDetail = '';
+$cnt = 0;
+foreach ($dayIdList as $di) {
+    foreach ($theProduct['days'] as $ng) {
+        if ($ng['id'] == $di) {
+            $cnt ++;
+            $ngay = date('D d|m|Y', strtotime($theProduct['day_from'] . ' + ' . ($cnt - 1) . 'days'));
+            if ($theProduct['language'] == 'fr') {
+                $ngay_en = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                $ngay_fr = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+                $ngay = str_replace($ngay_en, $ngay_fr, $ngay);
+            }
+            $ngay = str_replace('|', '<span style="">|</span>', $ngay);
+            if ($theProduct['offer_type'] == 'b2b-prod') {
+                $ngay = '';
+                $textDetail .= '<p style="font-family:Bell MT; font-size:11pt; font-weight:bold; font-variant: small-caps;">'.($theProduct['language'] == 'fr' ? 'Jour' : 'Day').' '. $cnt .'. '. $ng['name'].' ('.implode(', ', str_split($ng['meals'])).')</p>';
+            } else {
+                $textDetail .= '<p style="font-family:Bell MT; font-size:11pt; font-weight:bold; font-variant: small-caps;">'.($theProduct['language'] == 'fr' ? 'Jour' : 'Day').' '. $cnt .'. '. $ngay .' | '.$ng['name'].' ('.implode(', ', str_split($ng['meals'])).')</p>';
+            }
+
+            $textDetail .= '<div style="font-family:Bell MT; font-size:11pt; line-height:20pt; text-align:justify">';
+            $textDetail .= ($ng['transport'] == '' ? '' : '<p>' . $ng['transport'] . '</p>');
+            $txxt = $parser->parse($ng['body']);
+            $textDetail .= str_replace(['<p>'], ['<p style="line-height:20pt;">'], $txxt);
+            $textDetail .= '</div>';
+        }
+    }
+}
+
+// Gia va cac options
+$textHotels = $theProduct['metas']['text_hotels']['value'] ?? '';
+if (substr($textHotels, 0, 5) == 'OLD;|') {
+    $textHotels = $this->upgradeTextHotels(substr($textHotels, 5));
+}
+// \fCore::expose($textHotels); //exit;
+
+$tableStart = '
+<table border="1" style="width:100%; margin: 0; padding: 0; border-collapse: collapse; border-color: rgb(191,191,191);">
+    <tr>
+        <th style="color:#e43a92; background-color:#dfdfdf; font-family:Bell MT; font-size:11pt; font-weight:bold; text-align:center; padding:6pt 2pt; border-bottom: 1px solid rgb(191,191,191); border-right: 1px solid rgb(191,191,191); width: 22%;">'.($theProduct['language'] == 'fr' ? 'Destinations' : 'Destinations').'</th>
+        <th style="color:#e43a92; background-color:#dfdfdf; font-family:Bell MT; font-size:11pt; font-weight:bold; text-align:center; padding:6pt 2pt; border-bottom: 1px solid rgb(191,191,191); border-right: 1px solid rgb(191,191,191); width: 30%;">'.($theProduct['language'] == 'fr' ? 'Hôtel/Resort & Website' : 'Hotel/Resort & Website').'</th>
+        <th style="color:#e43a92; background-color:#dfdfdf; font-family:Bell MT; font-size:11pt; font-weight:bold; text-align:center; padding:6pt 2pt; border-bottom: 1px solid rgb(191,191,191); border-right: 1px solid rgb(191,191,191); width: 18%;">'.($theProduct['language'] == 'fr' ? 'Nuitée(s)' : 'Nights').'</th >
+        <th style="color:#e43a92; background-color:#dfdfdf; font-family:Bell MT; font-size:11pt; font-weight:bold; text-align:center; padding:6pt 2pt; border-bottom: 1px solid rgb(191,191,191); border-right: 1px solid rgb(191,191,191); width: 30%;">'.($theProduct['language'] == 'fr' ? 'Type de chambre' : 'Room type').'</th>
+    </tr>';
+
+$lines = explode("\n", $textHotels);
+$isTableStarted = false;
+$count = 0;
+
+$textAccom = '<p></p>';
+foreach ($lines as $line) {
+    if (trim($line) != '') {
+        $parts = explode(';|', $line);
+        // $textAccom .= "\n".$parts[0].'='.$count.'<br>';
+        if (in_array($parts[0], ['_option'])) {
+            $count = 1;
+            if ($isTableStarted) {
+                $textAccom .= '
+</table>';
+            }
+            $textAccom .= '
+<p style="font-family:Bell MT; font-size:11pt;color:rgb(228,58,146);"><strong>' . ($parts[1] ?? '') . '</strong></p>';
+            $textAccom .= $tableStart;
+            $isTableStarted = true;
+        }
+        if (in_array($parts[0], ['_hotel', '_price'])) {
+            if ($count == 0) {
+                $textAccom .= $tableStart;
+                $isTableStarted = true;
+            }
+
+            $count ++;
+        }
+
+        if ($parts[0] == '_hotel') {
+            $url = explode(' : ', $parts[2] ?? '');
+            if (isset($url[1])) {
+                $hotelName = Html::a($url[0], $url[1], ['target'=>'_blank', 'style'=>'color:#000000']);
+            } else {
+                $hotelName = $url[0];
+            }
+            $textAccom .= '
+    <tr>
+        <td style="background-color:'.($count % 2 == 0 ? '#ffffff' : '#f0f0f0').'; text-align:center;border-bottom: 1px solid rgb(191,191,191);border-right: 1px solid rgb(191,191,191); font-family:Bell MT; font-size:11pt; padding:6pt 2pt;">'.($parts[1] ?? '').'</td>
+        <td style="background-color:'.($count % 2 == 0 ? '#ffffff' : '#f0f0f0').'; text-align:center;border-bottom: 1px solid rgb(191,191,191);border-right: 1px solid rgb(191,191,191); font-family:Bell MT; font-size:11pt; padding:6pt 2pt;">'.$hotelName. '</td>
+        <td style="background-color:'.($count % 2 == 0 ? '#ffffff' : '#f0f0f0').'; text-align:center;border-bottom: 1px solid rgb(191,191,191);border-right: 1px solid rgb(191,191,191); font-family:Bell MT; font-size:11pt; padding:6pt 2pt;">' . ($parts[3] ?? '') . '</td>
+        <td style="background-color:'.($count % 2 == 0 ? '#ffffff' : '#f0f0f0').'; text-align:center;border-bottom: 1px solid rgb(191,191,191);border-right: 1px solid rgb(191,191,191); font-family:Bell MT; font-size:11pt; padding:6pt 2pt;">' . ($parts[4] ?? '') . '</td>
+    </tr>';
+        }
+        if ($parts[0] == '_price') {
+            $price = $parts[2];
+            $price = str_replace([',', ' USD', ' EUR', ' VND'], ['', '', '', ''], $price);
+            $price = number_format((int)$price);
+            $textAccom .= '
+    <tr>
+        <td style="font-family:Bell MT; font-size:11pt; padding: 2mm 1mm 2mm 2mm; border-bottom: 1px solid rgb(191,191,191);border-right:1px solid rgb(191,191,191);" colspan="3">' . ($parts[1] ?? '') . '</td>
+        <td style="text-align: center; border-bottom: 1px solid rgb(191,191,191);border-right:1px solid rgb(191,191,191);"><h3 style="font-size:11pt;font-family:Bell MT; background-color: none;">' . $price . ' ' . str_replace('EUR', '&euro;', $theProduct['price_unit']) . '</h3></td>
+    </tr>';
+        }
+        if ($parts[0] == '_text') {
+            // $textAccom .= 'XXX';
+/*?>
+    <tr class="row-type-text">
+        <td colspan="4" style="border:0;"><?= $parts[1] ?? '' ?></td>
+    </tr>
+<?*/
+        }
+    }
+}
+if ($isTableStarted) {
+    $textAccom .= '
+</table>';
+}
+
+$textIncl = '';
+$textExcl = '';
+if (isset($theProduct['metas']['text_inex']['value'])) {
+    // Truong hop nay chac chan co in & ex
+    // inc_exc IN \n;|\n EX
+    $textInex = explode("\n;|\n", $theProduct['metas']['text_inex']['value']);
+    $textIncl = $textInex[0];
+    $textExcl = $textInex[1] ?? '';
+} else {
+    // Old text (conds)
+    if (strpos($theProduct['conditions'], 'h3. INCLUSIONS :') !== false && strpos($theProduct['conditions'], 'h3. EXCLUSIONS :') !== false) {
+        $textInex = explode('h3. EXCLUSIONS :', $theProduct['conditions']);
+        $textIncl = $parser->parse(str_replace('h3. INCLUSIONS :', '', $textInex[0]));
+        $textExcl = $parser->parse($textInex[1] ?? '');
+    } else {
+        $textIncl = $parser->parse($theProduct['conditions']);
+        $textExcl = '';
+    }
+}
+
+$textIncl = str_replace(['<ul', '<li'], ['<ul style="padding:0; margin:0"', '<li style="padding-left:0; margin-left:0"'], $textIncl);
+$textExcl = str_replace(['<ul', '<li'], ['<ul style="padding:0; margin:0"', '<li style="padding-left:0; margin-left:0"'], $textExcl);
+$textInex = '
+<table style="width:100%; border:1px solid #ddd; font-family:Bell MT; font-size:11pt; line-height:20pt;">
+    <tr>
+        <td width="50%" style="vertical-align:top; border-right:1px solid #ddd"><p style="text-align:center; margin-bottom:12pt; font-weight:bold">INCLUSIONS</p>'.$textIncl.'</td>
+        <td width="50%" style="vertical-align:top;"><p style="text-align:center; margin-bottom:12pt; font-weight:bold">EXCLUSIONS</p>'.$textExcl.'</td>
+    </tr>
+</table>';
+
+$textConds = '<div style="font-family:Bell MT; font-size:11pt; line-height:20px; text-align:justify;">'.($theProduct['metas']['text_conds']['value'] ?? '').'</div>';;
+$textConds = str_replace(['<li>'], ['<li style="line-height:20pt; list-style-type:square">'], $textConds);
+
+$textNote = '<div style="font-family:Bell MT; font-size:11pt; line-height:20px; text-align:justify;">'.($theProduct['metas']['text_notes']['value'] ?? '').'</div>';;
+$textNote = str_replace(['<li>'], ['<li style="line-height:20pt; list-style-type:square">'], $textNote);
+
+$headerImage = $_POST['header_image'] ?? '27-devata_cambodia.jpg';
+$docx->replacePlaceholderImage('header_image', Yii::getAlias('@webroot').'/upload/devis-banners/b2b/'.$headerImage);
+
+$mapFile = '';
+if (is_dir(Yii::getAlias('@webroot').'/upload/products/'.$theProduct['id'].'/map')) {
+    $mapFiles = \yii\helpers\FileHelper::findFiles(Yii::getAlias('@webroot').'/upload/products/'.$theProduct['id'].'/map');
+    if (!empty($mapFiles)) {
+        $mapFile = $mapFiles[0];
+    }
+}
+
+$docx->replaceVariablebyText([
+    'CLIENT_NAME'=>$clientName,
+    'PROGRAM_NAME'=>$programName,
+    ]);
+$docx->replaceVariablebyHTML('TEXT_ESPRIT', 'block', $textEsprit);
+$docx->replaceVariablebyHTML('TEXT_POINTS', 'block', $textPoints);
+$docx->replaceVariablebyHTML('TEXT_SUMMARY', 'block', $textSummary);
+if ($mapFile != '') {
+    // A4 size 2480 X 3508 || 1974 X 2555
+    //the resize will be a percent of the original size
+    $percent = 100 / 100;
+    $doc_width = 1974;
+    $doc_height = 2555;
+    list($img_width, $img_height) = getimagesize($mapFile);
+    if($img_width > $doc_width) {
+        $resize = $doc_width - $img_width;
+        $percent_change = $resize / $img_width;
+        $img_width = $img_width + $percent_change * $img_width;
+        $img_height = $img_height + $percent_change * $img_height;
+        if($img_height > $doc_height) {
+            $resize = $doc_height - $img_height;
+            $percent_change = $resize / $img_height;
+            $img_height = $img_height + $percent_change * $img_height;
+            $img_width = $img_width + $percent_change * $img_width;
+        }
+
+    } elseif($img_width < $doc_width) {
+        $resize = $doc_width - $img_width;
+        $percent_change = $resize / $img_width;
+        $img_width = $img_width + $percent_change * $img_width;
+        $img_height = $img_height + $percent_change * $img_height;
+        if($img_height > $doc_height) {
+            $resize = $doc_height - $img_height;
+            $percent_change = $resize / $img_height;
+            $img_height = $img_height + $percent_change * $img_height;
+            $img_width = $img_width + $percent_change * $img_width;
+        }
+    } else {
+        if($img_height > $doc_height) {
+            $resize = $doc_height - $img_height;
+            $percent_change = $resize / $img_height;
+            $img_height = $img_height + $percent_change * $img_height;
+            $img_width = $img_width + $percent_change * $img_width;
+        }
+    }
+    $img_height = $percent * $img_height;
+    $img_width = $percent * $img_width;
+    $docx->replacePlaceholderImage('map_image', $mapFile, ['height' => $img_height.'px', 'width' => $img_width.'px']);
+}
+$docx->replaceVariablebyHTML('TEXT_DETAIL', 'block', $textDetail);
+$docx->replaceVariablebyHTML('TEXT_ACCOM', 'block', $textAccom);
+$docx->replaceVariablebyHTML('TEXT_INEX', 'block', $textInex);
+$docx->replaceVariablebyHTML('TEXT_CONDS', 'block', $textConds);
+$docx->replaceVariablebyHTML('TEXT_NOTE', 'block', $textNote);
+
+$now = date('Ymd-His', strtotime('+7 hours')); // to make UTC => ICT
+$file_name = $_POST['file_name'] ?? ($theProduct['language'] == 'fr' ? 'Devis_' : 'Program_').$theProduct['id'].'_'.$now;
+$docx->createDocx('/var/www/my.amicatravel.com/www/'.$file_name.'.docx');
+if (Yii::$app->request->isAjax) {
+    \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+    return ['status'=>'ok', 'file_name'=>$file_name.'.docx'];
+} else {
+    echo '<p><a href="/', $file_name, '.docx">Download file: ', $file_name, '.docx</a>';
+}
+            exit;
+        }
+
+        if (isset($_GET['pdf'])) {
+
+            $html = $this->renderPartial('program_print-pdf', [
+                'theProduct' => $theProduct,
+            ]);
+
+            $mpdf = new \mPDF();
+            $mpdf->SetTitle('Devis B2B - ' . $theProduct['id']);
+            $mpdf->SetAuthor('Amica Travel');
+            $mpdf->SetSubject('Devis B2B v.170723');
+
+            $mpdf->SetDisplayMode('fullpage');
+            $mpdf->WriteHTML($html);
+
+            $fileName = 'Devis - ' . $theProduct['id'] . '.pdf';
+            $mpdf->Output($fileName, 'I');
+
+            exit;
+        }
+
+        return $this->render('program_print-b2b', [
+            'theProduct' => $theProduct
         ]);
     }
 

@@ -5,10 +5,12 @@ use Yii;
 
 class Venue extends MyActiveRecord
 {
-    public 
+    public
+        $c_amica,
         $new_o, $new_p, // New overview, new price
         $vstr, $vstar,
-        $vclassi, $varchi, $vtype, $vstyle, $vdistc, $vdistb, $vdista, $vdistcmt, $vpricerange, $vfaci, $vreccfor;
+        $vclassi, $varchi, $vtype, $vstyle, $vdistc, $vdistb, $vdista, $vdistcmt, $vpricerange, $vfaci, $vreccfor,
+        $vitinerary, $vdepart_from, $vcheck_in, $vcheck_out, $vship_profile, $vservice_include_price, $vservice_extra_charge, $vnote_itinerary, $contact_expried; //itinerary, departing from
 
     public static function tableName()
     {
@@ -25,6 +27,7 @@ class Venue extends MyActiveRecord
     {
         return [
             [[
+                'c_amica',
                 'new_o', 'new_p',
                 'name', 'search', 'abbr', 'about', 'latlng', 'info', 'link_agoda', 'link_booking', 'link_tripadvisor', 'cruise_meta', 'stype', 'images', 'new_pricetable',
                 'vstr', 'vstar',
@@ -52,10 +55,20 @@ class Venue extends MyActiveRecord
             'venue/u'=>[
                 'new_o', 'new_p',
                 'supplier_id', 'destination_id', 'name', 'about',
-                'vtype', 'latlng', 
+                'vtype', 'latlng',
                 'vstr', 'vstar',
                 'vclassi', 'varchi', 'vstyle', 'vdistc', 'vdistb', 'vdista', 'vdistcmt', 'vpricerange', 'vfaci', 'vreccfor',
                 'info', 'new_pricetable', 'images',
+                'image', 'link_booking', 'link_tripadvisor', 'link_agoda',
+                'new_tags',
+            ],
+            'venue/u-cruise'=>[
+                'new_o', 'new_p',
+                'supplier_id', 'destination_id', 'name', 'about',
+                'vtype', 'latlng',
+                'vstr', 'vstar',
+                'vclassi', 'vitinerary', 'vdepart_from', 'vcheck_in', 'vcheck_out', 'vpricerange', 'vservice_include_price', 'vservice_extra_charge', 'vreccfor', 'vship_profile', 'vnote_itinerary', 'contact_expried',
+                'info', 'new_pricetable', 'images', 'cruise_meta',
                 'image', 'link_booking', 'link_tripadvisor', 'link_agoda',
                 'new_tags',
             ],

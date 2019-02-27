@@ -4,29 +4,46 @@ use yii\helpers\Markdown;
 use yii\helpers\HtmlPurifier;
 use app\helpers\DateTimeHelper;
 
-if (substr($note['title'], 0, 11) == $theTour['op_code'].' - ' && USER_ID == 1) {
-    /*$title = substr($note['title'], 11);
-    echo $title;
+
+$opCodeName = $theTour['op_code'].' - '.$theTour['op_name'].' ';
+$opCodeOnly = $theTour['op_code'].' ';
+if ($note['n_id'] == 0 && strpos($note['title'], $opCodeName) === 0) {
+    $title = str_replace($opCodeName, '', $note['title']);
+    if (substr($title, 0, 2) == '- ') {
+        $title = substr($title, 2);
+    }
+    $note['title'] = $title;
     $sql = 'UPDATE at_messages SET title = :title WHERE id=:id LIMIT 1';
     Yii::$app->db->createCommand($sql, [
         ':title'=>$title,
         ':id'=>$note['id'],
         ])->execute();
-    */
+} elseif ($note['n_id'] == 0 && strpos($note['title'], $opCodeOnly) === 0) {
+    $title = str_replace($opCodeOnly, '', $note['title']);
+    if (substr($title, 0, 2) == '- ') {
+        $title = substr($title, 2);
+    }
+    $note['title'] = $title;
+    $sql = 'UPDATE at_messages SET title = :title WHERE id=:id LIMIT 1';
+    Yii::$app->db->createCommand($sql, [
+        ':title'=>$title,
+        ':id'=>$note['id'],
+        ])->execute();
 }
 
 ?>
 <!-- MESSAGE BEGIN -->
-        <li class="note-list-item clearfix" data-id="<?= $note['id'] ?>">
+
+        <li class="note-list-item clearfix" data-id="<?= $note['id'] ?>" id="note-list-item-<?= $note['id'] ?>">
             <a name="anchor-note-<?= $note['id'] ?>"></a>
             <div class="note-avatar">
-            <?= Html::a(Html::img($userAvatar, ['class'=>'img-circle note-author-avatar']), '@web/users/r/'.$note['from']['id']) ?>
+            <?= Html::a(Html::img($userAvatar, ['class'=>'rounded-circle note-author-avatar']), '@web/users/'.$note['from']['id']) ?>
             </div>
-            <?
+            <?php
             if ($note['n_id'] != 0) {
-                $title = Yii::t('op', 'replied');
+                $title = Yii::t('x', 'replied');
             } else {
-                $title = $note['title'] == '' ? Yii::t('op', '( no title )') : $note['title'];
+                $title = $note['title'];// == '' ? Yii::t('x', '(No title)') : $note['title'];
             }
             // #client hashtag
             $clientHash = false;
@@ -40,56 +57,71 @@ if (substr($note['title'], 0, 11) == $theTour['op_code'].' - ' && USER_ID == 1) 
                 $clientReservStatusHash = true;
             }
             $body = $note['body'];
+            $body = str_replace(['<a href="/mentions/', '?mention=user">@'], ['<span class="text-muted">@</span><a class="text-pink font-weight-bold" href="/mentions/', '">'], $body);
 
             $body = str_replace(['width:', 'height:', 'font-size:', '<table', '</table>', '<p>&nbsp;</p>'], ['x:', 'x:', 'x:', '<div class="table-responsive"><table class="table table-condensed table-bordered" ', '</table></div>', ''], $body);
             $body = HtmlPurifier::process($body);
             ?>
             <div class="note-content">
                 <h5 class="note-heading">
-                    <? if ($note['via'] == 'email') { ?><i class="fa fa-envelope-o"></i><? } ?>
-                    <?= Html::a($note['from']['nickname'], '@web/users/r/'.$note['from_id'], ['class'=>'note-author-name']) ?>:
+                    <?php if ($note['via'] == 'email') { ?><i class="fa fa-envelope-o"></i><?php } ?>
+                    <?= Html::a($note['from']['nickname'], '@web/users/'.$note['from_id'], ['class'=>'note-author-name']) ?>:
 
-                    <? if ($clientHash) { ?><strong style="background-color:#BD499B; padding:0 4px; color:#fff;">#client</strong><? } ?>
-                    <? if ($clientReservStatusHash) { ?><strong style="background-color:#BD499B; padding:0 4px; color:#fff;">#reservation-status</strong><? } ?>
+                    <?php if ($clientHash) { ?><strong style="background-color:#BD499B; padding:0 4px; color:#fff;">#client</strong><?php } ?>
+                    <?php if ($clientReservStatusHash) { ?><strong style="background-color:#BD499B; padding:0 4px; color:#fff;">#reservation-status</strong><?php } ?>
 
-                    <? if (substr($note['priority'], 0, 1) == 'C') { ?><strong style="background-color:#f60; padding:0 4px; color:#fff;">#important</strong><? } ?>
-                    <? if (substr($note['priority'], -1) == '3') { ?><strong style="background-color:#c00; padding:0 4px; color:#fff;">#urgent</strong><? } ?>
+                    <?php if ($note['is_urgent'] == 'yes') { ?><span class="text-danger">#urgent</span><?php } ?>
+                    <?php if ($note['is_important'] == 'yes') { ?><span class="text-warning">#important</span><?php } ?>
 
-                    <?= Html::a($title, '@web/notes/r/'.$note['id'], ['class'=>'note-title text-semibold']) ?>
-                    <? if ($note['to']) { ?>
-                    <i class="fa fa-caret-right text-muted"></i>
-                    <?
+                    <?= $title == '' ? '' : Html::a($title, '@web/posts/'.($note['n_id'] == 0 ? $note['id'] : $note['n_id']), ['class'=>'note-title'.($note['n_id'] == 0 ? ' font-weight-bold' : '')]) ?>
+                    <?php
+                    if ($note['n_id'] != 0) {
+                        foreach ($theNotes as $note2) {
+                            if ($note2['id'] == $note['n_id']) {
+                                echo ' <i class="fa fa-caret-left text-muted"></i> ', Html::a($note2['title'], '#note-list-item-'.$note2['id'], ['class'=>'text-muted']);
+                                break;
+                            }
+                        }
+                    }
+
+                    if ($note['to']) {
+                        echo ' <i class="fa fa-caret-right text-muted"></i> ';
+
                         $cnt = 0;
                         foreach ($note['to'] as $to) {
                             $cnt ++;
                             if ($cnt > 1) echo ', ';
-                            echo Html::a($to['nickname'], '@web/users/r/'.$to['id'], ['class'=>'note-recipient-name text-small']);
+                            echo Html::a($to['nickname'], '@web/users/'.$to['id'], ['class'=>'note-recipient-name text-small']);
                         }
                     }
                     ?>
 
                 </h5>
-                <div class="mb-1em">
+                <div class="mt-0">
                     <span class="text-muted">
                         <?= date('j/n/Y H:i', strtotime($time)) ?>
-                        <?= $note['co'] != $note['uo'] ? Yii::t('op', ' edited') : '' ?>
+                        <?= $note['co'] != $note['uo'] ? Yii::t('x', ' edited') : '' ?>
                     </span>
-                    &middot;
-                    <?= Html::a(Yii::t('op', 'Edit'), '@web/notes/u/'.$note['id'], ['class'=>'u-message']) ?>
-                    &middot;
-                    <?= Html::a(Yii::t('op', 'Delete'), '@web/notes/d/'.$note['id']) ?>
+
+                    <?php if (strpos($note['title'], '#share') !== false) { ?>
+                    - <span class="text-success">SHARED</span><?php } ?>
+                    <?php if (in_array(USER_ID, [$note['cb'], $note['ub']])) { ?>
+                    - <?= Html::a(Yii::t('x', 'Edit'), '@web/posts/'.$note['id'].'/u', ['class'=>'action-u-message text-muted', 'data-thread_id'=>$note['n_id'] == 0 ? $note['id'] : $note['n_id']]) ?>
+                    - <?= Html::a(Yii::t('x', 'Delete'), '@web/posts/'.$note['id'].'/d', ['class'=>'action-delete-post text-muted', 'data-id'=>$note['id']]) ?>
+                    <?php } ?>
+
                 </div>
-                <? if ($note['files']) { ?>
-                <div class="note-file-list">
-                    <? foreach ($note['files'] as $file) { ?>
-                    <div class="note-file-list-item">+ <?= Html::a($file['name'], '@web/files/r/'.$file['id']) ?> <span class="text-muted"><?= Yii::$app->formatter->asShortSize($file['size'], 0) ?></span></div>
-                    <? } ?>
+                <?php if ($note['files']) { ?>
+                <div class="note-file-list mt-2">
+                    <?php foreach ($note['files'] as $file) { ?>
+                    <div class="note-file-list-item">+ <?= Html::a($file['name'], '@web/attachments/'.$file['id']) ?> <span class="text-muted"><?= Yii::$app->formatter->asShortSize($file['size'], 0) ?></span></div>
+                    <?php } ?>
                 </div>
-                <? } ?>
-                <div class="note-body">
+                <?php } ?>
+                <div class="note-body mt-2">
                     <?= $body ?>
                 </div>
-                <?
+                <?php
                 $replies = [];
                 foreach ($theNotes as $reply) {
                     if ($reply['n_id'] == $note['id']) {
@@ -100,15 +132,16 @@ if (substr($note['title'], 0, 11) == $theTour['op_code'].' - ' && USER_ID == 1) 
 
                 foreach ($replies as $reply) {
                 ?>
-                <div class="mt-10">
-                    <?= Html::img('/timthumb.php?zc=1&w=20&h=20&src='.$reply['from']['image'], ['class'=>'img-circle']) ?>
+                <div class="mt-2">
+                    <?= Html::img('/timthumb.php?zc=1&w=20&h=20&src='.$reply['from']['image'], ['class'=>'rounded-circle']) ?>
                     <a href="#anchor-note-<?= $reply['id'] ?>">
                         <?= $reply['from']['nickname'] ?> <?= Yii::t('op', 'replied') ?> <?= Yii::$app->formatter->asRelativetime($reply['co']) ?>
                     </a>
                 </div>
-                <?
-                }
-                ?>
+                <?php } ?>
+                <div class="mt-2 div-action-reply-post"><span class=""><img src="/timthumb.php?w=20&h=20&src=<?= Yii::$app->user->identity->image ?>" class="rounded-circle"> <?= Html::a(Yii::t('x', 'Reply').' &raquo;', '@web/posts/'.($note['n_id'] == 0 ? $note['id'] : $note['n_id']), ['class'=>'action-reply-post', 'data-thread_id'=>$note['n_id'] == 0 ? $note['id'] : $note['n_id'], 'data-reply_ids' => '12952,8162']) ?></span></div>
+                <div class="you-are-replying mt-2 d-none"></div>
             </div>
         </li>
+
 <!-- MESSAGE END -->

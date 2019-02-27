@@ -1,4 +1,4 @@
-<?
+<?php
 
 namespace app\controllers\b2b;
 
@@ -12,6 +12,7 @@ use common\models\Booking;
 use common\models\Cp;
 use common\models\Cpt;
 use common\models\Cpg;
+use common\models\Client;
 use common\models\Mail;
 use common\models\Note;
 use common\models\Pax;
@@ -35,7 +36,41 @@ use \kartik\mpdf\Pdf;
 
 class TourController extends \app\controllers\MyController
 {
-    public function actionIndex($view = 'normal', $orderby='startdate', $month = '', $fg = '', $status = '', $seller = 0, $operator = 0, $cservice = 0, $name = '', $dayname = '', $owner = '') {
+    /**
+     * 
+     */
+    public function actionMtest()
+    {
+        return Yii::$app->runAction('tour/index');
+    }
+
+    /**
+     * RUN B2C tour action
+     */
+    // public function actionIndex($view = 'normal', $orderby='startdate', $month = '', $fg = '', $status = '', $client = '', $seller = 0, $operator = 0, $cservice = 0, $name = '', $dayname = '', $owner = '')
+    public function actionIndex(
+        $orderby='operated', $time = 'today',
+        $fg = 'f', $status = '',
+        $departure = '', $goto = '',
+        $daycount = '', $paxcount = '',
+        $name = '', $dayname = '',
+        $seller = '', $operator = '', $booker = '', $cservice = '',
+        $guide = '', $driver = '',
+        $owner = '',
+        $output = 'view'
+    )
+    {
+        return Yii::$app->runAction('tour/index', [
+            'orderby'=>$orderby, 'time'=>$time,
+            'fg'=>'g', 'status'=>$status,
+            'departure'=>$departure, 'goto'=>$goto,
+            'daycount'=>$daycount, 'paxcount'=>$paxcount,
+            'name'=>$name, 'dayname'=>$dayname,
+            'seller'=>$seller, 'operator'=>$operator, 'booker'=>$booker, 'cservice'=>$cservice,
+            'guide'=>$guide, 'driver'=>$driver,
+            'owner'=>$owner,
+        ]);
+
         if ($month == 'next30days') {
             $dateRange = [date('Y-m-d'), date('Y-m-d', strtotime('+30 days'))];
         } elseif ($month == 'last30days') {
@@ -87,7 +122,7 @@ class TourController extends \app\controllers\MyController
                 },
                 'bookings',
                 'bookings.case'=>function($q) {
-                    return $q->select(['id', 'name']);
+                    return $q->select(['id', 'name', 'stype', 'company_id']);
                 },
                 'bookings.createdBy'=>function($q) {
                     return $q->select(['id', 'name'=>'nickname', 'image'])->orderBy('lname, fname');
@@ -119,13 +154,13 @@ class TourController extends \app\controllers\MyController
         $tourPeople = [];
 
         if (!empty($tourIdList)) {
-            $sql = 'SELECT u.id, u.nickname AS name, tu.tour_id FROM persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id IN ('.implode(', ', $tourIdList).')';
+            $sql = 'SELECT u.id, u.nickname AS name, tu.tour_id FROM users u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id IN ('.implode(', ', $tourIdList).')';
             $operatorList = Yii::$app->db->createCommand($sql)->queryAll();
 
-            $sql = 'SELECT u.id, u.nickname AS name, tu.tour_id FROM persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id IN ('.implode(', ', $tourIdList).')';
+            $sql = 'SELECT u.id, u.nickname AS name, tu.tour_id FROM users u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id IN ('.implode(', ', $tourIdList).')';
             $cserviceList = Yii::$app->db->createCommand($sql)->queryAll();
 
-            $sql = 'SELECT u.id, u.nickname AS name, tu.tour_id, tu.role FROM persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role IN ("operator", "cservice") AND tu.tour_id IN ('.implode(', ', $tourIdList).')';
+            $sql = 'SELECT u.id, u.nickname AS name, tu.tour_id, tu.role FROM users u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role IN ("operator", "cservice") AND tu.tour_id IN ('.implode(', ', $tourIdList).')';
             $tourPeople = Yii::$app->db->createCommand($sql)->queryAll();
         }
 
@@ -154,14 +189,20 @@ class TourController extends \app\controllers\MyController
         foreach ($theTours as $tour) {
             $tourOldIdList[] = (int)$tour['tour']['id'];
         }
-        $sql = 'select tour_id, points, IF (guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u where u.id=guide_user_id limit 1)) AS namephone from at_tour_guides where parent_id=0 AND tour_id IN ('.implode(',', $tourIdList).')';
+        $sql = 'select tour_id, points, IF (guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u where u.id=guide_user_id limit 1)) AS namephone from at_tour_guides where parent_id=0 AND tour_id IN ('.implode(',', $tourIdList).')';
         $tourGuides = Yii::$app->db->createCommand($sql)->queryAll();
-        $sql = 'select tour_id, points, IF (driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u where u.id=driver_user_id limit 1)) AS namephone from at_tour_drivers where parent_id=0 AND tour_id IN ('.implode(',', $tourIdList).')';
+        $sql = 'select tour_id, points, IF (driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u where u.id=driver_user_id limit 1)) AS namephone from at_tour_drivers where parent_id=0 AND tour_id IN ('.implode(',', $tourIdList).')';
         $tourDrivers = Yii::$app->db->createCommand($sql)->queryAll();
-        $sql = 'select tu.tour_id, u.id, u.nickname AS name, u.image FROM persons u, at_tour_user tu WHERE u.id=tu.user_id AND tu.role="operator" AND tu.tour_id IN ('.implode(',', $tourOldIdList).')';
+        $sql = 'select tu.tour_id, u.id, u.nickname AS name, u.image FROM users u, at_tour_user tu WHERE u.id=tu.user_id AND tu.role="operator" AND tu.tour_id IN ('.implode(',', $tourOldIdList).')';
         $tourOperators = Yii::$app->db->createCommand($sql)->queryAll();
-        $sql = 'select tu.tour_id, u.id, u.nickname AS name, u.image FROM persons u, at_tour_user tu WHERE u.id=tu.user_id AND tu.role="cservice" AND tu.tour_id IN ('.implode(',', $tourOldIdList).')';
+        $sql = 'select tu.tour_id, u.id, u.nickname AS name, u.image FROM users u, at_tour_user tu WHERE u.id=tu.user_id AND tu.role="cservice" AND tu.tour_id IN ('.implode(',', $tourOldIdList).')';
         $tourCCStaff = Yii::$app->db->createCommand($sql)->queryAll();
+
+        $clientList = Client::find()
+            ->select(['id', 'name'])
+            ->orderBy('name')
+            ->asArray()
+            ->all();
 
         return $this->render('tour_index', [
             'theTours'=>$theTours,
@@ -172,6 +213,8 @@ class TourController extends \app\controllers\MyController
             'month'=>$month,
             'fg'=>'g',
             'status'=>$status,
+            'client'=>$client,
+            'clientList'=>$clientList,
             'seller'=>$seller,
             'operator'=>$operator,
             'cservice'=>$cservice,
@@ -240,7 +283,7 @@ class TourController extends \app\controllers\MyController
             ->all();
 
         // Tour guides
-        // $sql = 'SELECT u.id, u.fname, u.lname, u.phone AS uphone, tg.* FROM persons u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:tour_id ORDER BY day LIMIT 100';
+        // $sql = 'SELECT u.id, u.fname, u.lname, u.phone AS uphone, tg.* FROM contacts u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:tour_id ORDER BY day LIMIT 100';
         // $tourGuidesOld = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour guides
@@ -248,11 +291,11 @@ class TourController extends \app\controllers\MyController
         $tourGuides = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Tour operators
-        $sql = 'select u.id, u.nickname from persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id=:tour_id';
+        $sql = 'select u.id, u.nickname from contacts u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id=:tour_id';
         $tourOperators = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour guides
-        $sql = 'select u.id, u.nickname from persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id=:tour_id';
+        $sql = 'select u.id, u.nickname from contacts u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id=:tour_id';
         $tourCSStaff = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour feedbacks
@@ -266,7 +309,7 @@ class TourController extends \app\controllers\MyController
             $bookingIdList[] = $booking['id'];
         }
         if (!empty($bookingIdList)) {
-            $sql = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM persons u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status!="canceled" AND bu.booking_id IN ('.implode(',', $bookingIdList).')';
+            $sql = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM contacts u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status!="canceled" AND bu.booking_id IN ('.implode(',', $bookingIdList).')';
             $tourPax = Yii::$app->db->createCommand($sql)->queryAll();
             // Tour reg info
             //$sql = 'SELECT booking_id, reg_confirmed_dt FROM at_client_page_links WHERE reg_confirmed_dt!=0 AND booking_id IN ('.implode(',', $bookingIdList).')';
@@ -285,7 +328,7 @@ class TourController extends \app\controllers\MyController
         // Tour referrals
         $tourRefs = [];
         if (!empty($caseIdList)) {
-            $sql = 'SELECT r.*, u.name FROM at_referrals r, persons u WHERE u.id=r.user_id AND r.case_id IN ('.implode(',', $caseIdList).') LIMIT 100';
+            $sql = 'SELECT r.*, u.name FROM at_referrals r, contacts u WHERE u.id=r.user_id AND r.case_id IN ('.implode(',', $caseIdList).') LIMIT 100';
             $tourRefs = Yii::$app->db->createCommand($sql)->queryAll();
         }
 
@@ -654,7 +697,7 @@ class TourController extends \app\controllers\MyController
             ->all();
 
         // Tour guides
-        // $sql = 'SELECT u.id, u.fname, u.lname, u.phone AS uphone, tg.* FROM persons u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:tour_id ORDER BY day LIMIT 100';
+        // $sql = 'SELECT u.id, u.fname, u.lname, u.phone AS uphone, tg.* FROM contacts u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:tour_id ORDER BY day LIMIT 100';
         // $tourGuidesOld = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour guides
@@ -662,11 +705,11 @@ class TourController extends \app\controllers\MyController
         $tourGuides = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Tour operators
-        $sql = 'select u.id, u.nickname from persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id=:tour_id';
+        $sql = 'select u.id, u.nickname from contacts u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id=:tour_id';
         $tourOperators = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour guides
-        $sql = 'select u.id, u.nickname from persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id=:tour_id';
+        $sql = 'select u.id, u.nickname from contacts u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="cservice" AND tu.tour_id=:tour_id';
         $tourCSStaff = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['tour']['id']])->queryAll();
 
         // Tour feedbacks
@@ -680,7 +723,7 @@ class TourController extends \app\controllers\MyController
             $bookingIdList[] = $booking['id'];
         }
         if (!empty($bookingIdList)) {
-            $sql = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM persons u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status!="canceled" AND bu.booking_id IN ('.implode(',', $bookingIdList).')';
+            $sql = 'SELECT u.id, u.fname, u.lname, u.name, u.byear, u.bmonth, u.bday, u.gender, u.country_code, bu.booking_id FROM contacts u, at_booking_user bu WHERE bu.user_id=u.id AND bu.status!="canceled" AND bu.booking_id IN ('.implode(',', $bookingIdList).')';
             $tourPax = Yii::$app->db->createCommand($sql)->queryAll();
             // Tour reg info
             //$sql = 'SELECT booking_id, reg_confirmed_dt FROM at_client_page_links WHERE reg_confirmed_dt!=0 AND booking_id IN ('.implode(',', $bookingIdList).')';
@@ -699,7 +742,7 @@ class TourController extends \app\controllers\MyController
         // Tour referrals
         $tourRefs = [];
         if (!empty($caseIdList)) {
-            $sql = 'SELECT r.*, u.name FROM at_referrals r, persons u WHERE u.id=r.user_id AND r.case_id IN ('.implode(',', $caseIdList).') LIMIT 100';
+            $sql = 'SELECT r.*, u.name FROM at_referrals r, contacts u WHERE u.id=r.user_id AND r.case_id IN ('.implode(',', $caseIdList).') LIMIT 100';
             $tourRefs = Yii::$app->db->createCommand($sql)->queryAll();
         }
 
@@ -1050,7 +1093,7 @@ class TourController extends \app\controllers\MyController
         foreach ($theCptx as $cpt) {
             $tourIdList[] = $cpt['tour']['id'];
         }
-        $sql = 'SELECT u.nickname AS name, u.phone, tu.tour_id FROM persons u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id IN ('.implode(',', $tourIdList).')';
+        $sql = 'SELECT u.nickname AS name, u.phone, tu.tour_id FROM contacts u, at_tour_user tu WHERE tu.user_id=u.id AND tu.role="operator" AND tu.tour_id IN ('.implode(',', $tourIdList).')';
         $tourOperators = Yii::$app->db->createCommand($sql)->queryAll();
 
         return $this->render('tours_tong-hop-roi-nuoc', [
@@ -1138,13 +1181,13 @@ class TourController extends \app\controllers\MyController
         }
 
         if ($for == 'dhsg') {
-            $sql = 'select ur.*, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from persons u, at_user_role ur WHERE u.is_member="yes" AND u.status="on" AND ur.user_id=u.id AND u.id IN (25457, 27726, 37675) ORDER BY u.lname';
+            $sql = 'select ur.*, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from contacts u, at_user_role ur WHERE u.is_member="yes" AND u.status="on" AND ur.user_id=u.id AND u.id IN (25457, 27726, 37675) ORDER BY u.lname';
             $operatorList = Yii::$app->db->createCommand($sql)->queryAll();
         } elseif ($for == 'ducanh') {
-            $sql = 'select ur.*, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from persons u, at_user_role ur WHERE u.is_member="yes" AND u.status="on" AND ur.user_id=u.id AND u.id IN (8162, 34596) ORDER BY u.lname';
+            $sql = 'select ur.*, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from contacts u, at_user_role ur WHERE u.is_member="yes" AND u.status="on" AND ur.user_id=u.id AND u.id IN (8162, 34596) ORDER BY u.lname';
             $operatorList = Yii::$app->db->createCommand($sql)->queryAll();
         } else {
-            $sql = 'select ur.*, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from persons u, at_user_role ur WHERE u.is_member="yes" AND u.status="on" AND ur.user_id=u.id AND ur.role_id=5 AND u.status="on" ORDER BY u.lname';
+            $sql = 'select ur.*, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from contacts u, at_user_role ur WHERE u.is_member="yes" AND u.status="on" AND ur.user_id=u.id AND ur.role_id=5 AND u.status="on" ORDER BY u.lname';
             $operatorList = Yii::$app->db->createCommand($sql)->queryAll();
         }
 
@@ -1312,7 +1355,7 @@ class TourController extends \app\controllers\MyController
             throw new HttpException(404, 'Tour not found.');
         }
 
-        $sql = 'select u.id, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from persons u WHERE id IN (1351, 12952, 29296, 30554, 33415) AND u.status="on" AND u.is_member="yes" ORDER BY lname, fname';
+        $sql = 'select u.id, u.fname, u.lname, u.email, CONCAT(u.name, " ", u.email) AS name from contacts u WHERE id IN (1351, 12952, 29296, 30554, 33415) AND u.status="on" AND u.is_member="yes" ORDER BY lname, fname';
         $cssList = Yii::$app->db->createCommand($sql)->queryAll();
 
         $theForm = new TourAssignCsForm;
@@ -1572,17 +1615,17 @@ class TourController extends \app\controllers\MyController
         for ($i = 0; $i < 7; $i ++) {
             $dayList[] = date('j/n', strtotime('+'.$i.' days', strtotime($thisWeek)));
         }
-        $sql = 'SELECT u.id AS user_id, u.bday, u.bmonth, u.byear, u.name, p.id AS product_id FROM persons u, at_booking_user bu, at_bookings b, at_ct p WHERE u.id=bu.user_id AND b.id=bu.booking_id AND p.id=b.product_id AND CONCAT(u.bday, "/", u.bmonth) IN ("'.implode('","', $dayList).'") AND p.id IN ('.implode(',', $tourIdList).')';
+        $sql = 'SELECT u.id AS user_id, u.bday, u.bmonth, u.byear, u.name, p.id AS product_id FROM contacts u, at_booking_user bu, at_bookings b, at_ct p WHERE u.id=bu.user_id AND b.id=bu.booking_id AND p.id=b.product_id AND CONCAT(u.bday, "/", u.bmonth) IN ("'.implode('","', $dayList).'") AND p.id IN ('.implode(',', $tourIdList).')';
         $paxWithBirthdays = Yii::$app->db->createCommand($sql, [':day1'=>date('j', strtotime($thisWeek)), ':day2'=>date('j', strtotime($nextWeek)), ':month1'=>date('n', strtotime($thisWeek)), ':month2'=>date('n', strtotime($nextWeek))])->queryAll();
         if (isset($_GET['x'])) {
             \fCore::expose($paxWithBirthdays);
             exit;
         }
 
-        $sql = 'select *, IF(guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
+        $sql = 'select *, IF(guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
         $tourGuides = Yii::$app->db->createCommand($sql)->queryAll();
 
-        $sql = 'select *, IF(driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
+        $sql = 'select *, IF(driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
         $tourDrivers = Yii::$app->db->createCommand($sql)->queryAll();
 
 
@@ -1657,10 +1700,10 @@ class TourController extends \app\controllers\MyController
             $tourIdList[] = $tour['id'];
         }
 
-        $sql = 'select *, IF(guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
+        $sql = 'select *, IF(guide_user_id=0, guide_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
         $tourGuides = Yii::$app->db->createCommand($sql)->queryAll();
 
-        $sql = 'select *, IF(driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
+        $sql = 'select *, IF(driver_user_id=0, driver_name, (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id IN ('.implode(',', $tourIdList).') order by use_from_dt limit 1000';
         $tourDrivers = Yii::$app->db->createCommand($sql)->queryAll();
 
         return $this->render('tours_calendar-month', [
@@ -1704,11 +1747,11 @@ class TourController extends \app\controllers\MyController
         }
 
         // Drivers and vehicles
-        $sql = 'select *, driver_name, driver_user_id, IF(driver_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id=:tour_id order by use_from_dt limit 100';
+        $sql = 'select *, driver_name, driver_user_id, IF(driver_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id=:tour_id order by use_from_dt limit 100';
         $tourDrivers = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Driver list
-        $sql = 'select u.id, CONCAT(u.name, " - ", REPLACE(u.phone, " ", "")) AS namephone from persons u, at_profiles_driver p where u.id=p.user_id order by u.lname, u.fname limit 3000';
+        $sql = 'select u.id, CONCAT(u.name, " - ", REPLACE(u.phone, " ", "")) AS namephone from contacts u, at_profiles_driver p where u.id=p.user_id order by u.lname, u.fname limit 3000';
         $theDrivers = Yii::$app->db->createCommand($sql)->queryAll();
 
         $theDriver = false;
@@ -2696,7 +2739,7 @@ class TourController extends \app\controllers\MyController
             throw new HttpException(404, 'Tour not found');
         }
 
-        $sql = 'SELECT tu.*, CONCAT(u.fname, " ", u.lname) AS name, u.phone FROM persons u, at_tour_user tu WHERE tu.role IN ("operator", "cservice") AND tu.user_id=u.id AND tu.tour_id=:id ORDER BY u.lname';
+        $sql = 'SELECT tu.*, CONCAT(u.fname, " ", u.lname) AS name, u.phone FROM contacts u, at_tour_user tu WHERE tu.role IN ("operator", "cservice") AND tu.user_id=u.id AND tu.tour_id=:id ORDER BY u.lname';
         $thePeople = Yii::$app->db->createCommand($sql, [':id'=>$id])->queryAll();
 
         $theCptx = Cpt::find()
@@ -2914,7 +2957,7 @@ class TourController extends \app\controllers\MyController
             ->asArray()
             ->limit(2500)
             ->all();
-        $theWaits = Yii::$app->db->createCommand('SELECT a.*, u.name AS username FROM at_avails a, persons u WHERE u.id=a.created_by AND  a.stype="wait" AND a.rtype="venue" AND a.rid=:id AND YEAR(a.from_dt)=:year', [':id'=>$getVenue, ':year'=>$getYear])
+        $theWaits = Yii::$app->db->createCommand('SELECT a.*, u.name AS username FROM at_avails a, contacts u WHERE u.id=a.created_by AND  a.stype="wait" AND a.rtype="venue" AND a.rid=:id AND YEAR(a.from_dt)=:year', [':id'=>$getVenue, ':year'=>$getYear])
             ->queryAll();
 
         $ctIdList = [];
@@ -3031,7 +3074,7 @@ class TourController extends \app\controllers\MyController
             ->all();
 
         // Tour operators
-        $sql5 = 'SELECT tu.*, u.name FROM persons u, at_tour_user tu WHERE tu.role="operator" AND tu.user_id=u.id AND tu.tour_id=:id ORDER BY u.lname LIMIT 100';
+        $sql5 = 'SELECT tu.*, u.name FROM users u, at_tour_user tu WHERE tu.role="operator" AND tu.user_id=u.id AND tu.tour_id=:id ORDER BY u.lname LIMIT 100';
         $tourOperators = Yii::$app->db->createCommand($sql5, [':id'=>$theTourOld['id']])->queryAll();
 
         $tourOperatorIds = [];
@@ -3040,7 +3083,7 @@ class TourController extends \app\controllers\MyController
         }
 
         // Guides in this tour
-        $sql6 = 'SELECT u.id, u.fname, u.lname, u.about AS uabout, tg.* FROM persons u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:id ORDER BY day LIMIT 100';
+        $sql6 = 'SELECT u.id, u.fname, u.lname, u.about AS uabout, tg.* FROM contacts u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:id ORDER BY day LIMIT 100';
         $tourGuides = Yii::$app->db->createCommand($sql6, [':id'=>$theTour['id']])->queryAll();
 
         return $this->render('tour_costs', [
@@ -3203,7 +3246,7 @@ class TourController extends \app\controllers\MyController
             ->all();
 
         // Tour operators
-        $sql5 = 'SELECT tu.*, u.name FROM persons u, at_tour_user tu WHERE tu.role="operator" AND tu.user_id=u.id AND tu.tour_id=:id ORDER BY u.lname LIMIT 100';
+        $sql5 = 'SELECT tu.*, u.name FROM users u, at_tour_user tu WHERE tu.role="operator" AND tu.user_id=u.id AND tu.tour_id=:id ORDER BY u.lname LIMIT 100';
         $tourOperators = Yii::$app->db->createCommand($sql5, [':id'=>$theTourOld['id']])->queryAll();
 
         $tourOperatorIds = [];
@@ -3212,7 +3255,7 @@ class TourController extends \app\controllers\MyController
         }
 
         // Guides in this tour
-        $sql6 = 'SELECT u.id, u.fname, u.lname, u.about AS uabout, tg.* FROM persons u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:id ORDER BY day LIMIT 100';
+        $sql6 = 'SELECT u.id, u.fname, u.lname, u.about AS uabout, tg.* FROM contacts u, at_tour_guide tg WHERE tg.user_id=u.id AND tg.tour_id=:id ORDER BY day LIMIT 100';
         $tourGuides = Yii::$app->db->createCommand($sql6, [':id'=>$theTour['id']])->queryAll();
 
         return $this->render('tour_costs', [
@@ -3363,15 +3406,15 @@ class TourController extends \app\controllers\MyController
         }
 
         // Drivers and vehicles
-        $sql = 'select *, IF(driver_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id=:tour_id order by use_from_dt limit 100';
+        $sql = 'select *, IF(driver_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id=:tour_id order by use_from_dt limit 100';
         $theTourDrivers = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Guides
-        $sql = 'select *, IF(guide_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id=:tour_id order by use_from_dt limit 100';
+        $sql = 'select *, IF(guide_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id=:tour_id order by use_from_dt limit 100';
         $theTourguides = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Notes
-        $sql = 'select *, IF(driver_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id=:tour_id order by use_from_dt limit 100';
+        $sql = 'select *, IF(driver_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=driver_user_id LIMIT 1)) AS namephone from at_tour_drivers where tour_id=:tour_id order by use_from_dt limit 100';
         $theTourNotes = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         $theForm = new \app\models\TourTestForm;
@@ -3412,11 +3455,11 @@ class TourController extends \app\controllers\MyController
         }
 
         // Guides for this tour
-        $sql = 'select *, guide_name, guide_user_id, IF(guide_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM persons u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id=:tour_id order by use_from_dt limit 100';
+        $sql = 'select *, guide_name, guide_user_id, IF(guide_user_id=0, "", (SELECT CONCAT(name, " - ", REPLACE(phone, " ", "")) FROM contacts u WHERE u.id=guide_user_id LIMIT 1)) AS namephone from at_tour_guides where tour_id=:tour_id order by use_from_dt limit 100';
         $tourGuides = Yii::$app->db->createCommand($sql, [':tour_id'=>$theTour['id']])->queryAll();
 
         // Tour guide list
-        $sql = 'select u.id, CONCAT(u.name, " - ", REPLACE(u.phone, " ", "")) AS namephone from persons u, at_profiles_tourguide p where u.id=p.user_id order by u.lname, u.fname limit 3000';
+        $sql = 'select u.id, CONCAT(u.name, " - ", REPLACE(u.phone, " ", "")) AS namephone from contacts u, at_profiles_tourguide p where u.id=p.user_id order by u.lname, u.fname limit 3000';
         $theGuides = Yii::$app->db->createCommand($sql)->queryAll();
 
         $theGuide = false;

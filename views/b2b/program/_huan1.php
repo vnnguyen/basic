@@ -6,24 +6,22 @@ include(Yii::getAlias('@app').'/views/day/_day_u_modal.php');
 $theDays = \yii\helpers\ArrayHelper::index($theProgram['days'], 'id');
 $theProgram = $theProgram;
 ?>
+<div class="day-save-cancel" style="display:none">
+    <button class="day-action-save btn btn-primary"><?= Yii::t('app', 'Save changes') ?></button>
+    <button class="day-action-cancel btn btn-default"><?= Yii::t('app', 'Cancel') ?></button>
+</div>
 
-<div class="panel panel-default">
-    <div class="panel-heading">
-        <h6 class="panel-title">
-            <?= Yii::t('p', 'Itinerary') ?>
-            <small>
-                <a data-toggle="modal" data-target="#help-modal" href="#">Help</a>
-                &middot;
-                <a class="toggle-day-contents" href="#">Toggle all days</a>
-            </small>
-        </h6>
-        <div class="heading-elements">
-            <ul class="heading-thumbnails">
-                <li><img class="img-circle" src="/timthumb.php?w=100&h=100&src=<?= $theProgram['updatedBy']['image'] ?>"></li>
-            </ul>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <?= Yii::t('p', 'Itinerary') ?>
+        <small>
+            <a data-toggle="modal" data-target="#help-modal" href="#">Help</a>
+            &middot;
+            <a class="toggle-day-contents" href="#">Toggle all days</a>
+        </small>
+        <img style="height:32px" class="pull-right rounded-circle" src="/timthumb.php?w=100&h=100&src=<?= $theProgram['updatedBy']['image'] ?>">
     </div>
-    <div id="xhome" class="hidden">
+    <div id="xhome" class="d-none hidden">
         <? if (in_array(USER_ID, [1, $theProgram['created_by'], $theProgram['updated_by']])) { ?>
         <i title="<?= Yii::t('app', 'Go top') ?>" class="xyz text-muted fa fa-fw fa-arrow-up cursor-pointer"></i>
         <i title="<?= Yii::t('app', 'Delete') ?>" class="x text-muted fa fa-fw fa-trash-o delete-day text-danger cursor-pointer"></i>
@@ -35,7 +33,7 @@ $theProgram = $theProgram;
         <? } ?>
     </div>
     <div id="divsortable">
-        <table id="tblCurrentProg" class="table table-striped table-condensed">
+        <table id="tblCurrentProg" class="table table-striped table-condensed <?= $theProgram['offer_type'] == 'b2b-prod' ? 'b2b-prod' : '' ?>">
             <thead>
                 <tr>
                     <th width="20" class="text-center"><i class="text-muted fa fa-arrows-v"></i></th>
@@ -51,7 +49,7 @@ $theProgram = $theProgram;
                 </tr>
             </thead>
             <tbody id="sortable" style="overflow:auto">
-                <?
+                <?php
                 $cnt = 0;
                 foreach ($dayIdList as $dayId) {
                     if (isset($theDays[$dayId])) {
@@ -66,6 +64,7 @@ $theProgram = $theProgram;
                     <td class="no-padding-left">
                         <div class="day-actions text-nowrap text-right pull-right position-right">
                         </div>
+                        <? if (USER_ID == 1111) { ?><div class="day-edit-me">EDIT ME</div><? } ?>
                         <span class="day-date"><?= Yii::$app->formatter->asDate($dayDate, 'php:j/n/Y D') ?></span>
                         <a class="day-name" href="/days/r/<?= $day['id'] ?>"><?= $day['name'] ?></a>
                         <em class="day-meals text-nowrap"><?= $day['meals'] ?></em>
@@ -74,7 +73,7 @@ $theProgram = $theProgram;
                                 <span class="day-guides"><?= $day['guides'] == '' ? '' : '<i class="fa fa-user"></i> '.$day['guides'] ?></span>
                                 <span class="day-transport"><?= $day['transport'] == '' ? '' : '<i class="fa fa-car"></i> '.$day['transport']?></span>
                             </p>
-                            <div class="day-body" id="day-body-<?= $day['id'] ?>">
+                            <div class="day-body" id="day-body-<?= $day['id'] ?>" style="font-family:Bell MT, serif; font-size:19px;">
                             <?
                             if (substr($day['body'], 0, 1) == '<') {
                                 echo $day['body'];
@@ -341,6 +340,15 @@ function insertDay(response, idx) {
 }
 
 TXT;
+$js .= USER_ID != 1 ? '' : <<<'TXT'
+$('.day-edit-me').on('click', function(){
+    var tr = $(this).parents('tr.tr-day')
+    inline_div = tr.find('.day-body:eq(0)').attr('contenteditable', 'true').addClass('editable').focus()
+    CKEDITOR.inline(inline_div.attr('id'));
+    $('.day-save-cancel:eq(0)').appendTo(tr.find('.day-content')).show()
+})
+TXT;
+
         $this->registerJsFile('https://code.jquery.com/ui/1.12.1/jquery-ui.js', ['depends'=>'yii\web\JqueryAsset']);
         $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js', ['depends'=>'yii\web\JqueryAsset']);
         $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery.blockUI/2.70/jquery.blockUI.min.js', ['depends'=>'yii\web\JqueryAsset']);
@@ -348,3 +356,7 @@ TXT;
         $this->registerJs($js);
     ?>
 </div>
+<style type="text/css">
+.b2b-prod .day-date {display:none;}
+</style>
+

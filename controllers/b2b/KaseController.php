@@ -1,5 +1,4 @@
 <?php
-
 namespace app\controllers\b2b;
 
 use Yii;
@@ -10,26 +9,36 @@ use yii\web\HttpException;
 use yii\data\Pagination;
 use yii\validators\EmailValidator;
 
-use common\models\Kase;
-use common\models\KaseStats;
-use common\models\CpLink;
-use common\models\Country;
-use common\models\Person;
-use common\models\Inquiry;
-use common\models\Message;
-use common\models\Note;
-use common\models\Sysnote;
-use common\models\Mail;
-use common\models\Company;
-use common\models\Campaign;
-use yii\db\Query;
+use \common\models\Client;
+use \common\models\Kase;
+use \common\models\KaseStats;
+use \common\models\CpLink;
+use \common\models\Country;
+use \common\models\Inquiry;
+use \common\models\Message;
+use \common\models\Note;
+use \common\models\Sysnote;
+use \common\models\Mail;
+use \common\models\User;
+use \common\models\Company;
+use \app\models\Campaign;
 
 class KaseController extends \app\controllers\MyController
 {
 
-public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
+public function actionIndex($ym = 'm', $type = '', $orderby = 'updated', $language = 'all',
+    $paxcount = '',
+    $daycount = '',
+    $startdate = '',
+    array $dests = [],
+    $destselect = 'all'
+    )
     {
-        $query_cnt = new Query;
+        if (USER_ID == 1 && isset($_GET['xh'])) {
+            // \fCore::expose($dests);
+            // \fCore::expose($_GET);
+            // exit;
+        }
         $getProspect = Yii::$app->request->get('prospect', 'all');
         $getSite = Yii::$app->request->get('site', 'all');
         $getCa = Yii::$app->request->get('ca', 'created');
@@ -43,48 +52,31 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
         $getHowContacted = Yii::$app->request->get('contacted', 'all');
         $getPriority = Yii::$app->request->get('is_priority', 'all');
         $getCompany = Yii::$app->request->get('company', 'all');
-        $getLanguage = Yii::$app->request->get('language', 'all');
 
-        $query = Kase::find()->where(['is_b2b'=>'yes']);
+        $query = Kase::find()
+            ->where(['is_b2b'=>'yes'])
+            ->innerJoinwith('stats');
 
         if ($type != '') {
             $query->andWhere(['stype'=>$type]);
         }
-/*
-        if (in_array($getProspect, [1,2,3,4,5]) || $getSite != 'all') {
-            $cond = [];
-            if ($getProspect != 'all') {
-                $cond['prospect'] = $getProspect;
-            }
-            if ($getSite != 'all') {
-                $cond['pa_from_site'] = $getSite;
-            }
-            $query->innerJoinwith('stats')->onCondition($cond);
-        }
-*/
-        $query_cnt->select('company_id, count(id) as cnt')
-            ->from('at_cases')
-            ->where('is_b2b="yes"');
+
         if ($getMonth != 'all' && $ym == 'm') {
             if ($getCa == 'created') {
                 $query->andWhere('SUBSTRING(created_at, 1, 7)=:month', [':month'=>$getMonth]);
-                $query_cnt->andWhere('SUBSTRING(created_at, 1, 7)=:month', [':month'=>$getMonth]);
             } else {
                 $query->andWhere('SUBSTRING(ao, 1, 7)=:month', [':month'=>$getMonth]);
-                $query_cnt->andWhere('SUBSTRING(ao, 1, 7)=:month', [':month'=>$getMonth]);
             }
         }
 
         if ($getMonth != 'all' && $ym == 'y') {
             if ($getCa == 'created') {
                 $query->andWhere('SUBSTRING(created_at, 1, 4)=:month', [':month'=>substr($getMonth, 0, 4)]);
-                $query_cnt->andWhere('SUBSTRING(created_at, 1, 4)=:month', [':month'=>substr($getMonth, 0, 4)]);
             } else {
                 $query->andWhere('SUBSTRING(ao, 1, 4)=:month', [':month'=>substr($getMonth, 0, 4)]);
-                $query_cnt->andWhere('SUBSTRING(ao, 1, 4)=:month', [':month'=>substr($getMonth, 0, 4)]);
             }
         }
-        $cnt_comp = $query_cnt->groupBy('company_id')->createCommand()->queryAll();
+
         if ($getStatus != 'all') $query->andWhere(['status'=>$getStatus]);
         if ($getSaleStatus != 'all') $query->andWhere(['deal_status'=>$getSaleStatus]);
         if ($getCompany == 'no') {
@@ -95,7 +87,9 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
             $query->andWhere(['company_id'=>(int)$getCompany]);
         }
         if ($getPriority != 'all') $query->andWhere(['is_priority'=>$getPriority]);
-        if ($getLanguage != 'all') $query->andWhere(['language'=>$getLanguage]);
+        if (in_array($language, ['en', 'fr', 'vi'])) {
+            $query->andWhere(['language'=>$language]);
+        }
         if ($getOwnerId != 'all') {
             if (substr($getOwnerId, 0, 5) == 'cofr-') {
                 $query->andWhere(['cofr'=>(int)substr($getOwnerId, 5)]);
@@ -133,6 +127,52 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
         */
         if ($getName != '') $query->andWhere(['like', 'name', $getName]);
 
+        if ($paxcount != '') {
+            $pax = explode('-', $paxcount);
+            $pax[0] = (int)$pax[0];
+            if (!isset($pax[1])) {
+                $pax[1] = $pax[0];
+            }
+            $query->andWhere(['!=', 'pax_count', '']);
+            $query->andWhere('pax_count_min<=:max AND pax_count_min>=:min', [':min'=>$pax[0], ':max'=>$pax[1]]);
+        }
+
+        if ($daycount != '') {
+            $day = explode('-', $daycount);
+            $day[0] = (int)$day[0];
+            if (!isset($day[1])) {
+                $day[1] = $day[0];
+            }
+            $query->andWhere(['!=', 'day_count', '']);
+            $query->andWhere('day_count_min<=:max AND day_count_min>=:min', [':min'=>$day[0], ':max'=>$day[1]]);
+        }
+
+        if (strlen($startdate) == 4 || strlen($startdate) == 7) {
+            $query->andWhere(['like', 'start_date', $startdate]);
+        }
+
+        if (isset($dests) && is_array($dests) && !empty($dests)) {
+            if ($destselect == 'all') {
+                foreach ($dests as $dest) {
+                    $query->andWhere('LOCATE("'.$dest.'", req_countries)!=0');//, [':dest'=>$dest]);
+                }
+            } elseif ($destselect == 'any') {
+                $orConditions = '(';
+                foreach ($dests as $dest) {
+                    if ($orConditions != '(') {
+                        $orConditions .= ' OR ';
+                    }
+                    $orConditions .= 'LOCATE("'.$dest.'", req_countries)!=0';
+                }
+                $orConditions .= ')';
+                $query->andWhere($orConditions);
+            } else {
+                asort($dests);
+                $destList = implode('|', $dests);
+                $query->andWhere(['req_countries'=>$destList]);
+            }
+        }
+
         /*if ($getProspect != 'all') {
             $query->innerJoinWith('stats')->onCondition();
                 $getProspect = Yii::$app->request->get('prospect');
@@ -147,6 +187,7 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
             'totalCount' => $countQuery->count(),
             'pageSize'=>25,
         ]);
+
         $theCases = $query
             ->select(['id', 'name', 'stype', 'status', 'ref', 'is_priority', 'deal_status', 'opened', 'owner_id', 'created_at', 'ao', 'how_found', 'web_referral', 'web_keyword', 'campaign_id', 'how_contacted', 'owner_id', 'company_id', 'info', 'closed_note', 'last_accessed_dt'])
             ->orderBy($orderby == 'created' ? 'created_at DESC' : 'last_accessed_dt DESC')
@@ -154,7 +195,7 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
             ->limit($pages->limit)
             ->with([
                 'stats'=>function($q){
-                    return $q->select(['pa_destinations', 'pa_pax', 'pa_days', 'pa_start_date', 'case_id']);
+                    return $q->select(['req_countries', 'pax_count', 'day_count', 'start_date', 'case_id']);
                 },
                 'owner'=>function($query) {
                     return $query->select(['id', 'name'=>'nickname', 'image']);
@@ -168,11 +209,15 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
                 ])
             ->asArray()
             ->all();
+
         // List of months
         $monthList = Yii::$app->db->createCommand('SELECT SUBSTRING(created_at, 1, 7) AS ym FROM at_cases WHERE is_b2b="yes" GROUP BY ym ORDER BY ym DESC ')->queryAll();
         $ownerList = Yii::$app->db->createCommand('SELECT u.id, u.nickname AS name, u.email FROM at_cases c, users u WHERE u.id=c.owner_id AND c.is_b2b="yes" GROUP BY u.id ORDER BY u.lname, u.fname')->queryAll();
-        $campaignList = Yii::$app->db->createCommand('SELECT c.id, c.name, c.start_dt FROM at_campaigns c ORDER BY c.start_dt DESC')->queryAll();
-        $companyList = Yii::$app->db->createCommand('SELECT c.id, c.name FROM at_cases k, at_companies c WHERE k.company_id=c.id GROUP BY k.company_id ORDER BY c.name')->queryAll();
+        $campaignList = Yii::$app->db->createCommand('SELECT c.id, c.name, c.start_dt FROM campaigns c ORDER BY c.start_dt DESC')->queryAll();
+        $companyList = Client::find()
+            ->select(['id', 'name'])
+            ->asArray()
+            ->all();
 
         return $this->render('kase_index', [
             'pages'=>$pages,
@@ -193,12 +238,16 @@ public function actionIndex($ym = 'm', $type = '', $orderby = 'created')
             'getName'=>$getName,
             'getCompany'=>$getCompany,
             'getPriority'=>$getPriority,
-            'getLanguage'=>$getLanguage,
+            'language'=>$language,
             'companyList'=>$companyList,
             'ym'=>$ym,
             'type'=>$type,
             'orderby'=>$orderby,
-            'cnt_comp' => $cnt_comp
+            'paxcount'=>$paxcount,
+            'daycount'=>$daycount,
+            'startdate'=>$startdate,
+            'dests'=>$dests,
+            'destselect'=>$destselect,
         ]);
     }
 
@@ -420,7 +469,7 @@ TXT;
                 }
                 // Diem den
                 if ($_POST['name'] == 'destinations') {
-                    $sql = 'INSERT INTO at_case_stats (case_id, pa_destinations) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pa_destinations=:value';
+                    $sql = 'INSERT INTO at_case_stats (case_id, req_countries) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE req_countries=:value';
                     Yii::$app->db->createCommand($sql, [
                         ':case_id'=>$_POST['pk'],
                         ':value'=>$_POST['value'],
@@ -429,7 +478,7 @@ TXT;
                 }
                 // So pax
                 if ($_POST['name'] == 'pax') {
-                    $sql = 'INSERT INTO at_case_stats (case_id, pa_pax) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pa_pax=:value';
+                    $sql = 'INSERT INTO at_case_stats (case_id, pax_count) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pax_count=:value';
                     Yii::$app->db->createCommand($sql, [
                         ':case_id'=>$_POST['pk'],
                         ':value'=>$_POST['value'],
@@ -438,7 +487,7 @@ TXT;
                 }
                 // Do tuoi
                 if ($_POST['name'] == 'pax_ages') {
-                    $sql = 'INSERT INTO at_case_stats (case_id, pa_pax_ages) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pa_pax_ages=:value';
+                    $sql = 'INSERT INTO at_case_stats (case_id, pax_count_ages) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pax_count_ages=:value';
                     Yii::$app->db->createCommand($sql, [
                         ':case_id'=>$_POST['pk'],
                         ':value'=>$_POST['value'],
@@ -447,7 +496,7 @@ TXT;
                 }
                 // So ngay
                 if ($_POST['name'] == 'days') {
-                    $sql = 'INSERT INTO at_case_stats (case_id, pa_days) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pa_days=:value';
+                    $sql = 'INSERT INTO at_case_stats (case_id, day_count) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE day_count=:value';
                     Yii::$app->db->createCommand($sql, [
                         ':case_id'=>$_POST['pk'],
                         ':value'=>$_POST['value'],
@@ -456,7 +505,7 @@ TXT;
                 }
                 // Khoi hanh
                 if ($_POST['name'] == 'start_date') {
-                    $sql = 'INSERT INTO at_case_stats (case_id, pa_start_date) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE pa_start_date=:value';
+                    $sql = 'INSERT INTO at_case_stats (case_id, start_date) VALUES (:case_id, :value) ON DUPLICATE KEY UPDATE start_date=:value';
                     Yii::$app->db->createCommand($sql, [
                         ':case_id'=>$_POST['pk'],
                         ':value'=>$_POST['value'],
@@ -555,10 +604,6 @@ TXT;
     // Edit customer request
     public function actionRequest($id = 0)
     {
-        if (USER_ID != 1) {
-            // throw new HttpException(403, 'Page is being updated. Please come back later.');
-        }
-
         $theCase = Kase::find()
             ->where(['id'=>$id])
             ->with(['stats'])
@@ -587,10 +632,10 @@ TXT;
             ->one();
         $caseStats->scenario = 'cases/request';
 
-        $caseStats->pa_destinations = explode(',', $caseStats->pa_destinations);
+        $caseStats->req_countries = explode(',', $caseStats->req_countries);
 
         if ($caseStats->load(Yii::$app->request->post()) && $caseStats->validate()) {
-            $caseStats->pa_destinations = implode(',', $caseStats->pa_destinations);
+            $caseStats->req_countries = implode(',', $caseStats->req_countries);
             $caseStats->save(false);
             return $this->redirect('@web/cases/r/'.$theCase['id']);
         }
@@ -680,6 +725,7 @@ TXT;
         $theCase->is_priority = 'no';
         $theCase->stype = 'b2b';
         $theCase->owner_id = USER_ID;
+        $theCase->cofr = 0;
         $theCase->how_contacted = 'agent';
         if ($theInquiry) {
             $inquiryData = unserialize($theInquiry['data']);
@@ -729,7 +775,7 @@ TXT;
                 ])->execute();
 
             // Case ref
-            if (substr($theCase['how_found'],1,7) == 'new/ref' && $theCase['ref'] != 0) {
+            if (substr($theCase['how_found'],1,8) == 'referred' && $theCase['ref'] != 0) {
                 Yii::$app->db->createCommand()
                     ->insert('at_referrals', [
                         'created_at'=>NOW,
@@ -761,7 +807,7 @@ TXT;
 
             // Email people
             if ($theCase['owner_id'] != 0) {
-                $theOwner = Person::find()
+                $theOwner = User::find()
                     ->where(['id'=>$theCase['owner_id']])
                     ->asArray()
                     ->one();
@@ -801,19 +847,46 @@ TXT;
                 }
             } // if case owner id
 
+            // Email people
+            if (in_array($theCase['cofr'], [13, 5246, 767])) {
+                $cofr = [
+                    13=>['Hoa', 'Bearez', 'bearez.hoa@amicatravel.com'],
+                    767=>['Xuan', 'Vuong', 'vuong.xuan@amicatravel.com'],
+                    5246=>['Arnaud', 'Levallet', 'arnaud.l@amicatravel.com'],
+                ];
+                $this->mgIt(
+                    'ims | Case "'.$theCase['name'].'" has been assigned to you',
+                    '//mg/cases_assign',
+                    [
+                        'theCase'=>$theCase,
+                    ],
+                    [
+                        ['from', 'noreply-ims@amicatravel.com', 'Amica Travel', 'IMS'],
+                        ['to', $cofr[$theCase['cofr']][2], $cofr[$theCase['cofr']][0], $cofr[$theCase['cofr']][1]],
+                    ]
+                );
+            }
+
             return $this->redirect('@web/b2b/cases/r/'.$theCase['id']);
         }
 
-        $ownerList = Person::find()
+        $ownerList = User::find()
             ->select(['id', 'CONCAT(lname, ", ", email) AS name'])
-            ->where(['status'=>'on', 'is_member'=>'yes'])
+            ->where(['status'=>'on', 'id'=>[29013, 43850, 1087, 15860, 26052, 43851, 40399, 11724, 46807, 3066, 49845, 50048]])
+            ->orWhere(['id'=>$theCase['id']])
             ->orderBy('lname, fname')
             ->asArray()
             ->all();
 
-        $companyList = Company::find()
+        $cofrList = User::find()
+            ->select(['id', 'CONCAT(lname, ", ", email) AS name'])
+            ->where(['status'=>'on', 'is_member'=>'yes', 'id'=>[13, 5246, 767]])
+            ->orderBy('lname, fname')
+            ->asArray()
+            ->all();
+
+        $companyList = Client::find()
             ->select(['id', 'name'])
-            ->where(['status'=>'on'])
             ->orderBy('name')
             ->asArray()
             ->all();
@@ -829,6 +902,7 @@ TXT;
             'theCase'=>$theCase,
             'theStats'=>$theStats,
             'ownerList'=>$ownerList,
+            'cofrList'=>$cofrList,
             'companyList'=>$companyList,
             'campaignList'=>$campaignList,
             'theInquiry'=>$theInquiry,
@@ -838,7 +912,7 @@ TXT;
 
     public function actionR($id = 0)
     {
-        // return $this->redirect('/cases/r/'.$id);
+        return $this->redirect('/cases/r/'.$id);
         // exit;
         $theCase = Kase::find()
             ->where(['id'=>$id])
@@ -866,7 +940,8 @@ TXT;
                 'tasks'=>function($q) {
                     return $q->orderBy('status, due_dt');
                 },
-                'tasks.assignees'=>function($q) {
+                'tasks.taskAssign',
+                'tasks.taskAssign.assignee'=>function($q) {
                     return $q->select(['id', 'name'=>'nickname']);
                 },
                 'tasks.createdBy'=>function($q) {
@@ -936,9 +1011,9 @@ TXT;
             }
         }
 
-        $thePeople = Person::find()
+        $thePeople = User::find()
             ->select(['id', 'name', 'fname', 'lname', 'email', 'nickname'])
-            ->where(['status'=>'on', 'is_member'=>'yes'])
+            ->where(['status'=>'on'])
             ->orderBy('lname, fname')
             ->asArray()
             ->all();
@@ -1039,6 +1114,9 @@ TXT;
             if (!$theNote->save(false)) {
                 die('NOTE NOT SAVED');
             }
+
+            $sql = 'UPDATE at_cases SET last_accessed_dt=:now WHERE id=:id LIMIT 1';
+            Yii::$app->db->createCommand($sql, [':now'=>NOW, ':id'=>$theCase['id']])->execute();
 
 
             if (!empty($toIdList)) {
@@ -1155,12 +1233,13 @@ TXT;
         }
 
         $inboxMails = Mail::find()
-            ->select(['id', 'from', 'to', 'cc', 'sent_dt', 'body', 'created_at', 'subject', 'attachment_count', 'files', 'updated_at', 'updated_by', 'tags', 'from_email'])
+            ->select(['id', 'from', 'to', 'cc', 'sent_dt', 'message_id', 'created_at', 'subject', 'attachment_count', 'files', 'updated_at', 'updated_by', 'tags', 'from_email'])
             ->where(['case_id'=>$theCase['id']])
+            ->with(['body'])
             ->asArray()
             ->all();
 
-        $theCaseOwner = Person::find()->where(['id'=>$theCase['owner_id']])->one();
+        $theCaseOwner = User::find()->where(['id'=>$theCase['owner_id']])->one();
 
         if (Yii::$app->request->get('allnotes') == 'yes') {
             $tourIdList = [];
@@ -1305,9 +1384,9 @@ TXT;
             }
         }
 
-        $thePeople = Person::find()
+        $thePeople = User::find()
             ->select(['id', 'name', 'fname', 'lname', 'email'])
-            ->where(['status'=>'on', 'is_member'=>'yes'])
+            ->where(['status'=>'on'])
             ->orderBy('lname, fname')
             ->asArray()
             ->all();
@@ -1526,7 +1605,7 @@ TXT;
             ->asArray()
             ->all();
 
-        $theCaseOwner = Person::find()->where(['id'=>$theCase['owner_id']])->one();
+        $theCaseOwner = User::find()->where(['id'=>$theCase['owner_id']])->one();
         $theNotes = Note::find()
             ->where(['rtype'=>'case', 'rid'=>$id])
             ->with(['from', 'to'])
@@ -1609,12 +1688,14 @@ TXT;
             ->one();
         if (!$theStats) {
             $theStats = new KaseStats;
+            $theStats->case_id = $theCase->id;
         }
         $theStats->scenario = 'b2b/kase/u';
 
         if ($theCase->load(Yii::$app->request->post()) && $theCase->validate()
             && $theStats->load(Yii::$app->request->post()) && $theStats->validate()
             ) {
+            // \fCore::expose($theCase); exit;
             if ($theCase['how_found'] != 'word') {
                 $theCase['ref'] = 0;
             }
@@ -1653,7 +1734,7 @@ TXT;
                     ])->execute();
             }
 
-            if (substr($theCase['how_found'],1,7) == 'new/ref' && $theCase['ref'] != 0  && $theCase['ref'] != $oldRef) {
+            if (substr($theCase['how_found'],1,8) == 'referred' && $theCase['ref'] != 0  && $theCase['ref'] != $oldRef) {
                 Yii::$app->db->createCommand()
                     ->insert('at_referrals', [
                         'created_at'=>NOW,
@@ -1669,7 +1750,7 @@ TXT;
             // Email people
             if ($theCase['owner_id'] != 0 && $theCase['owner_id'] != $oldOwnerId) {
                 // Owner may not exist
-                $theOwner = Person::find()
+                $theOwner = User::find()
                     ->where(['id'=>$theCase['owner_id']])
                     ->one();
                 if (!$theOwner) {
@@ -1709,21 +1790,46 @@ TXT;
                 }
             }
 
+            if (in_array($theCase['cofr'], [13, 5246, 767]) && $theCase['cofr'] != $oldCofr) {
+                $cofr = [
+                    13=>['Hoa', 'Bearez', 'bearez.hoa@amicatravel.com'],
+                    767=>['Xuan', 'Vuong', 'vuong.xuan@amicatravel.com'],
+                    5246=>['Arnaud', 'Levallet', 'arnaud.l@amicatravel.com'],
+                ];
+                $this->mgIt(
+                    'ims | Case "'.$theCase['name'].'" has been assigned to you',
+                    '//mg/cases_assign',
+                    [
+                        'theCase'=>$theCase,
+                    ],
+                    [
+                        ['from', 'noreply-ims@amicatravel.com', 'Amica Travel', 'IMS'],
+                        ['to', $cofr[$theCase['cofr']][2], $cofr[$theCase['cofr']][0], $cofr[$theCase['cofr']][1]],
+                    ]
+                );
+            }
+
             return $this->redirect('@web/cases/r/'.$theCase['id']);
         }
 
 
-        $ownerList = Person::find()
+        $ownerList = User::find()
             ->select(['id', 'CONCAT(lname, ", ", email) AS name'])
-            ->where(['status'=>'on', 'is_member'=>'yes'])
+            ->where(['status'=>'on', 'id'=>[29013, 43850, 1087, 15860, 26052, 43851, 40399, 11724, 46807, 3066, 49845, 50048]])
             ->orWhere(['id'=>$theCase['id']])
             ->orderBy('lname, fname')
             ->asArray()
             ->all();
 
-        $companyList = Company::find()
+        $cofrList = User::find()
+            ->select(['id', 'CONCAT(lname, ", ", email) AS name'])
+            ->where(['status'=>'on', 'id'=>[13, 5246, 767]])
+            ->orderBy('lname, fname')
+            ->asArray()
+            ->all();
+
+        $companyList = Client::find()
             ->select(['id', 'name'])
-            ->where(['status'=>'on'])
             ->orderBy('name')
             ->asArray()
             ->all();
@@ -1739,6 +1845,7 @@ TXT;
             'theCase'=>$theCase,
             'theStats'=>$theStats,
             'ownerList'=>$ownerList,
+            'cofrList'=>$cofrList,
             'companyList'=>$companyList,
             'campaignList'=>$campaignList,
         ]);
@@ -1803,10 +1910,8 @@ TXT;
             return $this->redirect('@web/cases');
         }
 
-        $companyList = Company::find()
+        $companyList = Client::find()
             ->select(['id', 'name'])
-            ->where(['status'=>'on'])
-            ->orderBy('name')
             ->asArray()
             ->all();
 

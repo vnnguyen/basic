@@ -30,6 +30,7 @@ use common\models\Event;
 use common\models\Task;
 use common\models\Tour;
 use app\models\SukienPhonghopForm;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ToolController extends MyController
@@ -934,13 +935,24 @@ class ToolController extends MyController
     }
 
     // Xuat bang chi phi tour 150909
-    public function actionKetoanXuatCpt($view = 'use', $search = '', $eur = 23884, $usd = 21775, $output = 'view')
+    /**
+     * Xuat bang chi phi tour 150909
+     * 190107 Tach cpt thanh tien hang & VAT
+     */
+    public function actionKetoanXuatCpt($view = 'use', $search = '', $eur = 23884, $usd = 21775, $output = 'view', $downloadToken = '')
     {
+        session_write_close();
+        ignore_user_abort(true);
+        // NCC with VAT
+        $sql = 'SELECT venue_id FROM at_atuan_codes WHERE vat="vat" AND venue_id!=0';
+        $vatList = \Yii::$app->db->createCommand($sql)->queryColumn();
+
+
         if (strlen($search) < 4) {
             $search = 'SEARCH...';
         }
         if ($view == 'tour-code') {
-            $sql = 'select t.id, t.op_code, t.day_from, t.day_count, o.id AS oid, u.name AS cbname FROM at_ct t, at_tours o, persons u WHERE u.id=t.created_by AND o.ct_id=t.id AND t.op_status="op" AND LOCATE(:search, t.op_code)!=0 ORDER BY t.day_from LIMIT 1000';
+            $sql = 'select t.id, t.op_code, t.day_from, t.day_count, o.id AS oid, u.name AS cbname FROM at_ct t, at_tours o, users u WHERE u.id=t.created_by AND o.ct_id=t.id AND t.op_status="op" AND LOCATE(:search, t.op_code)!=0 ORDER BY t.day_from LIMIT 1000';
             $theTours = Yii::$app->db->createCommand($sql, [':search'=>$search])->queryAll();
 
             $oldTourIdList = [];
@@ -948,7 +960,7 @@ class ToolController extends MyController
                 $oldTourIdList[] = $tour['oid'];
             }
         } elseif ($view == 'tour-end') {
-            $sql = 'SELECT t.id, t.op_code, t.day_from, t.day_count, o.id AS oid, u.name AS cbname FROM at_ct t, at_tours o, persons u WHERE u.id=t.created_by AND o.ct_id=t.id AND t.day_count>0 AND t.op_status="op" AND LOCATE(:search, DATE_ADD(t.day_from, INTERVAL day_count - 1 DAY))!=0 ORDER BY t.day_from LIMIT 1000';
+            $sql = 'SELECT t.id, t.op_code, t.day_from, t.day_count, o.id AS oid, u.name AS cbname FROM at_ct t, at_tours o, users u WHERE u.id=t.created_by AND o.ct_id=t.id AND t.day_count>0 AND t.op_status="op" AND LOCATE(:search, DATE_ADD(t.day_from, INTERVAL day_count - 1 DAY))!=0 ORDER BY t.day_from LIMIT 1000';
             $theTours = Yii::$app->db->createCommand($sql, [':search'=>$search])->queryAll();
 
             $oldTourIdList = [];
@@ -964,7 +976,7 @@ class ToolController extends MyController
                 $oldTourIdList[] = $tour['oid'];
             }
         } else { // tour-start
-            $sql = 'SELECT t.id, t.op_code, t.day_from, t.day_count, o.id AS oid, u.name AS cbname FROM at_ct t, at_tours o, persons u WHERE u.id=t.created_by AND o.ct_id=t.id AND t.op_status="op" AND LOCATE(:search, t.day_from)!=0 ORDER BY t.day_from LIMIT 1000';
+            $sql = 'SELECT t.id, t.op_code, t.day_from, t.day_count, o.id AS oid, u.name AS cbname FROM at_ct t, at_tours o, users u WHERE u.id=t.created_by AND o.ct_id=t.id AND t.op_status="op" AND LOCATE(:search, t.day_from)!=0 ORDER BY t.day_from LIMIT 1000';
             $theTours = Yii::$app->db->createCommand($sql, [':search'=>$search])->queryAll();
 
             $oldTourIdList = [];
@@ -997,6 +1009,263 @@ class ToolController extends MyController
 
         $query->andWhere(['!=', 'crfund', 'yes']);
 
+        $xrate['EUR'] = isset($_GET['eur']) && (int)$_GET['eur'] != 0 ? (int)$_GET['eur'] : 24500;
+        $xrate['USD'] = isset($_GET['usd']) && (int)$_GET['usd'] != 0 ? (int)$_GET['usd'] : 22300;
+        $xrate['LAK'] = isset($_GET['lak']) && (int)$_GET['lak'] != 0 ? (int)$_GET['lak'] : 2.75;
+        $xrate['KHR'] = isset($_GET['khr']) && (int)$_GET['khr'] != 0 ? (int)$_GET['khr'] : 19.73;
+        $xrate['VND'] = 1;
+
+
+        if (Yii::$app->request->get('output') == 'download') {
+            $arr = ['TOUR IN', 'TOUR OUT', 'NGAY DV', 'ID', 'SO HOA DON', 'MA NHA CC', 'NOI DUNG DV', 'TIEN', 'TI GIA', 'MA DV', 'NOI DUNG DV', 'DON VI', 'SL', 'DON GIA', 'THANH NTE', 'TIEN HANG VND', 'VAT VND', 'THANH VND', 'TK NO', 'TK CO', 'CODE', 'KHOAN MUC CP', 'VENUE', 'COMPANY', 'OPERATOR', 'PAYER', 'VAT', 'STATUS TT'];
+
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $spreadsheet->getActiveSheet()->fromArray($arr, null, 'A1');
+            $row = 2;
+            $countQuery = clone $query;
+            $limit = $countQuery->count() < $pageSize ? $countQuery->count(): $pageSize;
+            if ($limit > 0) {
+                $pages = ceil( $countQuery->count() / $limit );
+                for ( $page = 0 ; $page < $pages ; $page++ ) {
+                    $offset = $page * $limit;
+
+
+                    $theCptx = $query
+                        ->select(['c3', 'dvtour_id', 'dvtour_day', 'payer', 'venue_id', 'via_company_id', 'by_company_id', 'qty', 'unit', 'price', 'plusminus', 'tour_id', 'dvtour_name', 'unitc', 'oppr'])
+                        ->with([
+                            'company'=>function($q) {
+                                return $q->select(['id', 'name']);
+                            },
+                            'venue'=>function($q) {
+                                return $q->select(['id', 'name']);
+                            },
+                        ])
+                        ->orderBy('venue_id, oppr')
+                        ->limit($limit)
+                        ->offset($offset)
+                        ->asArray()
+                        ->all();
+
+                    $list = [];
+                    $sql = 'select * FROM at_atuan_codes ORDER by code';
+                    $listItems = Yii::$app->db->createCommand($sql)->queryAll();
+                    foreach ($listItems as $item) {
+                        $list[$item['name']] = $item;
+                    }
+                    foreach ($theTours as $tour) {
+                        foreach ($theCptx as $cpt) {
+                            $arr = [];
+                            if ($tour['oid'] == $cpt['tour_id']) {
+                                $arr[] = $tour['day_from']; // Ngay khoi hanh
+                                $arr[] = date('Y-m-d', strtotime('+ '.($tour['day_count'] - 1).' days', strtotime($tour['day_from']))); // Ngay ket thuc
+                                $arr[] = $cpt['dvtour_day']; // Ngay dv
+                                $arr[] = $cpt['dvtour_id']; // Id
+                                $arr[] = ''; // So hoa don, kt
+
+                                // Ma NCC
+                                $text = ''; // NCC
+                                $name = ''; // Code
+                                $vat = ''; // VAT
+                                if (in_array($cpt['payer'], ['Amica Hà Nội', 'Amica Luang Prabang', 'BCEL Laos', 'Hướng dẫn Laos 1', 'Hướng dẫn Laos 2', 'Hướng dẫn Laos 3'])) {
+                                    if ($cpt['venue']) {
+                                        $text = $cpt['venue']['name'];
+                                        foreach ($list as $listText=>$listItem) {
+                                            if ($listItem['venue_id'] == $cpt['venue']['id']) {
+                                                $name = $listItem['code'];
+                                                $vat = $listItem['vat'];
+                                                break;
+                                            }
+                                        }
+                                    } elseif ($cpt['company']) {
+                                        $text = $cpt['company']['name'];
+                                    } else {
+                                        $text = $cpt['oppr'];
+                                    }
+                                } else {
+                                    $text = $cpt['payer'];
+                                }
+
+                                if ($name == '') {
+                                    if (isset($list[$text])) {
+                                        $name = $list[$text]['code'];
+                                        $name = mb_strtoupper($name);
+                                    } else {
+                                        $name = $text;
+                                    }
+                                }
+
+                                if ($vat == '' && !$cpt['venue']) {
+                                    foreach ($list as $listText=>$listItem) {
+                                        if ($listItem['name'] == $text) {
+                                            $vat = $listItem['vat'];
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                // Mot so truong hop VAT cua venue khong co code vi do HDV thanh toan
+                                if ($vat == '' && $cpt['venue']) {
+                                    $vatCodes = [
+                                        "Ba Bể"=>"BH",
+                                        "Bãi tắm titop"=>"BH",
+                                        "Bản Giốc"=>"BH",
+                                        "Bản Khuổi Khon"=>"BH",
+                                        "Bảo tàng Chàm"=>"BH",
+                                        "Bảo tàng Chứng tích chiến tranh"=>"BH",
+                                        "Bảo Tàng Dân Tộc Học"=>"BH",
+                                        "Bảo tàng Điện Biên Phủ"=>"BH",
+                                        "Bảo tàng Fito"=>"BH",
+                                        "Bảo Tàng Hồ Chí Minh"=>"BH",
+                                        "Bảo Tàng Mỹ Thuật Hà Nội"=>"BH",
+                                        "Bảo Tàng Phụ Nữ Việt Nam"=>"BH",
+                                        "Bảo Tàng Văn Hóa Các Dân Tộc Việt Nam"=>"BH",
+                                        "Bảo Tàng Yersin"=>"BH",
+                                        "Cát Cát"=>"BH",
+                                        "Chùa Bái Đính"=>"BH",
+                                        "Chùa Tây Phương"=>"BH",
+                                        "Chùa Thầy"=>"BH",
+                                        "Côn Sơn"=>"BH",
+                                        "Dinh Độc Lập"=>"BH",
+                                        "Dinh Thống Nhất"=>"BH",
+                                        "Dinh vua Mèo - Bắc Hà"=>"BH",
+                                        "Dinh vua mèo - Hà Giang"=>"BH",
+                                        "Đại Nội Huế"=>"BH",
+                                        "Đền Ngọc Sơn"=>"BH",
+                                        "Đền Quán Thánh"=>"BH",
+                                        "Đồi A1"=>"BH",
+                                        "Động Mê Cung"=>"BH",
+                                        "Động Ngườm Ngao"=>"BH",
+                                        "Động Thiên Cung"=>"BH",
+                                        "Ha Giang Resort (Truong Xuan Resort)"=>"VAT",
+                                        "Halong Palace"=>"VAT",
+                                        "Hầm Đờ Cát"=>"BH",
+                                        "Hầm Ông Giáp"=>"BH",
+                                        "Hang Đá (Sa Pa)"=>"BH",
+                                        "Hang Đầu Gỗ"=>"BH",
+                                        "Hang múa"=>"BH",
+                                        "Hang Sửng Sốt"=>"BH",
+                                        "Hang Tiên Ông"=>"BH",
+                                        "Hoa Binh Hotel 1 & 2"=>"VAT",
+                                        "Hoa Cuong Hotel - Mèo Vạc"=>"VAT",
+                                        "Hoa Lư (Đền Đinh + Lê)"=>"BH",
+                                        "Hoa Viet Hotel"=>"VAT",
+                                        "Hoang Ngoc Hotel"=>"VAT",
+                                        "Khu Di Tích Phủ Chủ tịch"=>"BH",
+                                        "La Pán Tẩn"=>"BH",
+                                        "Lăng Bác"=>"BH",
+                                        "Làng cổ Đường Lâm"=>"BH",
+                                        "Lăng Tự Đức"=>"BH",
+                                        "Lao Chải + Tả Van"=>"BH",
+                                        "Lucky Cafe 2 Restaurant"=>"VAT",
+                                        "Má Tra (Lào Cai)"=>"BH",
+                                        "Madam Yen Restaurant (Coyen Restaurant)"=>"VAT",
+                                        "Muong Thanh Lang Son Hotel"=>"VAT",
+                                        "Nghia Lo Hotel"=>"BH",
+                                        "Nhà Cổ Bình Thủy"=>"BH",
+                                        "Núi Hàm Rồng"=>"BH",
+                                        "Núi Sam"=>"BH",
+                                        "Phố cổ Hội An"=>"BH",
+                                        "Sín Chải"=>"BH",
+                                        "Soi Sim"=>"BH",
+                                        "Sủng Là - Hà Giang"=>"BH",
+                                        "Sunny Hotel Cao Bang"=>"VAT",
+                                        "Tả Phìn"=>"BH",
+                                        "Tam Cốc - Bích Động"=>"BH",
+                                        "Tam Thanh"=>"BH",
+                                        "Thác Bạc"=>"BH",
+                                        "Thăm quan Đảo Cát Bà"=>"BH",
+                                        "Thao Nguyen Hotel"=>"BH",
+                                        "Tháp Ponagar"=>"BH",
+                                        "Thung Chim"=>"BH",
+                                        "Trung Tâm Bảo Tồn Rùa"=>"BH",
+                                        "Trung tâm cứu hộ linh trưởng"=>"BH",
+                                        "Vân Long"=>"BH",
+                                        "Văn Miếu - Quốc Tử Giám"=>"BH",
+                                        "Vịnh Lan Hạ"=>"BH",
+                                        "Vườn Bách Thảo"=>"BH",
+                                        "Vườn Quốc Gia Cát Bà"=>"BH",
+                                        "Xưởng Thêu XQ"=>"BH",
+                                        "Yen Nhi Hotel"=>"VAT",
+                                    ];
+                                    $vat = $vatCodes[$cpt['venue']['name']] ?? '';
+                                }
+
+                                if (strpos($name, 'Hướng dẫn MB') === 0) {
+                                    foreach ($nccTg as $ncc) {
+                                        if ($ncc['tour_id'] == $tour['id'] && $ncc['name'] == $name) {
+                                            $name = $ncc['ma_ncc'];
+                                            break;
+                                        }
+                                    }
+                                }
+
+                                $arr[] = $name; // Nha cung cap
+
+                                $cpt['xrate'] = $xrate[$cpt['unitc']] ?? 1;
+
+                                $arr[] = $cpt['dvtour_name']; // Noi dung dv
+                                $arr[] = $cpt['unitc']; // Loai tien
+                                $arr[] = $cpt['xrate']; // Ti gia
+                                $arr[] = ''; // Ma dv, kt
+                                $arr[] = $cpt['dvtour_name']; // Noi dung dv
+                                $arr[] = $cpt['unit']; // Don vi
+                                $arr[] = number_format($cpt['qty'], intval($cpt['qty']) == $cpt['qty'] ? 0 : 2); // So luong
+                                $arr[] = ($cpt['plusminus'] == 'minus' ? '-' : '').number_format($cpt['price'], intval($cpt['price']) == $cpt['price'] ? 0 : 2); // Don gia
+
+                                $cpt['total'] = $cpt['price'] * $cpt['qty'];
+                                $arr[] = ($cpt['plusminus'] == 'minus' ? '-' : '').number_format($cpt['total'], intval($cpt['total']) == $cpt['total'] ? 0 : 2); // Thanh NTE
+
+                                $cpt['totalVND'] = $cpt['total'] * $cpt['xrate'];
+                                $_tienhang = '';
+                                $_vat = '';
+                                if (isset($cpt['venue']['id']) && in_array($cpt['venue']['id'], $vatList)) {
+                                    $_tienhang = number_format($cpt['totalVND'] * 10 / 11, intval($cpt['totalVND']) == $cpt['totalVND'] ? 0 : 2);
+                                    $_vat = number_format($cpt['totalVND'] / 11, intval($cpt['totalVND']) == $cpt['totalVND'] ? 0 : 2);
+                                }
+
+                                $arr[] = $_tienhang; // TIEN HANG
+                                $arr[] = $_vat; // VAT
+                                $arr[] = ($cpt['plusminus'] == 'minus' ? '-' : '').number_format($cpt['totalVND'], intval($cpt['totalVND']) == $cpt['totalVND'] ? 0 : 2); // Thanh VND
+
+                                $arr[] = ''; // TK no, kt
+                                $arr[] = ''; // TK co, kt
+                                $arr[] = $tour['op_code']; // Code tour
+                                $arr[] = ''; // Khoan muc cp, kt
+
+                                $arr[] = $cpt['venue']['name']; // Ai tt
+                                $arr[] = $cpt['company']['name']; // Ai tt
+                                $arr[] = $cpt['oppr']; // Ai tt
+                                $arr[] = $cpt['payer']; // Ai tt
+                                $arr[] = $vat; // Ai tt
+                                if (substr($cpt['c3'], 0, 2) == 'on') {
+                                    $arr[] = 'TT'; // Ai tt
+                                }
+                                $spreadsheet->getActiveSheet()->fromArray($arr, null, 'A'.$row);
+                                $row ++;
+                            }
+                        }
+                    }
+                    // foreach ($theCases as $case) {
+                    //     $row_data = [];
+                    //     //set row data
+                    //     $rows_cols[] = $row_data;
+                    // }
+                    // $spreadsheet->getActiveSheet()->fromArray($rows_cols, null, 'A'.$k);
+                    // $k += count($rows_cols) + 1;
+                }
+            }
+
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header('Content-Disposition: attachment;filename='. rand(1, 100) . 'report.Xlsx');
+
+            sleep(6);
+            setcookie("downloadToken", $downloadToken, time() + 20);
+
+            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+            $writer->save('php://output');
+            exit;
+        }
+
         $countQuery = clone $query;
         $pagination = new Pagination([
             'totalCount' => $countQuery->count(),
@@ -1024,204 +1293,6 @@ class ToolController extends MyController
         $listItems = Yii::$app->db->createCommand($sql)->queryAll();
         foreach ($listItems as $item) {
             $list[$item['name']] = $item;
-        }
-
-$xrate['EUR'] = isset($_GET['eur']) && (int)$_GET['eur'] != 0 ? (int)$_GET['eur'] : 24500;
-$xrate['USD'] = isset($_GET['usd']) && (int)$_GET['usd'] != 0 ? (int)$_GET['usd'] : 22300;
-$xrate['LAK'] = isset($_GET['lak']) && (int)$_GET['lak'] != 0 ? (int)$_GET['lak'] : 2.75;
-$xrate['KHR'] = isset($_GET['khr']) && (int)$_GET['khr'] != 0 ? (int)$_GET['khr'] : 19.73;
-$xrate['VND'] = 1;
-
-        if (Yii::$app->request->get('output') == 'download') {
-            $filename = 'ketoan_xuat_cpt_'.$search.'_'.date('Ymd-His').'.csv';
-            header('Content-Type: text/csv');
-            header('Content-Disposition: attachment;filename='.$filename);
-
-            $out = fopen('php://output', 'w');
-            fwrite($out, chr(239) . chr(187) . chr(191)); // BOM
-
-            // $arr = ['ID', 'TOUR CODE', 'TOUR IN', 'TOUR OUT', 'NGAY DV', 'NOI DUNG DV', 'SL', 'DON VI', 'GIA', 'TIEN', 'THANH', 'TIEN', 'MA NHA CC', 'TKGN', 'MA PHI', 'VENUE', 'COMPANY', 'OPERATOR', 'PROVIDER', 'STATUS TT'];
-            $arr = ['TOUR IN', 'TOUR OUT', 'NGAY DV', 'ID', 'SO HOA DON', 'MA NHA CC', 'NOI DUNG DV', 'TIEN', 'TI GIA', 'MA DV', 'NOI DUNG DV', 'DON VI', 'SL', 'DON GIA', 'THANH NTE', 'THANH VND', 'TK NO', 'TK CO', 'CODE', 'KHOAN MUC CP', 'VENUE', 'COMPANY', 'OPERATOR', 'PAYER', 'VAT', 'STATUS TT'];
-            fputcsv($out, $arr);
-
-            foreach ($theTours as $tour) {
-                foreach ($theCptx as $cpt) {
-                    $arr = [];
-                    if ($tour['oid'] == $cpt['tour_id']) {
-                        $arr[] = $tour['day_from']; // Ngay khoi hanh
-                        $arr[] = date('Y-m-d', strtotime('+ '.($tour['day_count'] - 1).' days', strtotime($tour['day_from']))); // Ngay ket thuc
-                        $arr[] = $cpt['dvtour_day']; // Ngay dv
-                        $arr[] = $cpt['dvtour_id']; // Id
-                        $arr[] = ''; // So hoa don, kt
-
-                        // Ma NCC
-                        $text = ''; // NCC
-                        $name = ''; // Code
-                        $vat = ''; // VAT
-                        if (in_array($cpt['payer'], ['Amica Hà Nội', 'Amica Luang Prabang', 'BCEL Laos', 'Hướng dẫn Laos 1', 'Hướng dẫn Laos 2', 'Hướng dẫn Laos 3'])) {
-                            if ($cpt['venue']) {
-                                $text = $cpt['venue']['name'];
-                                foreach ($list as $listItem) {
-                                    if ($listItem['venue_id'] == $cpt['venue']['id']) {
-                                        $name = $listItem['code'];
-                                        $vat = $listItem['vat'];
-                                        break;
-                                    }
-                                }
-                            } elseif ($cpt['company']) {
-                                $text = $cpt['company']['name'];
-                            } else {
-                                $text = $cpt['oppr'];
-                            }
-                        } else {
-                            $text = $cpt['payer'];
-                        }
-
-                        if ($name == '') {
-                            if (isset($list[$text])) {
-                                $name = $list[$text]['code'];
-                                $name = mb_strtoupper($name);
-                            } else {
-                                $name = $text;
-                            }
-                        }
-
-                        // Mot so truong hop VAT cua venue khong co code vi do HDV thanh toan
-                        if ($vat == '' && $cpt['venue']) {
-$vatCodes = [
-    "Ba Bể"=>"BH",
-    "Bãi tắm titop"=>"BH",
-    "Bản Giốc"=>"BH",
-    "Bản Khuổi Khon"=>"BH",
-    "Bảo tàng Chàm"=>"BH",
-    "Bảo tàng Chứng tích chiến tranh"=>"BH",
-    "Bảo Tàng Dân Tộc Học"=>"BH",
-    "Bảo tàng Điện Biên Phủ"=>"BH",
-    "Bảo tàng Fito"=>"BH",
-    "Bảo Tàng Hồ Chí Minh"=>"BH",
-    "Bảo Tàng Mỹ Thuật Hà Nội"=>"BH",
-    "Bảo Tàng Phụ Nữ Việt Nam"=>"BH",
-    "Bảo Tàng Văn Hóa Các Dân Tộc Việt Nam"=>"BH",
-    "Bảo Tàng Yersin"=>"BH",
-    "Cát Cát"=>"BH",
-    "Chùa Bái Đính"=>"BH",
-    "Chùa Tây Phương"=>"BH",
-    "Chùa Thầy"=>"BH",
-    "Côn Sơn"=>"BH",
-    "Dinh Độc Lập"=>"BH",
-    "Dinh Thống Nhất"=>"BH",
-    "Dinh vua Mèo - Bắc Hà"=>"BH",
-    "Dinh vua mèo - Hà Giang"=>"BH",
-    "Đại Nội Huế"=>"BH",
-    "Đền Ngọc Sơn"=>"BH",
-    "Đền Quán Thánh"=>"BH",
-    "Đồi A1"=>"BH",
-    "Động Mê Cung"=>"BH",
-    "Động Ngườm Ngao"=>"BH",
-    "Động Thiên Cung"=>"BH",
-    "Ha Giang Resort (Truong Xuan Resort)"=>"VAT",
-    "Halong Palace"=>"VAT",
-    "Hầm Đờ Cát"=>"BH",
-    "Hầm Ông Giáp"=>"BH",
-    "Hang Đá (Sa Pa)"=>"BH",
-    "Hang Đầu Gỗ"=>"BH",
-    "Hang múa"=>"BH",
-    "Hang Sửng Sốt"=>"BH",
-    "Hang Tiên Ông"=>"BH",
-    "Hoa Binh Hotel 1 & 2"=>"VAT",
-    "Hoa Cuong Hotel - Mèo Vạc"=>"VAT",
-    "Hoa Lư (Đền Đinh + Lê)"=>"BH",
-    "Hoa Viet Hotel"=>"VAT",
-    "Hoang Ngoc Hotel"=>"VAT",
-    "Khu Di Tích Phủ Chủ tịch"=>"BH",
-    "La Pán Tẩn"=>"BH",
-    "Lăng Bác"=>"BH",
-    "Làng cổ Đường Lâm"=>"BH",
-    "Lăng Tự Đức"=>"BH",
-    "Lao Chải + Tả Van"=>"BH",
-    "Lucky Cafe 2 Restaurant"=>"VAT",
-    "Má Tra (Lào Cai)"=>"BH",
-    "Madam Yen Restaurant (Coyen Restaurant)"=>"VAT",
-    "Muong Thanh Lang Son Hotel"=>"VAT",
-    "Nghia Lo Hotel"=>"BH",
-    "Nhà Cổ Bình Thủy"=>"BH",
-    "Núi Hàm Rồng"=>"BH",
-    "Núi Sam"=>"BH",
-    "Phố cổ Hội An"=>"BH",
-    "Sín Chải"=>"BH",
-    "Soi Sim"=>"BH",
-    "Sủng Là - Hà Giang"=>"BH",
-    "Sunny Hotel Cao Bang"=>"VAT",
-    "Tả Phìn"=>"BH",
-    "Tam Cốc - Bích Động"=>"BH",
-    "Tam Thanh"=>"BH",
-    "Thác Bạc"=>"BH",
-    "Thăm quan Đảo Cát Bà"=>"BH",
-    "Thao Nguyen Hotel"=>"BH",
-    "Tháp Ponagar"=>"BH",
-    "Thung Chim"=>"BH",
-    "Trung Tâm Bảo Tồn Rùa"=>"BH",
-    "Trung tâm cứu hộ linh trưởng"=>"BH",
-    "Vân Long"=>"BH",
-    "Văn Miếu - Quốc Tử Giám"=>"BH",
-    "Vịnh Lan Hạ"=>"BH",
-    "Vườn Bách Thảo"=>"BH",
-    "Vườn Quốc Gia Cát Bà"=>"BH",
-    "Xưởng Thêu XQ"=>"BH",
-    "Yen Nhi Hotel"=>"VAT",
-];
-                            $vat = $vatCodes[$cpt['venue']['name']] ?? '';
-                        }
-
-                        if (strpos($name, 'Hướng dẫn MB') === 0) {
-                            foreach ($nccTg as $ncc) {
-                                if ($ncc['tour_id'] == $tour['id'] && $ncc['name'] == $name) {
-                                    $name = $ncc['ma_ncc'];
-                                    break;
-                                }
-                            }
-                        }
-
-                        $arr[] = $name; // Nha cung cap
-
-                        $cpt['xrate'] = $xrate[$cpt['unitc']] ?? 1;
-
-                        $arr[] = $cpt['dvtour_name']; // Noi dung dv
-                        $arr[] = $cpt['unitc']; // Loai tien
-                        $arr[] = $cpt['xrate']; // Ti gia
-                        $arr[] = ''; // Ma dv, kt
-                        $arr[] = $cpt['dvtour_name']; // Noi dung dv
-                        $arr[] = $cpt['unit']; // Don vi
-                        $arr[] = number_format($cpt['qty'], intval($cpt['qty']) == $cpt['qty'] ? 0 : 2); // So luong
-                        $arr[] = ($cpt['plusminus'] == 'minus' ? '-' : '').number_format($cpt['price'], intval($cpt['price']) == $cpt['price'] ? 0 : 2); // Don gia
-
-                        $cpt['total'] = $cpt['price'] * $cpt['qty'];
-                        $arr[] = ($cpt['plusminus'] == 'minus' ? '-' : '').number_format($cpt['total'], intval($cpt['total']) == $cpt['total'] ? 0 : 2); // Thanh NTE
-
-                        $cpt['totalVND'] = $cpt['total'] * $cpt['xrate'];
-                        $arr[] = ($cpt['plusminus'] == 'minus' ? '-' : '').number_format($cpt['totalVND'], intval($cpt['totalVND']) == $cpt['totalVND'] ? 0 : 2); // Thanh VND
-
-                        $arr[] = ''; // TK no, kt
-                        $arr[] = ''; // TK co, kt
-                        $arr[] = $tour['op_code']; // Code tour
-                        $arr[] = ''; // Khoan muc cp, kt
-
-                        $arr[] = $cpt['venue']['name']; // Ai tt
-                        $arr[] = $cpt['company']['name']; // Ai tt
-                        $arr[] = $cpt['oppr']; // Ai tt
-                        $arr[] = $cpt['payer']; // Ai tt
-                        $arr[] = $vat; // Ai tt
-                        if (substr($cpt['c3'], 0, 2) == 'on') {
-                            $arr[] = 'TT'; // Ai tt
-                        }
-
-                        fputcsv($out, $arr);
-                    }
-                }
-            }
-
-            fclose($out);
-            exit;
         }
 
         return $this->render('tools_ketoan-xuat-cpt', [

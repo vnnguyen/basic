@@ -1,7 +1,7 @@
-<?
+<?php
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
-Yii::$app->params['body_class'] = 'sidebar-xs';
+
 Yii::$app->params['page_icon'] = 'car';
 
 if ($month == 'next30days') {
@@ -20,7 +20,7 @@ if ($orderby == 'startdate') {
     $selectText = 'Tour được mở ';
 }
 
-Yii::$app->params['page_title'] = $selectText.$monthText.' ('.number_format(count($theTours)).' tour)';
+Yii::$app->params['page_title'] = $selectText.$monthText;
 Yii::$app->params['page_breadcrumbs'] = [
     ['B2B', 'b2b'],
     ['Tours', 'b2b/tours'],
@@ -50,6 +50,14 @@ $gotoList = [
     'cn'=>'China',
     'id'=>'Indonesia',
     'my'=>'Malaysia',
+    'my'=>'Philippines',
+    '2x'=>'Any 2 countries',
+];
+
+$type = Yii::$app->request->get('type');
+$typeList = [
+    's'=>'Series tours',
+    'n'=>'Non-series tours',
 ];
 
 ?>
@@ -61,52 +69,86 @@ $gotoList = [
 .text-only {display:none;}
 </style>
 <div class="col-md-12">
-    <div class="panel panel-default">
-        <div class="panel-body">
-            <form class="form-inline">
-                <?= Html::dropdownList('orderby', $orderby, ['startdate'=>'Start in', 'enddate'=>'End in', 'created'=>'Created in'], ['class'=>'form-control']) ?>
-                <?= Html::dropdownList('month', $month, $newMonthList, ['class'=>'form-control']) ?>
-                <?= Html::dropdownList('status', $status, $statusList, ['class'=>'form-control', 'prompt'=>'Status']) ?>
-                <?= Html::dropdownList('goto', $goto, $gotoList, ['class'=>'form-control', 'prompt'=>'Countries']) ?>
-                <?= Html::dropdownList('seller', $seller, $sellerList, ['class'=>'form-control', 'prompt'=>'Sellers']) ?>
-                <?= Html::dropdownList('operator', $operator, ArrayHelper::map($operatorList, 'id', 'name'), ['class'=>'form-control', 'prompt'=>'Operators']) ?>
-                <?= Html::dropdownList('cservice', $cservice, ArrayHelper::map($cserviceList, 'id', 'name'), ['class'=>'form-control', 'prompt'=>'Customer care']) ?>
-                <?= Html::textInput('name', $name, ['class'=>'form-control', 'placeholder'=>'Search in name']) ?>
-                <?= Html::textInput('dayname', $dayname, ['class'=>'form-control', 'placeholder'=>'Search in days']) ?>
-                <?= Html::dropdownList('view', $view, [''=>'Hide ratings', 'pts'=>'View ratings'], ['class'=>'form-control']) ?>
-                <?= Html::submitButton(Yii::t('app', 'Go'), ['class'=>'btn btn-primary']) ?>
-                <?= Html::a(Yii::t('app', 'Reset'), '/b2b/tours') ?>
-                |
-                <?= Html::a(Yii::t('app', 'Text only'), '#', ['class'=>'trigger-text-only']) ?>
-            </form>
-        </div>
-    <div class="table-responsive">
-        <table id="tourlist" class="table table-narrow table-striped">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Vào</th>
-                    <th>Ra</th>
-                    <th style="min-width:280px">Code - Tên tour - <!--a class="fw-n" href="#" onclick="$('tr.paxLine').toggleClass('hide'); return false;">Ẩn / hiện danh sách khách</a--></th>
-                    <th class="text-center">P</th>
-                    <th class="text-center">D</th>
-                    <th>To</th>
-                    <th>Bán hàng</th>
-                    <th>Điều hành</th>
-                    <th>QHKH</th>
-                    <th>Guide</th>
-                    <th>Lái xe</th>
-                </tr>
-            </thead>
-            <tbody>
-<?
+    <form class="form-inline mb-2">
+        <?= Html::dropdownList('orderby', $orderby, ['startdate'=>'Start in', 'enddate'=>'End in', 'created'=>'Created in'], ['class'=>'form-control']) ?>
+        <?= Html::dropdownList('month', $month, $newMonthList, ['class'=>'form-control']) ?>
+        <?= Html::dropdownList('type', $type, $typeList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Tour type')]) ?>
+        <?= Html::dropdownList('status', $status, $statusList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Status')]) ?>
+        <?= Html::dropdownList('client', $client, ArrayHelper::map($clientList, 'id', 'name'), ['class'=>'form-control select2', 'prompt'=>Yii::t('x', 'Client')]) ?>
+        <?= Html::dropdownList('goto', $goto, $gotoList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Visiting')]) ?>
+        <?= Html::dropdownList('seller', $seller, $sellerList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Seller')]) ?>
+        <?= Html::dropdownList('operator', $operator, ArrayHelper::map($operatorList, 'id', 'name'), ['class'=>'form-control', 'prompt'=>'Operators']) ?>
+        <?= Html::dropdownList('cservice', $cservice, ArrayHelper::map($cserviceList, 'id', 'name'), ['class'=>'form-control', 'prompt'=>'Customer care']) ?>
+        <?= Html::textInput('name', $name, ['class'=>'form-control', 'placeholder'=>'Search in name']) ?>
+        <?= Html::textInput('dayname', $dayname, ['class'=>'form-control', 'placeholder'=>'Search in days']) ?>
+        <?= Html::dropdownList('view', $view, [''=>'Hide ratings', 'pts'=>'View ratings'], ['class'=>'form-control']) ?>
+        <?= Html::submitButton(Yii::t('x', 'Go'), ['class'=>'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('x', 'Reset'), '?') ?>
+        |
+        <?= Html::a(Yii::t('x', 'Text only'), '#', ['class'=>'trigger-text-only']) ?>
+    </form>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table id="tourlist" class="table table-narrow table-striped">
+                <thead>
+                    <tr>
+                        <th class="text-center">#</th>
+                        <th class="text-center">In</th>
+                        <th class="text-center">Out</th>
+                        <th style="min-width:280px">Code & Name of tour</th>
+                        <th class="text-center">Pax</th>
+                        <th class="text-center">Days</th>
+                        <th>To</th>
+                        <th>Seller</th>
+                        <th>Operation</th>
+                        <th>CR</th>
+                        <th>Guides</th>
+                        <th>Drivers</th>
+                    </tr>
+                </thead>
+                <tbody>
+<?php
 $dayIn = '';
 $cnt = 0;
 
 foreach ($theTours as $tour) {
+    $seriesOK = true;
+    if ($type != '') {
+        $seriesOK = false;
+        foreach ($tour['bookings'] as $booking) {
+            if ($booking['case']['stype'] == 'b2b-series') {
+                if ($type == 's') {
+                    $seriesOK = true;
+                    break;
+                }
+            } else {
+                if ($type == 'n') {
+                    $seriesOK = true;
+                    break;
+                }
+            }
+        }
+    }
+
     $gotoOK = true;
-    if (array_key_exists($goto, $gotoList) && strpos($tour['tourStats']['countries'], $goto) === false) {
+    if ($goto == '2x' && strlen($tour['tourStats']['countries']) != 5) {
         $gotoOK = false;
+    }
+    if ($goto != '2x' && array_key_exists($goto, $gotoList) && strpos($tour['tourStats']['countries'], $goto) === false) {
+        $gotoOK = false;
+    }
+
+    $clientOK = true;
+    if ((int)$client != 0) {
+        foreach ($tour['bookings'] as $booking) {
+            if ($booking['case']['company_id'] == (int)$client) {
+                // Chi can co 1 client OK la duoc (truong hop nhieu HSBH)
+                break;
+            } else {
+                $clientOK = false;
+            }
+        }
     }
 
     $sellerOK = true;
@@ -157,7 +199,7 @@ foreach ($theTours as $tour) {
         $ownerOK = false;
     }
 
-    if ($gotoOK &&  $sellerOK && $operatorOK && $cserviceOK && $dayOK && $fgOK && $statusOK && $ownerOK) {
+    if ($seriesOK && $gotoOK && $clientOK && $sellerOK && $operatorOK && $cserviceOK && $dayOK && $fgOK && $statusOK && $ownerOK) {
 ?>
                 <tr class="tour-list-item
                     <? foreach ($tour['bookings'] as $booking) echo 'role-se-',$booking['created_by']; ?>
@@ -195,15 +237,25 @@ if ($orderby == 'enddate' && $month == date('Y-m')) {
                         <?= $tour['offer_type'] == 'combined2016' ? '<span class="text-uppercase text-light" style="background-color:#cff; color:#148040; padding:0 3px" title="Combined">C</span> ' : ''?>
                         <?= $tour['tour']['status'] == 'deleted' ? '<strong style="color:#c00;">(CXL)</strong> ' : ''?>
                         <?= Html::a($tour['tour']['code'].' - '.$tour['tour']['name'], '@web/tours/r/'.$tour['tour']['id']) ?>
-                        <?
-                        $returning = false;
-                        foreach ($tour['pax'] as $pax) {
-                            if ($pax['is_repeating'] == 'yes') {
-                                $returning = true;
-                                echo '<i title="Returning customer" class="fa fa-refresh text-info"></i>';
+                        <?php if ($tour['op_finish'] == 'prebooked') { ?><span class="small text-warning alpha-orange">[PRE-BOOKED]</span><?php } ?>
+                        <?php
+                        $isSeriesTour = false;
+                        foreach ($tour['bookings'] as $booking) {
+                            if ($booking['case']['stype'] == 'b2b-series') {
+                                $isSeriesTour = true;
+                        ?><span class="text-pink">(SERIES)</span><?
                                 break;
                             }
                         }
+
+                        $returning = false;
+                        // foreach ($tour['pax'] as $pax) {
+                        //     if ($pax['is_repeating'] == 'yes') {
+                        //         $returning = true;
+                        //         echo '<i title="Returning customer" class="fa fa-refresh text-info"></i>';
+                        //         break;
+                        //     }
+                        // }
                         ?>
                     </td>
                     <td class="text-nowrap text-center">
@@ -369,7 +421,9 @@ if ($orderby == 'enddate' && $month == date('Y-m')) {
     </div>
 </div>
 
-<?
+<?php
+
+Yii::$app->params['page_small_title'] = '('.$cnt.' tours)';
 
 $js = <<<'TXT'
 $('img.role-cr').on('click', function(){

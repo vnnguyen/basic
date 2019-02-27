@@ -63,10 +63,126 @@ use app\jobqueues\SendNotif;
 use app\models\MyMailQueueModel;
 
 use app\components\MyMailHandler;
+use \Mpdf\Mpdf as mPDF;
 
 
 class DemoController extends MyController
 {
+    /*
+    EXPORT WITH MPDF
+    */
+    public function actionExportPdf($case_id = 0)
+    {
+        $theCase = Kase::find()
+            ->where(['id' => $case_id])
+            ->with([
+                'cperson',
+                'cperson.metas'
+            ])
+            ->asArray()
+            ->one();
+            // var_dump($theCase['cperson']);die;
+        $mpdf=new mPDF([
+            'margin_left' => 0,
+            'margin_right' => 0,
+            'margin_top' => 40,
+            'margin_bottom' => 60,
+        ]);
+        $html = $this->renderPartial('tours_in-contact_pdf',['theCase'=>$theCase]);
+
+        $htmlHeader ='<img style="margin-top: -30px; opacity: 0.4;" src="'.Yii::getAlias('@webroot').'/img/pdf/header.jpg" />';
+        $htmlFooter = '<div class="text-right" style="position: absolute; left:0; bottom: 0;">
+            <img style="opacity: 0.4;" src="'.Yii::getAlias('@webroot').'/img/pdf/footer.jpg" />
+            </div>
+            <div class="text-right" style="position: absolute; right: 30; bottom: 60px;">page | {PAGENO}</div>';
+        $mpdf->SetHTMLHeader($htmlHeader);
+        $mpdf->SetHTMLFooter($htmlFooter);
+        $mpdf->SetDisplayMode('fullpage');
+        $mpdf->WriteHTML($html);
+        $mpdf->Output();
+        exit;
+    }
+    public function actionConvert_to_new2()
+    {
+        $sql = 'SELECT * FROM `at_tours` t INNER JOIN at_ct ct ON t.ct_id = ct.id';
+        $datas = Yii::$app->db->createCommand($sql)->queryAll();
+        $resutls = [];
+        foreach ($datas as $tour) {
+            if ($tour['tour_regions'] == '') {
+                $resutls['empty'][$tour['id']] = $tour['tour_regions'];
+                continue;
+            }
+            $arr_days = [];
+            if($tour['day_count'] >= 1){
+                $start_dt = date('Y/m/d', strtotime($tour['day_from']));
+
+                for($i = 0; $i < $tour['day_count']; $i++) {
+                    $arr_days[$i + 1] = date('j/n/Y', strtotime($start_dt . '+ '. $i . ' days'));
+                }
+                $tour['tour_regions'] = str_replace(',', '|', $tour['tour_regions']);
+                $ar_t_regions = explode('|', $tour['tour_regions']);
+                $result = [];
+                foreach ($ar_t_regions as $region) {
+                    if (trim($region) == '') continue;
+                    $arr_g = explode(':', trim($region));
+                    $result1 = [];
+                    foreach (explode('-', $arr_g[0]) as $k => $v) {
+                        if (count($arr_days) < $v) {
+                            $v = count($arr_days);
+                        }
+                        if (! isset($arr_days[$v])) {
+                            // var_dump($tour);die;
+                            $results['err'][$tour['id']] = $tour['tour_regions'];
+                            break 3;
+                            // var_dump($tour);die;
+                        }
+                        $result1[] = $arr_days[$v];
+                    }
+                    if (count($result1) == 1) {
+                        $date = $result1[0];
+                    } else {
+                        $ar1 = explode('/', $result1[0]);
+                        $ar2 = explode('/', $result1[1]);
+
+                        $date = $ar1[0];
+                        if($ar1[2] == $ar2[2]) {
+                            if ($ar1[1] == $ar2[1]) {
+                                $date .= '-'. $ar2[0] . '/' . $ar2[1] . '/' . $ar2[2];
+                            } else {
+                                $date .= '/' . $ar1[1] . '-'. $ar2[0] . '/' . $ar2[1] . '/' . $ar2[2];
+                            }
+                        } else {
+                            $date .= '/' . $ar1[1] . '/' . $ar1[2] . '-'. $ar2[0] . '/' . $ar2[1] . '/' . $ar2[2];
+                        }
+                    }
+                    $zone = $date;
+                    if (isset($arr_g[1])) {
+                        $date = $date . ':' . trim($arr_g[1]);
+                    }
+                    $result[] = $date;
+                }
+
+                $results['items'][$tour['id']] = implode('|', $result);
+
+
+            } else {
+                var_dump($tour);
+                var_dump($tour['day_count']);die;
+            }
+        }
+        foreach ($results as $items) {
+            foreach ($items as $tour_id => $item) {
+                Yii::$app->db->createCommand()
+                ->insert('at_tour_region', [
+                    'tour_id'=>$tour_id,
+                    'tour_regions'=>$item
+                ])
+            ->execute();
+            }
+        }
+        die('xong');
+    }
+
     public function actionConvert_to_new1()
     {
         $sql = 'SELECT *
@@ -376,6 +492,21 @@ class DemoController extends MyController
     export functions
      */
     //SELECT `id`, `name`, `stype`, `about`, `search`, `destination_id`, `info` FROM `venues`
+    public function actionExport_jd4()
+    {
+        /*
+        SELECT * FROM at_cases k INNER JOIN at_case_stats ks ON k.id = ks.case_id
+        WHERE YEAR(k.created_at) = 2018 AND ks.prospect = 4 AND k.is_b2b = "no"
+         */
+
+        $datas = Kase::find()
+            ->innerJoinWith('stats')
+            ->where(['is_b2b'=>'no', 'YEAR(at_cases.created_at)' => 2018, 'at_case_stats.prospect' => 4])
+            ->asArray()->all();
+        ;
+        var_dump($datas);die;
+
+    }
     public function actionExport_jd3()
     {
         $theVenues = Venue::find()
@@ -711,13 +842,14 @@ class DemoController extends MyController
     {
         $cases = Kase::find()
                 ->innerJoinWith('stats')
-                ->joinWith('cperson')
+                ->joinWith('contact')
                 ->with(
                     'bookings',
                     'bookings.product',
                     'contact.metas'
-                )
-                ->where('at_cases.deal_status = "won" AND YEAR(at_cases.created_at) = 2018 AND MONTH(at_cases.created_at) IN (10, 11, 12) AND is_b2b = "no"')
+                )//at_cases.deal_status = "won" AND
+                ->where('at_cases.created_at >= "2018-12-01  00:00:00" AND at_cases.created_at<="2019-01-16 23:59:59"')
+                ->orderBy('at_cases.created_at DESC')
                 ->asArray()->all()
                 ;
         // var_dump($cases);die;
@@ -805,62 +937,81 @@ class DemoController extends MyController
     public function actionExport_jd()
     {
         //Ngày gửi form / Tên khách / Email khách / Câu trả lời về số tiền (để trống nếu k điền) / Trạng thái bán tour (case=WON)
-        $sql = 'SELECT *
+        $sql = 'SELECT at_inquiries.id,at_inquiries.created_at, data2, at_cases.deal_status
                 FROM at_inquiries INNER JOIN at_cases ON at_inquiries.case_id = at_cases.id
-                WHERE data != ""';// AND (form_name LIKE "%devis%" OR form_name LIKE "%booking%")
+                WHERE YEAR(at_inquiries.created_at) = 2018 AND form_name LIKE "%Form-devis%" AND data2 != ""
+                ORDER BY at_inquiries.id DESC';// AND (form_name LIKE "%devis%" OR form_name LIKE "%booking%")
         $datas = Yii::$app->db->createCommand($sql)->queryAll();
-
-        $results = [];
-        $results['cnt'] = 0;
-        $results['c_success'] = 0;
-        $results['forms'] = [];
-        foreach ($datas as $form) {
-            if (strpos($form['data'], '"budget"') === false) continue;
-            $results['forms'][] = $form;
-            if ($form['deal_status'] == "won") $results['c_success'] ++;
+        if (!$datas) {
+            die("datas is empty");
         }
+        $results = [];
+        $result = [];
+        $form_fields = [];
+        $form = [];
+        foreach ($datas as $k_form => $form) {
+            $ok = '';
+            $fields = [];
+            $parts = explode(' }}', $form['data2']);
 
-        $spreadsheet = new Spreadsheet();
-        $spreadsheet->getActiveSheet()
-                    ->setCellValue('A1', 'Date send')
-                    ->setCellValue('B1', 'Name')
-                    ->setCellValue('C1', 'Email')
-                    ->setCellValue('D1', 'Budget')
-                    ->setCellValue('E1', 'Case');
-        $k = 2;
-        foreach ($results['forms'] as $form) {
-            $arr_infos = explode('}}', $form['data2']);
-            $budget = '';
-            foreach ($arr_infos as $field) {
-                if(strpos($field, 'Budget par personne') !== false) {
-                    $ar = explode(':', $field);
-                    if(count($ar) != 3) {
-                        unset($ar[0]);
-                        unset($ar[1]);
-                        $budget = implode(':', $ar);
-                    } else
-                        $budget = trim($ar[2]);
+            foreach ($parts as $k => $part) {
+                $qa = explode('{{ ', $part);
+                if (isset($qa[1])) {
+                    $a = explode(' : ', $qa[1]);
+                    if (isset($a[1])&& $k_form == 0) {
+                        if (!in_array($qa[0], $form_fields) && trim($qa[0]) != '' && trim($qa[0]) != ',') {
+                            $form_fields[] = trim($qa[0]);
+                        }
+                    }
+                    else {
+                        $ok .= $part.' }}';
+                    }
+                } else {
+                    $ok .= $part;
                 }
             }
-            $spreadsheet->getActiveSheet()
-                        ->setCellValue('A'.$k, $form['created_at'])
-                        ->setCellValue('B'.$k, $form['name'])
-                        ->setCellValue('C'.$k, $form['email'])
-                        ->setCellValue('D'.$k, $budget)
-                        ->setCellValue('E'.$k, $form['deal_status']);
-            $k++;
+            $arr_d = [
+                'id' => $form['id'],
+                'created_at' => date('Y-m', strtotime($form['created_at'])),
+                'deal_status' => $form['deal_status']
+            ];
+            $result[$form['id']] = $arr_d;
         }
-        $spreadsheet->getActiveSheet()
-                        ->setCellValue('E'.$k, $results['c_success']);
-        $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getFont()->setBold(true);
+        foreach ($result as $k => $item) {
+            foreach ($form_fields as $field) {
+                $result[$k][$field] = '';
+            }
+        }
+        foreach ($datas as $k_form => $form) {
+            $parts = explode(' }}', $form['data2']);
+
+            foreach ($parts as $k => $part) {
+                $qa = explode('{{ ', $part);
+                if (isset($qa[1])) {
+                    $a = explode(' : ', $qa[1]);
+                    if (isset($a[1]) && isset($result[$form['id']][trim($qa[0])])) {
+                        $result[$form['id']][trim($qa[0])] = $a[1];
+                    }
+                }
+            }
+        }
+
+        // var_dump($result);
+
+        // $spreadsheet->getActiveSheet()
+        //                 ->setCellValue('E'.$k, $results['c_success']);
+        // $spreadsheet->getActiveSheet()->getStyle('A1:P1')->getFont()->setBold(true);
 
 
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename='.'report.Xlsx');
+        // header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        // header('Content-Disposition: attachment;filename='.'report.Xlsx');
 
-        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
-        $writer->save('php://output');
-        die('ok');
+        // $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        // $writer->save('php://output');
+        // die('ok');
+        return $this->render('export_jd',[
+            'result' => $result
+        ]);
     }
     /*
     end export functions
@@ -1169,12 +1320,14 @@ class DemoController extends MyController
 
         // $model = new CpTour();
         // return $this->render('cptour', []);
-        // return $this->render('demo_search');
-        return $this->render('demo_search_flexbox', [
+        return $this->render('demo_search', [
             'theTour'=> $theTour,
-            'cpts' => $cpts->all(),
-            'model' => $model,
         ]);
+        // return $this->render('demo_search_flexbox', [
+        //     'theTour'=> $theTour,
+        //     'cpts' => $cpts->all(),
+        //     'model' => $model,
+        // ]);
     }
     public function actionSearch($id = 0)
     {
@@ -1473,9 +1626,140 @@ class DemoController extends MyController
     }
 
 
+
     //fb qhkh
     public function actionFb_qhkh(){
         return $this->renderPartial('fb_qhkh', []);
+    }
+
+    public function actionQhkh_task($year = '')
+    {
+        if ($year == '') {
+            $year = date('Y');
+        }
+        $sql_tours = 'SELECT id FROM at_ct
+        WHERE op_status = "op" AND op_finish != "canceled" AND owner = "at" AND YEAR(day_from) =:year';
+        $tours = Yii::$app->db->createCommand($sql_tours, [':year' => $year])->queryAll();
+
+        $results = [];
+        for($m = 1; $m <= 12; $m ++) {
+            $results[$m]['hn'] = [];
+            $results[$m]['sg'] = [];
+            $results[$m]['lu'] = [];
+            $results[$m]['conf'] = [];
+        }
+        /*
+        SELECT * FROM at_tasks
+        WHERE YEAR(due_dt) = 2018
+           AND (description LIKE "AC%" OR description LIKE "AC SG%" OR description LIKE "AC@vpsg%")
+         */
+        $sql = 'SELECT * FROM at_tasks
+        WHERE YEAR(due_dt) =:year
+           AND (description LIKE "AC%" OR description LIKE "AC SG%" OR description LIKE "AC%@%")';
+        $datas = Yii::$app->db->createCommand($sql, [':year' => $year])->queryAll();
+        if (!$datas) {
+            die($year);
+        }
+        // var_dump($datas);die;
+
+        foreach ($datas as $task) {
+            // var_dump(substr($task['description'], 0, 5));die;
+            $m = intval(date('m', strtotime($task['due_dt'])));
+            if (strpos($task['description'], 'conf') !== false){
+                $results[$m]['conf'][] = $task['id'];
+            }
+            if (substr($task['description'], 0, 5) == 'AC LP' || strpos($task['description'], 'AC LP') !== false) {
+                $results[$m]['lu'][] = $task['id'];
+            } else if (substr($task['description'], 0, 5) == 'AC SG' || strpos($task['description'], 'AC SG') !== false || strpos($task['description'], 'AC SaiGon') !== false || strpos($task['description'], 'VP.SGN') !== false || strpos($task['description'], 'AC Sgon') !== false)
+            {
+                $results[$m]['sg'][] = $task['id'];
+            } else if (substr($task['description'], 0, 5) == 'AC HN' || strpos($task['description'], 'AC HN') !== false || substr($task['description'], 0, 3) == 'AC ' || trim(substr($task['description'], 0, 3)) == 'AC')
+            {
+                $results[$m]['hn'][] = $task;
+            }
+        }
+        // var_dump($results[12]['hn']);die;
+        $result_tours = [];
+        for($m = 1; $m <= 12; $m ++) {
+            $result_tours[$year][$m] = [];
+            $result_tours[$year][$m] = [];
+            $result_tours[$year][$m] = [];
+            $result_tours[$year][$m] = [];
+
+            $result_tours[$year - 1][$m] = [];
+            $result_tours[$year - 1][$m] = [];
+            $result_tours[$year - 1][$m] = [];
+            $result_tours[$year - 1][$m] = [];
+        }
+
+        $sql_year = 'SELECT * FROM at_ct t INNER JOIN incidents i ON t.id = i.tour_id
+        WHERE YEAR(day_from) =:year';
+        $tours_year = Yii::$app->db->createCommand($sql_year, [':year' => $year])->queryAll();
+        foreach ($tours_year as $tour) {
+            $m = intval(date('m', strtotime($tour['day_from'])));
+            $result_tours[$year][$m][] = $tour['id'];
+            $result_tours[$tour['stype']][] = $tour['id'];
+        }
+        $sql_year_prev = 'SELECT * FROM at_ct t INNER JOIN incidents i ON t.id = i.tour_id
+        WHERE YEAR(day_from) =:year';
+        $tours_year_prev = Yii::$app->db->createCommand($sql_year_prev, [':year' => $year - 1])->queryAll();
+
+        foreach ($tours_year_prev as $tour) {
+            $m = intval(date('m', strtotime($tour['day_from'])));
+            $result_tours[$year-1][$m][] = $tour['id'];
+        }
+
+        $sql_complaint = 'SELECT count(t.id) cnt FROM at_ct t INNER JOIN complaints i ON t.id = i.tour_id
+        WHERE YEAR(day_from) = 2018';
+        $tours_complaint = Yii::$app->db->createCommand($sql_complaint, [':year' => $year])->queryAll();
+        /*
+        SELECT say, stype, count(fb.id) as cnt FROM `at_tour_feedbacks` fb INNER JOIN at_ct t ON fb.tour_id = t.id
+        WHERE YEAR(t.day_from) = 2018
+        group by  stype, say
+         */
+
+        $result_tours_fb = [];
+        $sql_fb = 'SELECT say, stype, count(fb.id) as cnt FROM `at_tour_feedbacks` fb INNER JOIN at_ct t ON fb.tour_id = t.id
+        WHERE YEAR(t.day_from) =:year
+        GROUP BY  stype, say';
+        $tours_fb = Yii::$app->db->createCommand($sql_fb, [':year' => $year])->queryAll();
+        foreach ($tours_fb as $fb) {
+            $result_tours_fb[$fb['stype']][$fb['say']] = $fb['cnt'];
+        }
+        // SELECT tour_id, svc_success FROM services_plus sv INNER JOIN at_ct t ON sv.tour_id = t.id WHERE YEAR(day_from) = 2018
+        $result_tours_sv_plus['tours'] = count($tours);
+        $result_tours_sv_plus['services'] = [];
+        $result_tours_sv_plus['yes'] = [];
+        $sql_sv_plus = 'SELECT * FROM  services_plus sv INNER JOIN at_ct t ON sv.tour_id = t.id WHERE YEAR(day_from) =:year';
+        $tours_sv_plus = Yii::$app->db->createCommand($sql_sv_plus, [':year' => $year])->queryAll();
+        // var_dump($tours_sv_plus);die;
+        foreach ($tours_sv_plus as $sv_plus) {
+            $m = intval(date('m', strtotime($sv_plus['day_from'])));
+            $result_tours_sv_plus['services'][] = $sv_plus['svc_success'];
+            if($sv_plus['svc_success'] == 'yes') {
+                $result_tours_sv_plus['yes'][] = $sv_plus['svc_success'];
+            }
+        }
+        // var_dump($result_tours_sv_plus['services'][12]);
+        // var_dump($result_tours_sv_plus['yes'][12]);die;
+        $result_tours_point = [];
+        $sql_point = 'SELECT COUNT(tour_id) as cnt, qhkh_diem FROM `at_tour_stats` WHERE qhkh_diem != "" AND YEAR(start_date) =:year GROUP BY qhkh_diem';
+        $tours_point = Yii::$app->db->createCommand($sql_point, [':year' => $year])->queryAll();
+
+        foreach ($tours_point as $stats) {
+            $result_tours_point[$stats['qhkh_diem']] = $stats['cnt'];
+        }
+
+        return $this->render('qhkh_ac', [
+            'year' => $year,
+            'results' => $results,
+            'result_tours' => $result_tours,
+            'tour_complaint' => $tours_complaint[0]['cnt'],
+            'result_tours_fb' => $result_tours_fb,
+            'result_tours_sv_plus' => $result_tours_sv_plus,
+            'result_tours_point' => $result_tours_point
+        ]);
+
     }
 
     //List Reports of Sell
@@ -2962,7 +3246,7 @@ class DemoController extends MyController
 
 		// export to excel
 
-		$objPHPExcel = new PHPExcel();
+		$objPHPExcel = new Spreadsheet();
 		$objPHPExcel->getActiveSheet()->mergeCells('A1:A2');
 		$objPHPExcel->getActiveSheet()->mergeCells('B1:B2');
 
@@ -3009,21 +3293,17 @@ class DemoController extends MyController
 			                ->setCellValue('I'.$k, isset($d_kx['ref'][2018])? $d_kx['ref'][2018]: 0)
 			                ->setCellValue('J'.$k, isset($d_kx['old'][2016])? $d_kx['old'][2016]: 0)
 			                ->setCellValue('K'.$k, isset($d_kx['old'][2017])? $d_kx['old'][2017]: 0);
-
-
-				$objPHPExcel->getActiveSheet()->getStyle('A'.$k.':K'.$k)->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-				$objPHPExcel->getActiveSheet()->getStyle('A'.$k.':K'.$k)->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 				$k++;
 				$ki ++;
 			}
 		}
 		// $objPHPExcel->getActiveSheet()->getColumnDimension('B')->setWidth(100);
-		$objPHPExcel->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setHorizontal(PHPExcel_Style_Alignment::HORIZONTAL_CENTER);
-		$objPHPExcel->getActiveSheet()->getStyle('A1:K1')->getAlignment()->setVertical(PHPExcel_Style_Alignment::VERTICAL_CENTER);
 		$objPHPExcel->getActiveSheet()->setTitle('Report');
-		$objPHPExcel->setActiveSheetIndex(0);
-		$objWriter = PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel2007');
-		$objWriter->save('MyExcel.xlsx');
+		// header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  //       header('Content-Disposition: attachment;filename='. rand(1, 100) . 'report.Xlsx');
+
+  //       $writer = IOFactory::createWriter($objPHPExcel, 'Xlsx');
+  //       $writer->save('php://output');
 		// end export
 
 

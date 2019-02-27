@@ -3,8 +3,8 @@ use yii\helpers\Html;
 use yii\helpers\Markdown;
 use yii\helpers\FileHelper;
 
-Yii::$app->params['body_class'] = 'bg-white sidebar-xs';
-Yii::$app->params['page_layout'] = '-t';
+Yii::$app->params['body_class'] = 'bg-white';
+Yii::$app->params['page_layout'] = '.s';
 Yii::$app->params['page_title'] = $theVenue['name'];
 
 // Stats
@@ -28,7 +28,7 @@ $stars = '';
 $starNum = '';
 if ($theVenue['stype'] == 'hotel') {
     for ($i = 2; $i <= 5; $i ++) {
-        if (strpos($theVenue['search'], $i.'s') !== false) {
+        if (strpos($theVenue['new_tags'], 's_'.$i.'s') !== false) {
             $stars = ' '.str_repeat('<i class="fa fa-star text-orange-300"></i>', $i);
             $starNum = $i;
         }
@@ -41,6 +41,9 @@ if ($theVenue['stype'] == 'hotel') {
 include('_venue_inc.php');
 
 Yii::$app->params['page_small_title'] .= $theVenue['destination']['name_en'];
+if ($theVenue['stype'] == 'home' && strpos($theVenue['new_tags'], 'c_amica') !== false) {
+    Yii::$app->params['page_small_title'] .= ' - <em>invested by Amica</em>';
+}
 // Price dates
 $fromDTArray = [];
 foreach ($theVenue['dvo'] as $dvo) {
@@ -163,56 +166,43 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/moment-range/2.2.0
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/vis/4.16.1/vis.css', ['depends'=>'yii\web\JqueryAsset']);
 
+$this->beginBlock('page_tabs'); ?>
+<ul class="nav nav-tabs nav-tabs-bottom mb-0 px-3">
+    <li class="nav-item"><a class="nav-link active" href="#t-overview" data-toggle="tab"><?= Yii::t('x', 'Overview') ?></a></li>
+    <li class="nav-item"><a class="nav-link" href="#t-prices" data-toggle="tab"><?= Yii::t('x', 'Price') ?></a></li>
+    <li class="nav-item"><a class="nav-link" href="#t-discussion" data-toggle="tab"><?= Yii::t('x', 'Discussion') ?></a></li>
+    <?php if ($theVenue['stype'] != 'hotel' && (!empty($theVenue['dvo']) || !empty($theVenue['info_pricing']))) { ?>
+    <li class="nav-item"><a class="nav-link" href="#t-oldprices" data-toggle="tab"><?= Yii::t('x', 'Old price') ?></a></li>
+    <?php } ?>
+    <li class="nav-item"><a class="nav-link" href="/tools/tour-ks?ks=<?= $theVenue['id'] ?>" -data-toggle="tab" target="_blank"><?= Yii::t('x', 'Tours') ?></a></li>
+    <li class="nav-item"><a class="nav-link" href="/feedbacks?venue_id=<?= $theVenue['id'] ?>&what=<?= $theVenue['name'] ?>" -data-toggle="tab" target="_blank"><?= Yii::t('x', 'Feedback') ?></a></li>
+</ul><?php
+$this->endBlock();
 ?>
 
 <div class="col-md-12">
-    <ul class="nav nav-tabs list-inline" role="tablist">
-        <li class="nav-item"><a class="nav-link active cursor-pointer text-uppercase text-bold text-pink" data-toggle="tab" href="t-overview"><i class="fa fa-caret-right"></i> Overview</a></li>
-        <li class="nav-item"><a class="nav-link tab cursor-pointer text-uppercase" data-toggle="tab" href="t-prices"><i class="fa fa-caret-right"></i> Price</a></li>
-        <?php if ($theVenue['stype'] != 'hotel' && (!empty($theVenue['dvo']) || !empty($theVenue['info_pricing']))) { ?>
-        <li class="nav-item"><a class="tab cursor-pointer text-uppercase" href="t-oldprices"><i class="fa fa-caret-right"></i> Price (old)</a></li>
-        <?php } ?>
-        <li ><a class="nav-link cursor-pointer text-uppercase link" data-toggle="tab"  href="/tools/tour-ks?ks=<?= $theVenue['id'] ?>" target="_blank"><i class="fa fa-caret-right"></i> Tours</a></li>
-        <li><a class="nav-link cursor-pointer text-uppercase link" data-toggle="tab"  href="/feedbacks?venue_id=<?= $theVenue['id'] ?>&what=<?= $theVenue['name'] ?>" target="_blank"><i class="fa fa-caret-right"></i> Feedback</a>
-    </ul>
-    <hr>
     <div class="tab-content">
-        <div id="t-overview" class=" row tab-pane fade show active "><div class="d-flex flex-sm-row-reverse">
-        <?php include('venue_r__overview.php') ?></div></div><!-- t-overview -->
-        <div id="t-notes" class="row tab-pane fade"><?php include('venue_r__notes.php') ?></div>
-        <div id="t-prices" class="row tab-pane fade"><?php include('venue_r__prices.php') ?></div>
+        <div id="t-overview" class="tab-pane active"><?php include('venue_r__overview.php') ?></div><!-- t-overview -->
+        <div id="t-notes" class="tab-pane"><?php include('venue_r__notes.php') ?></div>
+        <div id="t-prices" class="tab-pane"><?php include('venue_r__prices.php') ?></div>
+        <div id="t-discussion" class="tab-pane"><?php include('venue_r__discussion.php') ?></div>
         <?php if ($theVenue['stype'] != 'hotel' && (!empty($theVenue['dvo']) || !empty($theVenue['info_pricing']))) { ?>
-        <div id="t-oldprices" class="row tab-pane"><?php include('venue_r__oldprices.php') ?></div>
+        <div id="t-oldprices" class="tab-pane"><?php include('venue_r__oldprices.php') ?></div>
         <?php } ?>
     </div>
 </div>
-
 <style type="text/css">
-    .fancybox-overlay {z-index:1000!important}
+    .fancybox-overlay {z-index:100000!important}
     a.from-past {color:#c00;}
 </style>
-<?
+
+<?php
 $js = <<<'TXT'
-$('.tab-pane:not(.active)').hide();
-$('.nav-tabs li a.nav-link').on('click', function(e){
-    e.preventDefault()
-    var href = $(this).attr('href');
-    $('.nav-tabs li a.nav-link').removeClass('text-bold text-pink');
-    $(this).addClass('text-bold text-pink');
-    $('.tab-pane.active').removeClass('active').hide();
-    if($(this).hasClass('link')) {
-        window.open(href);
-    } else {
-        $('#' + href).addClass('show active').show();
-    }
-
-});
-
-
 
 $.fancybox.defaults.thumbs = {
     autoStart   : true,   // Display thumbnails on opening
-    hideOnClose : true     // Hide thumbnail grid when closing animation starts
+    hideOnClose : true,     // Hide thumbnail grid when closing animation starts
+    parentEl: ".fancybox-container"
 };
 
 $('a.from-dt').on('click', function(){
@@ -253,28 +243,28 @@ var dvc_current;
 
 
 ////////tooltip//////////////
-$(document).on({
-    mouseenter: function(){// Hover over code
-        var title = $(this).attr('title');
-        $(this).data('tipText', title).removeAttr('title');
-        $('<p class="my_tooltip"></p>')
-        .text(title)
-        .appendTo('body')
-        .fadeIn('slow');
-    },
-    mouseout: function(){
-        // Hover out code
-        $(this).attr('title', $(this).data('tipText'));
-        $('.my_tooltip').remove();
-    },
-    mousemove: function(e){
-        var mousex = e.pageX + 20; //Get X coordinates
-        var mousey = e.pageY + 10; //Get Y coordinates
-        $('.my_tooltip')
-        .css({ top: mousey, left: mousex , zIndex: 999999})
-    }
+// $(document).on({
+//     mouseenter: function(){// Hover over code
+//         var title = $(this).attr('title');
+//         $(this).data('tipText', title).removeAttr('title');
+//         $('<p class="my_tooltip"></p>')
+//         .text(title)
+//         .appendTo('body')
+//         .fadeIn('slow');
+//     },
+//     mouseout: function(){
+//         // Hover out code
+//         $(this).attr('title', $(this).data('tipText'));
+//         $('.my_tooltip').remove();
+//     },
+//     mousemove: function(e){
+//         var mousex = e.pageX + 20; //Get X coordinates
+//         var mousey = e.pageY + 10; //Get Y coordinates
+//         $('.my_tooltip')
+//         .css({ top: mousey, left: mousex , zIndex: 999999})
+//     }
 
-},'.masterTooltip');
+// },'.masterTooltip');
 
 Number.prototype.format = function(n, x) {
     var re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : '$') + ')';
@@ -283,8 +273,8 @@ Number.prototype.format = function(n, x) {
 TXT;
 
 $js = str_replace(['{$LANG}'], [Yii::$app->language], $js);
-$this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.css', ['depends'=>'yii\web\JqueryAsset']);
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.1.20/jquery.fancybox.min.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.css', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.3.5/jquery.fancybox.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJs($js);
 
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/air-datepicker/2.2.3/js/datepicker.min.js', ['depends'=>'yii\web\JqueryAsset']);

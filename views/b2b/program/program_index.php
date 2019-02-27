@@ -1,97 +1,94 @@
-<?
+<?php
+use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
 use yii\helpers\Html;
-use yii\widgets\LinkPager;
-use yii\widgets\ActiveForm;
+use app\widgets\LinkPager;
 
 include ('_program_inc.php');
 
-$this->title = 'B2B tour programs ('.number_format($pagination->totalCount, 0).')';
+Yii::$app->params['body_class'] = 'sidebar-xs';
+Yii::$app->params['page_title'] = 'B2B tour programs ('.number_format($pagination->totalCount, 0).')';
 
 ?>
 <!--div class="alert alert-info">CHÚ Ý: Mới tách thêm 2 loại ct mới là CT tour Hãng và ct tour TCG, mọi người chú ý khi tìm kiếm</div-->
 <div class="col-md-12">
-    <div class="panel panel-default">
-        <div class="panel-body">
-            <form method="get" action="" class="form-inline">
-                <select class="form-control w-auto" name="language">
-                    <option value="all">All languages</option>
-                    <? foreach ($languageList as $k => $v) { ?>
-                    <option value="<?=$k?>" <?=$language == $k ? 'selected="selected"' : ''?>><?=$v?></option>
-                    <? } ?>
-                </select>
-                <?= Html::dropdownList('type', $getType, [
-                    'normal'=>'Normal programs',
-                    'sample'=>'Sample programs',
-                    'b2b-prod'=>'Product tours',
-                    ], ['class'=>'form-control']) ?>
-                <select name="ub" class="form-control w-auto">
-                    <option value="all">Updated by</option>
-                    <option value="<?= USER_ID ?>" <?= $getUb == USER_ID ? 'selected="selected"' : ''?>>Tôi (<?= Yii::$app->user->identity->name ?>)</option>
-                    <? foreach ($ubList as $ub) { if (USER_ID != $ub['id']) { ?>
-                    <option value="<?= $ub['id'] ?>" <?=$getUb == $ub['id'] ? 'selected="selected"' : ''?>><?=$ub['lname']?>, <?=$ub['email']?></option>
-                    <? } } ?>
-                </select>
-                <select class="form-control w-auto" name="month">
-                    <option value="all">Start date</option>
-                    <? foreach ($startDateList as $program) { ?>
-                    <option value="<?= $program['ym'] ?>" <?= $getMonth == $program['ym'] ? 'selected="selected"' : ''?>><?= $program['ym'] ?></option>
-                    <? } ?>
-                </select>
-                <select class="form-control w-auto" name="proposal">
-                    <option value="all">Trạng thái bán</option>
-                    <option value="yes" <?=$getProposal == 'yes' ? 'selected="selected"' : ''?>>Đang bán</option>
-                    <option value="no" <?=$getProposal == 'no' ? 'selected="selected"' : ''?>>Chưa bán</option>
-                </select>
-                <select class="form-control w-auto" name="days">
-                    <option value="all">Days</option>
-                    <option value="10" <?=$getDays == '10' ? 'selected="selected"' : ''?>>1-10 ngày</option>
-                    <option value="20" <?=$getDays == '20' ? 'selected="selected"' : ''?>>11-20 ngày</option>
-                    <option value="30" <?=$getDays == '30' ? 'selected="selected"' : ''?>>21-30 ngày</option>
-                    <option value="31" <?=$getDays == '31' ? 'selected="selected"' : ''?>>Trên 30 ngày</option>
-                </select>
-                <input type="text" class="form-control w-auto" name="name" placeholder="Search name or tag" value="<?=fHTML::encode($getName)?>" />
-                <select class="form-control w-auto" name="order">
-                    <option value="updated_at">Order by: Updated</option>
-                    <option value="day_from" <?=$getOrder == 'day_from' ? 'selected="selected"' : ''?>>Order by: Tour date</option>
-                    <option value="day_count" <?=$getOrder == 'day_count' ? 'selected="selected"' : ''?>>Order by: Days</option>
-                    <option value="pax" <?=$getOrder == 'pax' ? 'selected="selected"' : ''?>>Order by: Pax</option>
-                    <option value="title" <?=$getOrder == 'title' ? 'selected="selected"' : ''?>>Order by: Name</option>
-                </select>
-                <select class="form-control w-auto" name="sort">
-                    <option value="desc">Descending</option>
-                    <option value="asc" <?=$getSort == 'asc' ? 'selected="selected"' : ''?>>Ascending</option>
-                </select>
-                <button type="submit" class="btn btn-primary">Go</button>
-                <?= Html::a('Reset', '/b2b/programs') ?>
-            </form>
-        <? if (empty($thePrograms)) { ?>
-        </div>
-    </div>
-    <div class="alert alert-warning">No data found</div>
-        <? } else { ?>
-        </div>
+    <form method="get" action="" class="form-inline mb-2">
+        <?= Html::dropdownList('client', $client, ArrayHelper::map($clientList, 'id', 'name'), ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Client')]) ?>
+        <?= Html::dropdownList('language', $language, $languageList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Language')]) ?>
+        <?= Html::dropdownList('type', $type, [
+            'normal'=>'Normal programs',
+            'sample'=>'Sample programs',
+            'b2b-prod'=>'Product tours',
+            ], ['class'=>'form-control']) ?>
+        <select name="ub" class="form-control w-auto">
+            <option value="">Updated by</option>
+            <option value="<?= USER_ID ?>" <?= $ub == USER_ID ? 'selected="selected"' : ''?>>Tôi (<?= Yii::$app->user->identity->name ?>)</option>
+            <?php foreach ($ubList as $ub) { if (USER_ID != $ub['id']) { ?>
+            <option value="<?= $ub['id'] ?>" <?=$ub == $ub['id'] ? 'selected="selected"' : ''?>><?=$ub['lname']?>, <?=$ub['email']?></option>
+            <?php } } ?>
+        </select>
+        <select class="form-control w-auto" name="month">
+            <option value=""><?= Yii::t('x', 'Start date') ?></option>
+            <?php foreach ($startDateList as $program) { ?>
+            <option value="<?= $program['ym'] ?>" <?= $month == $program['ym'] ? 'selected="selected"' : ''?>><?= $program['ym'] ?></option>
+            <?php } ?>
+        </select>
+        <select class="form-control w-auto" name="proposal">
+            <option value="">Trạng thái bán</option>
+            <option value="yes" <?=$proposal == 'yes' ? 'selected="selected"' : ''?>>Đang bán</option>
+            <option value="no" <?=$proposal == 'no' ? 'selected="selected"' : ''?>>Chưa bán</option>
+        </select>
+        <select class="form-control w-auto" name="days">
+            <option value=""><?= Yii::t('x', 'Days') ?></option>
+            <option value="10" <?=$days == '10' ? 'selected="selected"' : ''?>>1-10 ngày</option>
+            <option value="20" <?=$days == '20' ? 'selected="selected"' : ''?>>11-20 ngày</option>
+            <option value="30" <?=$days == '30' ? 'selected="selected"' : ''?>>21-30 ngày</option>
+            <option value="31" <?=$days == '31' ? 'selected="selected"' : ''?>>Trên 30 ngày</option>
+        </select>
+        <?= Html::textInput('name', $name, ['class'=>'form-control w-auto', 'placeholder'=>'Search name or tag']) ?>
+        <select class="form-control w-auto" name="order">
+            <option value="updated_at">Order by: Updated</option>
+            <option value="day_from" <?= $order == 'day_from' ? 'selected="selected"' : ''?>>Order by: Tour date</option>
+            <option value="day_count" <?= $order == 'day_count' ? 'selected="selected"' : ''?>>Order by: Days</option>
+            <option value="pax" <?= $order == 'pax' ? 'selected="selected"' : ''?>>Order by: Pax</option>
+            <option value="title" <?= $order == 'title' ? 'selected="selected"' : ''?>>Order by: Name</option>
+        </select>
+        <select class="form-control w-auto" name="sort">
+            <option value="desc">Descending</option>
+            <option value="asc" <?= $sort == 'asc' ? 'selected="selected"' : ''?>>Ascending</option>
+        </select>
+        <?= Html::submitButton(Yii::t('x', 'Go'), ['class'=>'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('x', 'Reset'), '?') ?>
+    </form>
+    <?php if (empty($thePrograms)) { ?>
+    <div class="text-warning"><?= Yii::t('x', 'No data found.') ?></div>
+    <?php } else { ?>
+    <div class="card mb-2">
         <div class="table-responsive">
-            <table class="table table-xxs">
+            <table class="table card-table table-narrow">
                 <thead>
                     <tr>
                         <th width="20"></th>
-                        <th class="text-center">Lang</th>
-                        <th>Name</th>
-                        <th class="text-center">Pax</th>
-                        <th class="text-center">Days</th>
-                        <th class="text-center">Start date</th>
-                        <th>Price</th>
-                        <th>Updated by</th>
+                        <th class="text-center"><?= Yii::t('x', 'Lang') ?></th>
+                        <th><?= Yii::t('x', 'For client') ?></th>
+                        <th><?= Yii::t('x', 'Name of program') ?></th>
+                        <th class="text-center"><?= Yii::t('x', 'Pax') ?></th>
+                        <th class="text-center"><?= Yii::t('x', 'Days') ?></th>
+                        <?php if ($type != 'b2b-prod') { ?>
+                        <th class="text-center"><?= Yii::t('x', 'Start date') ?></th>
+                        <?php } ?>
+                        <th class="text-right"><?= Yii::t('x', 'Price') ?></th>
+                        <th><?= Yii::t('x', 'Updated by') ?></th>
                     </tr>
                 </thead>
                 <tbody>
-                    <? foreach ($thePrograms as $program) { ?>
+                    <?php foreach ($thePrograms as $program) { ?>
                     <tr>
                         <td>
                             <?= Html::a('<i class="fa fa-edit"></i>', '@web/b2b/programs/u/'.$program['id'], ['class'=>'text-muted', 'title'=>'Edit']) ?>
                         </td>
                         <td class="text-muted text-center text-nowrap"><?= strtoupper($program['language']) ?></td>
+                        <td><?= $program['client_id'] == 0 ? '' : Html::a($program['client']['name'], '/b2b/clients/r/'.$program['client_id']) ?></td>
                         <td>
 <?
                             if ($program['offer_count'] == 0) {
@@ -110,58 +107,40 @@ $this->title = 'B2B tour programs ('.number_format($pagination->totalCount, 0).'
                             }
                             echo Html::a($program['title'], '@web/b2b/programs/r/'.$program['id']);
 
+if (is_dir(Yii::getAlias('@webroot').'/upload/products/'.$program['id'])) {
+    $programFiles = \yii\helpers\FileHelper::findFiles(Yii::getAlias('@webroot').'/upload/products/'.$program['id']);
+// if (file_exists(Yii::getAlias('@webroot').'/upload/devis-pdf/devis-'.$program['id'].'.pdf')) {
+//     $programAttachments[] = [
+//         'type'=>'oldpdf',
+//         'file'=>'Itinerary.pdf',
+//     ];
+// }
 
-$programAttachments = [];
-if (file_exists(Yii::getAlias('@webroot').'/upload/devis-pdf/devis-'.$program['id'].'.pdf')) {
-    $programAttachments[] = [
-        'type'=>'oldpdf',
-        'file'=>'Itinerary.pdf',
-    ];
-}
-$programUploadPath = Yii::getAlias('@webroot').'/upload/products/'.$program['id'];
-if (file_exists($programUploadPath.'/pdf')) {
-    foreach (FileHelper::findFiles($programUploadPath.'/pdf') as $file) {
-        $programAttachments[] = [
-            'type'=>'pdf',
-            'file'=>substr(strrchr($file, '/'), 1),
-        ];
+    foreach($programFiles as $file) {
+        $fileExt = strtolower(substr(strrchr($file, '.'), 1));
+        if (in_array($fileExt, ['pdf'])) {
+            $fileIcon = '<i class="fa fa-file-pdf-o" style="color:#FC6249"></i>';
+        } elseif (in_array($fileExt, ['jpg', 'png', 'jpeg']) && strpos($file, '/map/') !== false) {
+            $fileIcon = '<i class="fa fa-map-o" style="color:#FFB515"></i>';
+        } elseif (in_array($fileExt, ['jpg', 'png', 'jpeg'])) {
+            $fileIcon = '<i class="fa fa-file-image-o" style="color:#FFB515"></i>';
+        } elseif (in_array($fileExt, ['doc', 'docx', 'docm'])) {
+            $fileIcon = '<i class="fa fa-file-word-o" style="color:#2A5699"></i>';
+        } elseif (in_array($fileExt, ['xls', 'xlsx', 'xlsm', 'xlxb'])) {
+            $fileIcon = '<i class="fa fa-file-excel-o" style="color:#207245"></i>';
+        } else {
+            $fileIcon = '<i class="fa fa-file-text-o"></i>';
+        }
+        echo ' ', Html::a($fileIcon, str_replace(Yii::getAlias('@webroot'), '', $file));
     }
 }
-if (file_exists($programUploadPath.'/image')) {
-    foreach (FileHelper::findFiles($programUploadPath.'/image') as $file) {
-        $programAttachments[] = [
-            'type'=>'image',
-            'file'=>substr(strrchr($file, '/'), 1),
-        ];
-    }
-}
-if (file_exists($programUploadPath.'/excel')) {
-    foreach (FileHelper::findFiles($programUploadPath.'/excel') as $file) {
-        $programAttachments[] = [
-            'type'=>'excel',
-            'file'=>substr(strrchr($file, '/'), 1),
-        ];
-    }
-}
-
-foreach($programAttachments as $attachment) {
-    $fileExt = strtolower(substr(strrchr($attachment['file'], '.'), 1));
-    if (in_array($fileExt, ['pdf'])) {
-        $fileIcon = '<i class="fa fa-file-pdf-o" style="color:#FC6249"></i>';
-    } elseif (in_array($fileExt, ['jpg', 'png', 'jpeg'])) {
-        $fileIcon = '<i class="fa fa-file-image-o" style="color:#FFB515"></i>';
-    } elseif (in_array($fileExt, ['doc', 'docx', 'docm'])) {
-        $fileIcon = '<i class="fa fa-file-word-o" style="color:#2A5699"></i>';
-    } elseif (in_array($fileExt, ['xls', 'xlsx', 'xlsm', 'xlxb'])) {
-        $fileIcon = '<i class="fa fa-file-excel-o" style="color:#207245"></i>';
-    } else {
-        $fileIcon = '<i class="fa fa-file-text-o"></i>';
-    }
-    echo ' ', Html::a($fileIcon, '/products/download/'.$program['id'].'?type='.$attachment['type'].'&file='.urlencode($attachment['file']), ['title'=>$attachment['file'], 'class'=>'text-muted']);
-}
-
     ?>
                             <span class="text-muted"><?= $program['about'] ?></span>
+                            <div class="small">
+                                <?php if ($program['client_series'] != '') { ?>
+                                <span class="text-info"><?= $program['client_series'] ?></span> &nbsp; 
+                                <?php } ?>
+                            </div>
                         </td>
                         <td class="text-center"><?= $program['pax'] ?></td>
                         <td class="text-center">
@@ -186,26 +165,26 @@ foreach($programAttachments as $attachment) {
                             }
                             ?>
                             "><?= count($program['days']) ?></a>
-                            </td>
-                        <td class="text-center">
-                            <? if ($program['offer_type'] != 'b2b-prod') { ?>
-                            <?= date('j/n/Y', strtotime($program['day_from'])) ?>
-                            <? } ?>
                         </td>
+                        <?php if ($type != 'b2b-prod') { ?>
+                        <td class="text-center">
+                            <?php if ($program['offer_type'] != 'b2b-prod') { ?>
+                            <?= date('j/n/Y', strtotime($program['day_from'])) ?>
+                            <?php } ?>
+                        </td>
+                        <?php } ?>
                         <td class="text-right text-nowrap"><?= number_format($program['price'], 0) ?> <span class="text-muted"><?= $program['price_unit'] ?></span></td>
                         <td>
                             <?= Html::a($program['updatedBy']['name'], '@web/users/r/'.$program['updatedBy']['id']) ?>
                             <span class="text-muted"><?= Yii::$app->formatter->asRelativeTime($program['updated_at']) ?></span>
                         </td>
                     </tr>
-                    <? } ?>
+                    <?php } ?>
                 </tbody>
             </table>
         </div>
     </div>
-
-    <? if ($pagination->totalCount > $pagination->limit) { ?>
-    <div class="text-center">
+    <?php } // if empty products ?>
     <?= LinkPager::widget([
         'pagination' => $pagination,
         'firstPageLabel' => '<<',
@@ -213,10 +192,8 @@ foreach($programAttachments as $attachment) {
         'nextPageLabel' => '>',
         'lastPageLabel' => '>>',
     ]) ?>
-    </div>
-    <? } // if pagination ?>
 
-    <? } // if empty products ?>
+
 </div>
 <style type="text/css">
 .popover {max-width:500px;}

@@ -30,3 +30,15 @@ $kaseTypeList = [
     'b2b-series'=>'B2B - Series',
     'b2b-prod'=>'B2B - Prod',
 ];
+
+$kaseLanguageList = [
+    'en'=>'English',
+    'fr'=>'Français',
+    'vi'=>'Tiếng Việt',
+];
+
+$kaseDestList = \common\models\Country::find()
+    ->select(['code', 'name_en'])
+    ->where(['code'=>['vn', 'la', 'kh', 'mm', 'th', 'my', 'id', 'cn']])
+    ->orderBy('name_en')
+    ->asArray()->all();

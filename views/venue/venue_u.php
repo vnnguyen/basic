@@ -13,6 +13,18 @@ $oldNewList = [
     'old'  => 'Old data only',
     'both' => 'Both old and new data',
 ];
+$checkasdf = 'lkj,asdfa';
+
+$c_faci = ['5_02', '5_03', '5_51', '5_52', '5_30', '5_53', '5_21', '5_54', '5_55', '5_09', '5_56', '5_11', '5_18', '5_57', '5_20', '5_17', '5_14', '5_12', '5_68', '5_24', '5_01', '5_58', '5_06', '5_59'
+];
+$c_faci_room = ['5_43', '5_42', '5_60', '5_33', '5_32', '5_31', '5_35', '5_69', '5_28', '5_34', '5_70', '5_71', '5_36', '5_61'];
+$c_wellness = ['5_37', '5_62', '5_63', '5_38', '5_62'];
+$c_children = ['5_26', '5_50', '5_72', '5_64'];
+$c_mul_staff = ['5_41', '5_40', '5_48'];
+$c_faci_dis_guests = ['5_65', '5_66', '5_67'];
+
+
+
 ?>
 <style type="text/css">
 #venue-vfaci, #venue-vstyle, #venue-vreccfor {-webkit-column-count: 3; -moz-column-count: 3; column-count:3}
@@ -38,7 +50,8 @@ $oldNewList = [
 				</div>
 				<div class="row">
 					<div class="col-md-6"><?=$form->field($theVenue, 'latlng')->label(Yii::t('x', 'Latitude,Longitude') . ' - <a target="_blank" id="googlelatlng" href="https://www.google.com.vn/search?q=">Google</a>')?></div>
-					<div class="col-md-6"><?=$form->field($theVenue, 'supplier_id')->dropdownList(ArrayHelper::map($supplierList, 'id', 'name'), ['prompt' => '- Select supplier -', 'disabled' => 'disabled'])->label(Yii::t('x', 'Supplier'))?></div>
+					<div class="col-md-6"><?=$form->field($theVenue, 'c_amica')->dropdownList(['no'=>'No', 'yes'=>'Yes'])->label(Yii::t('x', 'Involvement of Amica'))?></div>
+					<div class="col-md-6 d-none"><?=$form->field($theVenue, 'supplier_id')->dropdownList(ArrayHelper::map($supplierList, 'id', 'name'), ['prompt' => '- Select supplier -', 'disabled' => 'disabled'])->label(Yii::t('x', 'Supplier'))?></div>
 				</div>
 			</fieldset>
 
@@ -70,7 +83,7 @@ $oldNewList = [
         			'item' => function ($index, $label, $name, $checked, $value) {
 				            return Html::checkbox($name, $checked, [
 				                'value' => $value,
-				                'label' => $label . '<span class="d-none"><input name="add_fee[]" value="" type="checkbox" class="add_fee ml-2 "> <small class="text-muted"> add change</small></span>',
+				                'label' => $label . '<span class="d-none"><input name="add_fee[]" value="" type="checkbox" class="add_fee ml-2 "> <small class="text-muted"> add charge</small></span>',
 				                'class' => 'tag ',
 				            ]);
 				        }])->label(Yii::t('x', 'Facilities/Services') . ' (<a href="#" class="cursor-pointer" id="sel-all">Select all</a> | <a href="#" class="cursor-pointer" id="sel-none">None</a>)')?>

@@ -14,7 +14,9 @@ use yii\web\HttpException;
 
 class DayController extends \app\controllers\MyController
 {
-    public $allowList = [1, 3, 26052, 29013, 40399]; // Hieu Jonathan Alain Nghĩa
+    public $allowList = [1, 3, 26052, 29013, 15860];
+    // Hieu Jonathan Alain Nghĩa
+    // 180322 +Ta Ha -Nghia
 
     // Sample tour days
     public function actionIndex($orderby = 'updated', $name = '', $tags = '', $show = 'all', $language = 'fr')

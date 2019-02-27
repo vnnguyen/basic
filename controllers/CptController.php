@@ -21,6 +21,7 @@ use common\models\Venue;
 use common\models\Product;
 use common\models\Tour;
 use common\models\Person;
+use common\models\User;
 
 class CptController extends MyController
 {
@@ -348,7 +349,7 @@ class CptController extends MyController
                 //         ]);
                 // },
 
-            'rout',
+            // 'rout',
             'tour'=>function($query) {
                 return $query->select(['id', 'code']);
             },
@@ -361,9 +362,9 @@ class CptController extends MyController
             'viaCompany'=>function($query) {
                 return $query->select(['id', 'name']);
             },
-            'dv'=>function($q){
-                return $q->where(['!=', 'status', 'deleted']);
-            },
+            // 'dv'=>function($q){
+            //     return $q->where(['!=', 'status', 'deleted']);
+            // },
                 // 'comments'=>function($q){
                 //     return $q->where(['!=', 'status', 'deleted']);
                 // },
@@ -1104,6 +1105,54 @@ class CptController extends MyController
             'currencyList'=>$currencyList,
         ]);
     }
+    public function actionAjax_u()
+    {
+        if (!Yii::$app->request->isAjax) {
+            return false;
+        }
+
+        $cpts_selected = $_POST['cpts_selected'];
+        $action = $_POST['action'];
+        $vat = str_replace(',', '',$_POST['vat']);
+        $unit = $_POST['unit'];
+        $tk = $_POST['tk'];
+        $results = [];
+
+        foreach ($cpts_selected as $dvtour_id) {
+            $cpt = Cpt::findOne($dvtour_id);
+            if (!$cpt) {
+                return json_encode(['err' => 'cpt #' . $dvtour_id . ' not found']);
+            }
+            $results[$dvtour_id]['id'] = $dvtour_id;
+            if ($action == 'vat') {
+                $thanhTien = $cpt['price'] * $cpt['qty'];
+                if ($unit == '%') {
+                    $vat_price = $vat * $thanhTien / 100;
+                } else {
+                    $vat_price = $vat;
+                }
+                $tienHang = $thanhTien - $vat_price;
+                $sql = 'UPDATE cpt SET p_tt=:p_tt, p_vat=:vat, p_th=:p_th WHERE dvtour_id =:dvtour_id';
+                Yii::$app->db->createCommand($sql, [
+                    ':p_tt'=>$thanhTien,
+                    ':p_th'=>$tienHang,
+                    ':vat'=>$vat_price,
+                    ':dvtour_id'=>$dvtour_id])->execute();
+
+                $results[$dvtour_id]['vat'] = number_format($vat_price);
+                $results[$dvtour_id]['tt'] = number_format($thanhTien);
+                $results[$dvtour_id]['th'] =  number_format($tienHang);
+            }
+            else if ($action == 'tk') {
+                $sql = 'UPDATE cpt SET p_tk =:tk WHERE dvtour_id =:dvtour_id';
+                Yii::$app->db->createCommand($sql, [':tk'=>$tk, ':dvtour_id'=>$dvtour_id])->execute();
+                $results[$dvtour_id]['tk'] = $tk;
+
+            }
+
+        }
+        return json_encode($results);
+    }
 
     public function actionIndex($crfund = '', $vat = '', $user = 'all', $tour = '', $dvtour = '', $search = '', $filter = '', $payer = '', $sign = '', $currency = '', $tt = '', $orderby = 'dvtour_day', $limit = 25)
     {
@@ -1214,12 +1263,16 @@ class CptController extends MyController
         if (in_array($sign, ['plus', 'minus'])) {
             $query->andWhere(['plusminus'=>$sign]);
         }
-        if ($payer != '' && $payer != 'miennam' && !$theTour) {
-            $query->andWhere(['payer'=>$payer]);
-        }
-        if ($payer == 'miennam' && !$theTour) {
-            $query->andWhere(['payer'=>['Amica Saigon', 'Hướng dẫn MN 1', 'Hướng dẫn MN 2', 'Hướng dẫn MN 3']]);
-        }
+
+        // if (!$theTour) {
+            if (!in_array($payer, ['', 'miennam', 'mueanglaos'])) {
+                $query->andWhere(['payer'=>$payer]);
+            } elseif ($payer == 'miennam') {
+                $query->andWhere(['payer'=>['Amica Saigon', 'Hướng dẫn MN 1', 'Hướng dẫn MN 2', 'Hướng dẫn MN 3']]);
+            } elseif ($payer == 'mueanglaos') {
+               $query->andWhere(['payer'=>['Laos BCEL', 'BCEL Laos', 'Medsanh (Laos)', 'Thonglish (Laos)', 'Feuang (Laos)', 'Amica Luang Prabang', 'iTravelLaos', 'Hướng dẫn Laos 1', 'Hướng dẫn Laos 2', 'Hướng dẫn Laos 3']]);
+            }
+        // }
         if ($vat == 'ok') {
             $query->andWhere(['vat_ok'=>'ok']);
         } elseif ($vat == 'nok') {

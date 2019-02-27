@@ -1,4 +1,4 @@
-<?
+<?php
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
 use yii\helpers\HtmlPurifier;
@@ -52,11 +52,11 @@ foreach ($caseHowContactedList as $k=>$v) {
     $caseHowContactedListFormatted[$k] = $v;
 }
 
-$caseHowFoundList = [
+$kaseHowFoundList = [
     'returning'=>'Returning',
         'returning/customer'=>'Returning customer',
-        'returning/contact'=>'Returning contact (not a customer)',
     'new'=>'New',
+        'new/returning/contact'=>'Returning contact (not a customer)',
         'new/nref'=>'Not referred',
             'new/nref/web'=>'Web',
             'new/nref/print'=>'Book/Print',
@@ -70,11 +70,11 @@ $caseHowFoundList = [
 ];
 
 
-$caseHowFoundListFormatted = [];
-foreach ($caseHowFoundList as $k=>$v) {
+$kaseHowFoundListFormatted = [];
+foreach ($kaseHowFoundList as $k=>$v) {
     $cnt = count(explode('/', $k));
     $v = str_repeat(' --- ', $cnt - 1). $v;
-    $caseHowFoundListFormatted[$k] = $v;
+    $kaseHowFoundListFormatted[$k] = $v;
 }
 
 $countryList = [
@@ -88,12 +88,20 @@ $countryList = [
     'cn'=>'China',
 ];
 
+$priorityList = [
+    'no'=>Yii::t('x', 'No'),
+    'yes'=>Yii::t('x', 'Yes'),
+    1=>1,
+    2=>2,
+    3=>3,
+    4=>4,
+];
 
-$form = ActiveForm::begin();
 ?>
 <div class="col-md-8">
-    <div class="panel panel-default">
-        <div class="panel-body">
+    <div class="card">
+        <?php $form = ActiveForm::begin(); ?>
+        <div class="card-body">
             <div class="row">
                 <div class="col-md-6"><?= $form->field($theCase, 'company_id')->dropdownList(ArrayHelper::map($companyList, 'id', 'name'), ['prompt'=>'- Select -']) ?></div>
                 <? if ($theCase->isNewRecord) { ?>
@@ -111,23 +119,24 @@ $form = ActiveForm::begin();
             </div>
             <div class="row">
                 <div class="col-md-3"><?= $form->field($theCase, 'language')->dropdownList(['en'=>'English', 'fr'=>'Francais', 'vi'=>'Tiếng Việt'], ['prompt'=>'- Select -']) ?></div>
-                <div class="col-md-3"><?= $form->field($theCase, 'is_priority')->dropdownList(['yes'=>'Yes', 'no'=>'No'], ['prompt'=>'- Select -']) ?></div>
+                <div class="col-md-3"><?= $form->field($theCase, 'is_priority')->dropdownList($priorityList) ?></div>
                 <div class="col-md-6"><?= $form->field($theCase, 'campaign_id')->dropdownList(ArrayHelper::map($campaignList, 'id', 'name'), ['prompt'=>'( No campaigns )']) ?></div>
             </div>
             <div class="row">
                 <div class="col-md-6"><?= $form->field($theCase, 'owner_id')->dropdownList(ArrayHelper::map($ownerList, 'id', 'name'), ['prompt'=>'- Select -'])->label(Yii::t('k', 'Assign to')) ?></div>
+                <div class="col-md-6"><?= $form->field($theCase, 'cofr')->dropdownList(ArrayHelper::map($cofrList, 'id', 'name'), ['prompt'=>'- Select -'])->label(Yii::t('k', 'Amica contact in France')) ?></div>
             </div>
 
             <fieldset>
                 <legend>Client's request</legend>
                 <p>Leave blank if not applicable.</p>
                 <div class="row">
-                    <div class="col-md-3"><?= $form->field($theStats, 'pa_start_date')->label('Start date')->hint('2017 or 2017-10 etc.') ?></div>
-                    <div class="col-md-3"><?= $form->field($theStats, 'pa_pax')->label('No. of pax')->hint('4 or 4-5 etc.') ?></div>
-                    <div class="col-md-3"><?= $form->field($theStats, 'pa_days')->label('No. of days')->hint('10 or 10-15 etc.') ?></div>
+                    <div class="col-md-3"><?= $form->field($theStats, 'start_date')->label('Start date')->hint('2017 or 2017-10 etc.') ?></div>
+                    <div class="col-md-3"><?= $form->field($theStats, 'pax_count')->label('No. of pax')->hint('4 or 4-5 etc.') ?></div>
+                    <div class="col-md-3"><?= $form->field($theStats, 'day_count')->label('No. of days')->hint('10 or 10-15 etc.') ?></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12"><?= $form->field($theStats, 'pa_destinations')->checkboxList($countryList)->label('Destinations') ?></div>
+                    <div class="col-md-12"><?= $form->field($theStats, 'req_countries')->checkboxList($countryList)->label('Destinations') ?></div>
                 </div>
             </fieldset>
 
@@ -138,7 +147,7 @@ $form = ActiveForm::begin();
                     <div class="col-md-6"><?= $form->field($theCase, 'web_keyword') ?></div>
                 </div>
                 <div class="row">
-                    <div class="col-md-6"><?= $form->field($theCase, 'how_found')->dropdownList($caseHowFoundListFormatted) ?></div>
+                    <div class="col-md-6"><?= $form->field($theCase, 'how_found')->dropdownList($kaseHowFoundListFormatted) ?></div>
                     <div class="col-md-6"><?= $form->field($theCase, 'ref')->hint('If referred by word of mouth') ?></div>
                 </div>
             </fieldset>
@@ -152,11 +161,10 @@ $form = ActiveForm::begin();
                 <?= Html::submitButton('Submit', ['class'=>'btn btn-primary']) ?>
             </div>
         </div>
+        <?php ActiveForm::end(); ?>
     </div>
 </div>
-<?
-ActiveForm::end();
-
+<?php
 
 $js = <<<'TXT'
 $('#kase-company_id').on('change', function(){

@@ -50,13 +50,13 @@ $this->beginPage();
 
     <!-- Global stylesheets -->
     <!-- <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,100,500,700,900" rel="stylesheet" type="text/css"> -->
-    <link href="/themes/limitless_2/global_assets/css/icons/icomoon/styles.css" rel="stylesheet" type="text/css">
+    <!-- <link href="/themes/limitless_2/global_assets/css/icons/icomoon/styles.css" rel="stylesheet" type="text/css">
     <link href="/themes/limitless_2/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css">
     <link href="/themes/limitless_2/assets/css/bootstrap_limitless.min.css" rel="stylesheet" type="text/css">
-    <link href="/themes/limitless_2/assets/css/layout.min.css" rel="stylesheet" type="text/css">
+    <link href="/themes/limitless_2/assets/css/layout.min.css" rel="stylesheet" type="text/css"> -->
     <!-- <link href="/themes/limitless_2/assets/css/components.min.css" rel="stylesheet" type="text/css"> -->
     <link href="https://my.amicatravel.com/assets/l2/layout_1/LTR/default/full/assets/css/components.min.css" rel="stylesheet" type="text/css">
-    <link href="/themes/limitless_2/assets/css/colors.min.css" rel="stylesheet" type="text/css">
+    <!-- <link href="/themes/limitless_2/assets/css/colors.min.css" rel="stylesheet" type="text/css"> -->
     <!-- /global stylesheets -->
     <?= $this->head() ?>
     <style type="text/css">
@@ -261,6 +261,17 @@ $this->beginPage();
 
     <!-- Page content -->
     <div class="page-content">
+        <style type="text/css">
+        .my-page-breadcrumb-title {padding:.8rem 1.25rem;}
+        .my-page-breadcrumb + .my-page-title {margin-top:.8rem}
+        .my-page-main-title {font-weight:400; margin:0;}
+        .my-page-small-title {font-weight:300;}
+        .my-page-sub-title {font-size:1rem;}
+        .my-page-actions {padding:0 1.25rem;}
+        .my-page-actions .nav-link {padding:4px;}
+        .my-page-actions .nav-pills .nav-link {padding:.1rem .3rem;}
+        /*.page-content {flex-direction: column}*/
+        </style>
 
         <?php if (strpos(Yii::$app->params['page_layout'], '-s') === false) { ?>
         <div class="sidebar sidebar-light sidebar-main sidebar-expand-md">
@@ -330,128 +341,129 @@ $this->beginPage();
 
         <!-- Main content -->
         <div class="content-wrapper">
-
-            <?php if (strpos(Yii::$app->params['page_layout'], '-h') === false) { ?>
-            <div class="page-header page-header-light">
-                <div class="breadcrumb-line breadcrumb-line-light header-elements-md-inline">
-                <?php if (strpos(Yii::$app->params['page_layout'], '-b') === false) { ?>
-                    <?php if (isset(Yii::$app->params['page_breadcrumbs']) && is_array(Yii::$app->params['page_breadcrumbs'])) { ?>
-                    <div class="d-flex">
-                        <div class="breadcrumb breadcrumb-caret">
-                            <a class="breadcrumb-item" href="/"><?= Yii::t('nav', 'Home') ?><?php
-                        foreach (Yii::$app->params['page_breadcrumbs'] as $item) {
-                            if (!empty($item)) {
-                                if (!isset($item[1]) || true === $item[1]) { ?>
-                            <span class="breadcrumb-item active"><?= $item[0] ?></span><?php
-                            } else {
-                                if (substr($item[1], 0, 1) != '#' && substr($item[1], 0, 1) != '@' && strpos($item[1], '//') === false) {
-                                    $item[1] = '@web/'.$item[1];
-                                } ?>
-                            <a class="breadcrumb-item<?= isset($item[2]) && $item[2] === true ? 'active' : '' ?>" href="<?= str_replace('@web', '', $item[1]) ?>"><?= $item[0] ?></a><?php
-                                }
-                            }
-                        } ?>
-                        </div>
-
-                        <a href="#" class="header-elements-toggle text-default d-md-none"><i class="icon-more"></i></a>
-                    </div>
-                    <?php } // isset b ?>
-                <?php } // -b ?>
-                    <div class="header-elements d-none">
-                        <div class="breadcrumb justify-content-center">
-
-               <?php
-if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page_actions'])) { ?>
-                <ul class="nav nav-pills"><?php
-    foreach (Yii::$app->params['page_actions'] as $iBtnGroup) { ?>
-        <?php
-        foreach ($iBtnGroup as $iBtn) {
-            if (!isset($iBtn['hidden']) || !$iBtn['hidden']) {
-                if (isset($iBtn['submenu']) && is_array($iBtn['submenu'])) { ?>
-                    <li class="nav-item">
-                        <span class="dropdown-toggle" data-toggle="dropdown" style="margin-left:4px;"></span>
-                        <ul class="dropdown-menu dropdown-menu-right"><?php
-                    foreach ($iBtn['submenu'] as $i2Btn) {
-                        if ($i2Btn == ['-']) { ?>
-                            <li class="divider"></li><?php
-                        } else {
-                            if (!isset($i2Btn['hidden']) || !$i2Btn['hidden']) {
-                                $i2BtnIcon = '';
-                                if (isset($i2Btn['icon'])) {
-                                    if (substr($i2Btn['icon'], 0, 6) == 'slicon') {
-                                        $i2BtnIcon = '<i class="'.$i2Btn['icon'].'"></i> ';
-                                    } else {
-                                        $i2BtnIcon = '<i class="fa fa-fw fa-'.$i2Btn['icon'].'"></i> ';
+           <div class="page-header page-header-light">
+                <?php if (strpos(Yii::$app->params['page_layout'], '-h') === false) { ?>
+                <div class="my-page-header d-lg-flex align-items-center justify-content-between">
+                    <div class="my-page-breadcrumb-title">
+                        <?php if (strpos(Yii::$app->params['page_layout'], '-b') === false) { ?>
+                        <div class="my-page-breadcrumb d-print-none">
+                            <?php if (isset(Yii::$app->params['page_breadcrumbs']) && is_array(Yii::$app->params['page_breadcrumbs'])) { ?>
+                            <a class="breadcrumb-item py-0" href="/"><i class="fa fa-home"></i> <?= Yii::t('nav', 'Home') ?></a><?php
+                            foreach (Yii::$app->params['page_breadcrumbs'] as $item) {
+                                if (!empty($item)) {
+                                    if (!isset($item[1]) || true === $item[1]) { ?>
+                                    <span class="breadcrumb-item py-0 active"><?= $item[0] ?></span><?php
+                                } else {
+                                    if (substr($item[1], 0, 1) != '#' && substr($item[1], 0, 1) != '@' && strpos($item[1], '//') === false) {
+                                        $item[1] = '@web/'.$item[1];
+                                    }?>
+                                <a class="breadcrumb-item py-0<?= isset($item[2]) && $item[2] === true ? 'active' : '' ?>" href="<?= str_replace('@web', '', $item[1]) ?>"><?= $item[0] ?></a><?php
                                     }
                                 }
-                                $i2BtnLabel = $i2Btn['label'] ?? '';
-                                $i2BtnTitle = $i2Btn['title'] ?? '';
-                                $i2BtnClass = $i2Btn['class'] ?? 'dropdown-item';
-                                if (isset($i2Btn['active']) && $i2Btn['active']) {
-                                    $i2BtnClass .= ' active';
-                                }
-                                $i2BtnLink = isset($i2Btn['link']) ? $i2Btn['link'] : '#';
-                                if (substr($i2BtnLink, 0, 1) != '#' && substr($i2BtnLink, 0, 5) != '@web/' && strpos($i2BtnLink, '//') === false) {
-                                    $i2BtnLink = '@web/'.$i2BtnLink;
-                                } ?>
-                            <?= Html::a($i2BtnIcon.$i2BtnLabel, $i2BtnLink, ['class'=>$i2BtnClass, 'title'=>$i2BtnTitle]) ?><?php
-                            }
-                        } // if divider
-                    } // foreach i2Btn ?>
-                        </ul>
-                    </li>
-                    <?php
-                } else {
-                    $iBtnIcon = '';
-                    if (isset($iBtn['icon'])) {
-                        if (substr($iBtn['icon'], 0, 6) == 'slicon') {
-                            $iBtnIcon = '<i class="'.$iBtn['icon'].'"></i> ';
-                        } else {
-                            $iBtnIcon = '<i class="fa fa-fw fa-'.$iBtn['icon'].'"></i> ';
-                        }
-                    }
-
-                    $iBtnLabel = isset($iBtn['label']) ? $iBtn['label'] : '';
-                    $iBtnTitle = isset($iBtn['title']) ? $iBtn['title'] : '';
-                    $iBtnClass = 'nav-link ';
-                    $iBtnClass .= isset($iBtn['class']) ? $iBtn['class'] : '';
-                    if (isset($iBtn['active']) && $iBtn['active']) {
-                        $iBtnClass .= ' active text-primary';
-                    }
-                    $iBtnLink = isset($iBtn['link']) ? $iBtn['link'] : '#';
-                    if (substr($iBtnLink, 0, 1) != '#' && substr($iBtnLink, 0, 5) != '@web/' && strpos($iBtnLink, '//') === false) {
-                        $iBtnLink = '@web/'.$iBtnLink;
-                    }
-
-                    //echo Html::a($iBtnIcon.$iBtnLabel, $iBtnLink, ['class'=>$iBtnClass, 'title'=>$iBtnTitle]);
-                    ?><li class="nav-item"><?= Html::a($iBtnIcon.$iBtnLabel, $iBtnLink, ['class'=>$iBtnClass, 'title'=>$iBtnTitle, 'style'=>'padding:0 4px']) ?></li><?php
-                }// if submenu
-            } // if not hidden iBtn
-        } // foreach button
-    } // foreach button group ?>
-                </ul><?php
-} ?>
-
+                            } ?>
+                        <?php } // isset b ?>
                         </div>
+                        <?php } //-b ?>
+                        <?php if (strpos(Yii::$app->params['page_layout'], '-t') === false) { ?>
+                        <div class="my-page-title">
+                            <h2 class="my-page-main-title">
+                                <?php if (!empty(Yii::$app->params['page_icon'])) { ?><i class="<?= strpos(Yii::$app->params['page_icon'], 'slicon') === false ? 'fa fa-fw fa-' : '' ?><?= Yii::$app->params['page_icon'] ?>"></i><?php } else { ?><i class="icon-arrow-left52"></i><?php } ?>
+                                <?= Yii::$app->params['page_title'] ?>
+                                <?php if (!empty(Yii::$app->params['page_small_title'])) { ?><span class="my-page-small-title"><?= Yii::$app->params['page_small_title'] ?></span><?php } ?>
+                            </h2>
+                            <?php if (!empty(Yii::$app->params['page_sub_title'])) { ?><div class="my-page-sub-title"><?= Yii::$app->params['page_sub_title'] ?></div><?php } ?>
+                        </div>
+                        <?php } // -t ?>
                     </div>
-                </div>
+                    <?php if (strpos(Yii::$app->params['page_layout'], '-a') === false) { ?>
+                    <div class="my-page-actions d-print-none d-flex align-items-center">
+                        <?php if (isset(Yii::$app->params['page_actions']) && is_array(Yii::$app->params['page_actions'])) { ?>
+                        <ul class="nav nav-pills nav-pills-bordered nav-pills-toolbar mb-0">
+                            <?php
+                            foreach (Yii::$app->params['page_actions'] as $iii=>$iBtnGroup) {
+                                foreach ($iBtnGroup as $iBtn) {
+                                    if (isset($iBtn) && (!isset($iBtn['hidden']) || !$iBtn['hidden'])) {
+                                        if (isset($iBtn['submenu']) && is_array($iBtn['submenu'])) { ?>
+                            <li class="nav-item dropdown">
+                                <span class="nav-link dropdown-toggle" data-toggle="dropdown"></span>
+                                <ul class="dropdown-menu dropdown-menu-right"><?php
+                                foreach ($iBtn['submenu'] as $i2Btn) {
+                                    if ($i2Btn == ['-']) { ?>
+                                                <li class="dropdown-divider"></li><?php
+                                    } else {
+                                        if (!isset($i2Btn['hidden']) || !$i2Btn['hidden']) {
+                                            $i2BtnIcon = '';
+                                            if (isset($i2Btn['icon'])) {
+                                                if (substr($i2Btn['icon'], 0, 6) == 'slicon') {
+                                                    $i2BtnIcon = '<i class="'.$i2Btn['icon'].'"></i> ';
+                                                } else {
+                                                    $i2BtnIcon = '<i class="fa fa-fw fa-'.$i2Btn['icon'].'"></i> ';
+                                                }
+                                            }
+                                            $i2BtnLabel = $i2Btn['label'] ?? '';
+                                            $i2BtnTitle = $i2Btn['title'] ?? '';
+                                            $i2BtnClass = 'dropdown-item '.($i2Btn['class'] ?? '');
+                                            if (isset($i2Btn['active']) && $i2Btn['active']) {
+                                                $i2BtnClass .= ' active';
+                                            }
+                                            $i2BtnLink = isset($i2Btn['link']) ? $i2Btn['link'] : '#';
+                                            if (substr($i2BtnLink, 0, 1) != '#' && substr($i2BtnLink, 0, 5) != '@web/' && strpos($i2BtnLink, '//') === false) {
+                                                $i2BtnLink = '@web/'.$i2BtnLink;
+                                            } ?>
+                                                <?= Html::a($i2BtnIcon.$i2BtnLabel, $i2BtnLink, ['class'=>$i2BtnClass, 'title'=>$i2BtnTitle]) ?><?php
+                                        }
+                                    } // if divider
+                                } // foreach i2Btn ?>
+                                </ul>
+                            </li><?php
+                            // Neu chua het thi tiep tuc <ul>
+                            if ($iii < count(Yii::$app->params['page_actions'])) { ?>
+                        </ul>
+                        <ul class="ml-1 nav nav-pills nav-pills-bordered nav-pills-toolbar mb-0">
+                            <?php
+                                    }
+                                } else {
+                                    $iBtnIcon = '';
+                                    if (isset($iBtn['icon'])) {
+                                        if (substr($iBtn['icon'], 0, 6) == 'slicon') {
+                                            $iBtnIcon = '<i class="'.$iBtn['icon'].'"></i> ';
+                                        } else {
+                                            $iBtnIcon = '<i class="fa fa-fw fa-'.$iBtn['icon'].'"></i> ';
+                                        }
+                                    }
 
-                <?php if (strpos(Yii::$app->params['page_layout'], '-t') === false) { ?>
-                <div class="page-header-content header-elements-md-inline">
-                    <div class="page-title d-flex">
-                        <h2>
-                            <!-- <i class="slicon-arrow-left-circle mr-2"></i> -->
-                            <span class="font-weight-semibold"><?= Yii::$app->params['page_title'] ?></span>
-                            <?= Yii::$app->params['page_small_title'] ?? '' ?>
-                        </h2>
-                        <!-- <a href="#" class="header-elements-toggle text-default d-md-none"><i class="icon-more"></i></a> -->
+                                    $iBtnLabel = isset($iBtn['label']) ? $iBtn['label'] : '';
+                                    $iBtnTitle = isset($iBtn['title']) ? $iBtn['title'] : '';
+                                    $iBtnClass = 'nav-link ';
+                                    $iBtnClass .= isset($iBtn['class']) ? $iBtn['class'] : '';
+                                    if (isset($iBtn['active']) && $iBtn['active']) {
+                                        $iBtnClass .= ' active';
+                                    }
+                                    $iBtnLink = isset($iBtn['link']) ? $iBtn['link'] : '#';
+                                    if (substr($iBtnLink, 0, 1) != '#' && substr($iBtnLink, 0, 5) != '@web/' && strpos($iBtnLink, '//') === false) {
+                                        $iBtnLink = '@web/'.$iBtnLink;
+                                    }
+
+                                    //echo Html::a($iBtnIcon.$iBtnLabel, $iBtnLink, ['class'=>$iBtnClass, 'title'=>$iBtnTitle]);
+                                    ?>
+                                            <li class="nav-item"><?= Html::a($iBtnIcon.$iBtnLabel, $iBtnLink, ['class'=>$iBtnClass, 'title'=>$iBtnTitle, '-style'=>'padding:0 4px']) ?></li><?php
+                                }// if submenu
+                                    } // if not hidden iBtn
+                                } // foreach button
+                            } // foreach button group ?>
+                        </ul>
+                        <?php } ?>
                     </div>
-                    <!-- <div class="header-elements d-none">
-                    </div> -->
+                    <?php } // -a ?>
                 </div>
-                <?php } // -t ?>
+                <?php } // -h ?>
+                <?php if (!empty($this->blocks['page_tabs'])) { ?>
+                <div class="my-page-header-2 bg-light">
+                    <?= $this->blocks['page_tabs'] ?? '' ?>
+                </div>
+                <?php } else { ?>
+                <?php } ?>
             </div>
-            <? } // -h ?>
 
 
             <!-- Content area -->
