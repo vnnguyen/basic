@@ -1,4 +1,4 @@
-<?php
+ <?php
 use yii\helpers\Html;
 use yii\helpers\Markdown;
 use yii\helpers\FileHelper;
@@ -74,7 +74,7 @@ foreach ($theVenue['dvc'] as $dvc) {
 }
 ?>
 <script>
-var venue_id = <?= $theVenue['id'] ?> 
+var venue_id = <?= $theVenue['id'] ?>
 var lang = '<?= Yii::$app->language ?>'
 </script>
 <?php
@@ -101,7 +101,7 @@ foreach ($range as $i=>$rg) {
     try {
         $from = \DateTime::createFromFormat('j/n/Y', $r[0])->format('Y-m-d');
     } catch (Exception $e) {
-        echo $r[0]; exit;        
+        echo $r[0]; exit;
     }
     $until = \DateTime::createFromFormat('j/n/Y', $r[1])->format('Y-m-d');
     $data_set .= "{id: $cnt, group: '{$rg['group']}', content: '{$rg['code']}', start: '$from 00:00:00', end: '$until 23:59:59', type: 'background', className: 'bg$bg'}";

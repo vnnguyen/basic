@@ -3,7 +3,42 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
 
 Yii::$app->params['page_title'] = Yii::t('x', 'B2C').' - '.Yii::t('x', 'Conversion rate');
-
+$arr_link = [];
+$link = '';
+if (!empty($_GET)) {
+    foreach ($_GET as $k => $v) {//req_countries[]=kh&req_countries[]=vn
+        if($v != ''){
+            if (is_array($v)) {
+                foreach ($v as $v1) {
+                    $arr_link[] = $k . '[]=' . $v1;
+                }
+            } else {
+                $arr_link[] = $k . '=' . $v;
+            }
+        }
+    }
+    $link = implode("&", $arr_link);
+    // /cases?is_b2b=no&created_at=2019-01&deal_status=pending&date_end=2019&req_countries_select=any&display_table=date_case_created
+    $sql_clause = 'created_at';
+    if ($display_table == 'date_case_created') {
+        $sql_clause = 'date_created';
+    }
+    if ($display_table == 'date_case_assigned') {
+        $sql_clause = 'date_assigned';
+    }
+    if ($display_table == 'date_case_won') {
+        $sql_clause = 'date_won';
+    }
+    if ($display_table == 'date_case_closed') {
+        $sql_clause = 'date_closed';
+    }
+    if ($display_table == 'date_tour_start') {
+        $sql_clause = 'date_start';
+    }
+    if ($display_table == 'date_tour_end') {
+        $sql_clause = 'date_end';
+    }
+}
 include('_report_b2c_inc.php');
 
 function rtrim0($text) {
@@ -200,7 +235,14 @@ for ($y = $yMax; $y >= $yMin; $y --) {
     }
 }
 $createdDateList = ArrayHelper::map($yList, 'name', 'value', 'group');
-
+$displayList = [
+    "date_case_created" => Yii::t("x", "Date case created"),
+    "date_case_assigned" => Yii::t("x", "Date case assigned"),
+    "date_case_closed" => Yii::t("x", "Date case closed"),
+    "date_case_won" => Yii::t("x", "Date case won"),
+    "date_tour_start" => Yii::t("x", "Date tour start"),
+    "date_tour_end" => Yii::t("x", "Date tour end"),
+];
 ?>
 <style>
 .index-caret {position:absolute; margin:-6px 0 0 0}
@@ -274,7 +316,7 @@ $createdDateList = ArrayHelper::map($yList, 'name', 'value', 'group');
                 <?php if ($nationality != '') { ?><strong><?= Yii::t('x', 'Nationality of travelers') ?>:</strong> <span class="flag-icon flag-icon-<?= $nationality ?>"></span> <?= strtoupper($nationality) ?>; <?php } ?>
                 <?php if ($age != '') { ?><strong><?= Yii::t('x', 'Age of travelers') ?>:</strong> <?= $paxAgeGroupList[$age] ?? $age ?>; <?php } ?>
                 <?php if ($paxcount != '') { ?><strong><?= Yii::t('x', 'Number of travelers') ?>:</strong> <?= $paxcount ?>; <?php } ?>
-                <?php if (!empty($req_countries)) { ?><strong><?= Yii::t('x', 'Countries wishing to visit') ?>:</strong> 
+                <?php if (!empty($req_countries)) { ?><strong><?= Yii::t('x', 'Countries wishing to visit') ?>:</strong>
                     <?= $dkdiemdenList[$req_countries_select] ?? $req_countries_select ?>
                     <?php
                     $reqCountries = [];
@@ -308,6 +350,10 @@ $createdDateList = ArrayHelper::map($yList, 'name', 'value', 'group');
                 <?php if ($req_theme != '') { ?><strong><?= Yii::t('x', 'Travel theme') ?>:</strong> <?= $kaseReqTourThemeList[$req_theme] ?? $req_travel_theme ?>; <?php } ?>
                 <?php if ($req_tour != '') { ?><strong><?= Yii::t('x', 'Requested tour') ?>:</strong> <?= $kaseRequestedTourList[$req_tour] ?? $req_tour ?>; <?php } ?>
                 <?php if ($req_extension != '') { ?><strong><?= Yii::t('x', 'Requested extension') ?>:</strong> <?= $kaseFormuleList[$req_extension] ?? $req_extension ?>; <?php } ?>
+                <?php if ($display_table != '') { ?>
+                    <strong><?= Yii::t('x', 'Table displayed') ?>:</strong>
+                    <?= $display_table ?>;
+                <?php } ?>
 
                 <a href="#" class="action-show-filters"><?= Yii::t('x', 'Alter conditions') ?></a>
                 <a href="#" class="action-cancel-filters" style="display:none;"><?= Yii::t('x', 'Cancel') ?></a>
@@ -479,6 +525,12 @@ $createdDateList = ArrayHelper::map($yList, 'name', 'value', 'group');
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Requested extensions') ?>:</label>
                                 <div class="col-sm-9 has-select2"><?= Html::dropdownList('req_extension', $req_extension, $kaseFormuleList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?></div>
                             </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Display table') ?>:</label>
+                                <div class="col-sm-9">
+                                <?= Html::dropdownList('display_table', $display_table, $displayList, ['class'=>'form-control', 'prompt'=>Yii::t('x', '(Any)')]) ?>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -497,181 +549,302 @@ $createdDateList = ArrayHelper::map($yList, 'name', 'value', 'group');
             <?php if ($groupby == 'source' || $groupby == 'seller') { ?>
             <p>Click tên nhóm để ẩn/hiện số hồ sơ.</p>
             <?php } ?>
-            <table class="table table-sm table-bordered">
-                <thead>
-                    <tr>
-                        <th>Chỉ số \ Tháng (năm <?= $year ?>)</th>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <th class="text-center" width="6%"><?= $m ?></th>
-                        <?php } ?>
-                        <th class="text-center" width="7%">Cả năm</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($groupby == 'source') { ?>
+            <p><strong>CASE IN MONTH VIEW</strong></p>
+            <?php $minYear = min($years); ?>
+            <?php $maxYear = max($years); ?>
+            <?php if (!isset($maxYear)) $maxYear = date('Y'); ?>
+            <?php if (!isset($minYear)) $minYear = date('Y') - 1; ?>
+            <ul class="nav nav-tabs mb-1em click_tab" role="tablist" id="btn-group">
+                <? for ($yr = $minYear; $yr <= $maxYear; $yr ++) { ?>
+                <li class="nav-item <?= $yr == $maxYear ? ' active show' : ''?>"><a class="nav-link <?= $yr == $maxYear ? ' active' : ''?>" data-toggle="tab" href="#year<?= $yr ?>"><?= $yr ?></a></li>
+                <? } ?>
+            </ul>
 
-                    <?php foreach ($caseHowContactedListFormatted as $hck=>$hcn) { ?>
-                    <tr class="success">
-                        <td class="text-bold" onclick="$('.togglable').toggle(0);"><?= $hcn ?></td>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <td class="text-success text-center">
-                            <?php if ($result['grouped-source'][$hck][$year][$m]['total'] == 0) { ?>
-                            <?php } else { ?>
-                            <?= rtrim0(number_format(100 * $result['grouped-source'][$hck][$year][$m]['won'] / $result['grouped-source'][$hck][$year][$m]['total'], 2)) ?>%
-                            <?php } ?>
-                        </td>
-                        <?php } ?>
-                        <td class="text-success text-center text-bold">
-                            <?php if ($result['grouped-source'][$hck][$year][0]['total'] == 0) { ?>
-                            <?php } else { ?>
-                            <?= rtrim0(number_format(100 * $result['grouped-source'][$hck][$year][0]['won'] / $result['grouped-source'][$hck][$year][0]['total'], 2)) ?>%
-                            <?php } ?>
-                        </td>
-                    </tr>
-                        <?php foreach ($indexList as $index=>$item) { ?>
-                    <tr class="togglable">
-                        <th>
-                            <i class="fa fa-square position-left" style="color:<?= $item['color'] ?>"></i>
-                            <?= $item['label'] ?>
-                        </th>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <td class="text-center <?= $index == 'total' ? 'text-bold' : '' ?>">
-                            <?= $result['grouped-source'][$hck][$year][$m][$index] ?>
-                        </td>
-                        <?php } ?>
-                        <td class="text-center text-bold">
-                            <?= $result['grouped-source'][$hck][$year][0][$index] ?>
-                        </td>
-                    </tr>
-                        <?php } ?>
-                    <?php } ?>
+            <div id="tab-content" class="tab-content">
+                <? for ($yr = $minYear; $yr <= $maxYear; $yr ++) { ?>
+                <div id="year<?= $yr ?>" class="tab-pane fade <?= $yr == $maxYear ? 'active show' : '' ?>">
+                    <table class="table table-sm table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Chỉ số \ Tháng (năm <?= $yr ?>)</th>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <th class="text-center" width="6%"><?= $m ?></th>
+                                <?php } ?>
+                                <th class="text-center" width="7%">Cả năm</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($groupby == 'source') { ?>
 
-                    <?php } elseif ($groupby == 'seller') { ?>
-
-                    <?php foreach ($result['grouped-seller'] as $sid=>$sre) {
-                        $ownerName = $sid;
-                        foreach ($ownerList as $owner) {
-                            if ($owner['id'] == $sid) {
-                                $ownerName = $owner['lname'].' - '.$owner['email'];
-                                break;
-                            }
-                        }
-                        ?>
-                    <tr class="success">
-                        <td class="text-bold" onclick="$('.togglable').toggle(0);"><?= $ownerName ?></td>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <td class="text-success text-center">
-                            <?php if ($result['grouped-seller'][$sid][$year][$m]['total'] == 0) { ?>
-                            <?php } else { ?>
-                            <?= rtrim0(number_format(100 * $result['grouped-seller'][$sid][$year][$m]['won'] / $result['grouped-seller'][$sid][$year][$m]['total'], 2)) ?>%
+                            <?php foreach ($caseHowContactedListFormatted as $hck=>$hcn) { ?>
+                            <tr class="success">
+                                <td class="text-bold" onclick="$('.togglable').toggle(0);"><?= $hcn ?></td>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <td class="text-success text-center">
+                                    <?php if ($result['grouped-source'][$hck][$yr][$m]['total'] == 0) { ?>
+                                    <?php } else { ?>
+                                    <?= rtrim0(number_format(100 * $result['grouped-source'][$hck][$yr][$m]['won'] / $result['grouped-source'][$hck][$yr][$m]['total'], 2)) ?>%
+                                    <?php } ?>
+                                </td>
+                                <?php } ?>
+                                <td class="text-success text-center text-bold">
+                                    <?php if ($result['grouped-source'][$hck][$yr][0]['total'] == 0) { ?>
+                                    <?php } else { ?>
+                                    <?= rtrim0(number_format(100 * $result['grouped-source'][$hck][$yr][0]['won'] / $result['grouped-source'][$hck][$yr][0]['total'], 2)) ?>%
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                                <?php foreach ($indexList as $index=>$item) { ?>
+                            <tr class="togglable">
+                                <th>
+                                    <i class="fa fa-square position-left" style="color:<?= $item['color'] ?>"></i>
+                                    <?= $item['label'] ?>
+                                </th>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <td class="text-center <?= $index == 'total' ? 'text-bold' : '' ?>">
+                                    <?= $result['grouped-source'][$hck][$yr][$m][$index] ?>
+                                </td>
+                                <?php } ?>
+                                <td class="text-center text-bold">
+                                    <?= $result['grouped-source'][$hck][$yr][0][$index] ?>
+                                </td>
+                            </tr>
+                                <?php } ?>
                             <?php } ?>
-                        </td>
-                        <?php } ?>
-                        <td class="text-success text-center text-bold">
-                            <?php if ($result['grouped-seller'][$sid][$year][0]['total'] == 0) { ?>
-                            <?php } else { ?>
-                            <?= rtrim0(number_format(100 * $result['grouped-seller'][$sid][$year][0]['won'] / $result['grouped-seller'][$sid][$year][0]['total'], 2)) ?>%
-                            <?php } ?>
-                        </td>
-                    </tr>
-                        <?php foreach ($indexList as $index=>$item) { ?>
-                    <tr class="togglable">
-                        <th>
-                            <i class="fa fa-square position-left" style="color:<?= $item['color'] ?>"></i>
-                            <?= $item['label'] ?>
-                        </th>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <td class="text-center <?= $index == 'total' ? 'text-bold' : '' ?>">
-                            <?= $result['grouped-seller'][$sid][$year][$m][$index] ?>
-                        </td>
-                        <?php } ?>
-                        <td class="text-center text-bold">
-                            <?= $result['grouped-seller'][$sid][$year][0][$index] ?>
-                        </td>
-                    </tr>
-                        <?php } ?>
-                    <?php } ?>
 
-                    <?php } else { ?>
-                    <tr>
-                        <th>
-                            <div><i class="fa fa-star position-left" style="color:gold"></i> <?= Yii::t('x', 'Conversion rate') ?> (<?= Yii::t('x', 'Won') ?>/<?= Yii::t('x', 'Total') ?>)</div>
-                            <div><i class="fa fa-star position-left" style="color:purple"></i> <?= Yii::t('x', 'Highest possible rate') ?> (<?= Yii::t('x', 'Won') ?>+<?= Yii::t('x', 'Pending') ?>/<?= Yii::t('x', 'Total') ?>)</div>
-                        </th>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <td class="text-center success text-success" width="6%">
-                            <div style="font-size:150%"><?= $result['filtered'][$year][$m]['total'] == 0 ? '0' : rtrim0(number_format(100 * $result['filtered'][$year][$m]['won'] / $result['filtered'][$year][$m]['total'], 2))?>%</div>
-                            <div><?= $result['filtered'][$year][$m]['total'] == 0 ? '0' : rtrim0(number_format(100 * ($result['filtered'][$year][$m]['won'] + $result['filtered'][$year][$m]['pending']) / $result['filtered'][$year][$m]['total'], 2))?>%</div>
-                        </td>
-                        <?php } ?>
-                        <td class="text-center success text-bold text-success" width="8%">
-                            <div style="font-size:150%"><?= $result['filtered'][$year][0]['total'] == 0 ? '0' : rtrim0(number_format(100 * $result['filtered'][$year][0]['won'] / $result['filtered'][$year][0]['total'], 2))?>%</div>
-                            <div><?= $result['filtered'][$year][0]['total'] == 0 ? '0' : rtrim0(number_format(100 * ($result['filtered'][$year][0]['won'] + $result['filtered'][$year][0]['pending']) / $result['filtered'][$year][0]['total'], 2))?>%</div>
-                        </td>
-                    </tr>
-                    <?php foreach ($indexList as $index=>$item) { ?>
-                    <tr>
-                        <th>
-                            <i class="fa fa-square position-left" style="color:<?= $item['color'] ?>"></i>
-                            <?= $item['label'] ?> (<?= Yii::t('x', 'Filtered') ?>/<?= Yii::t('x', 'Total') ?>)
-                        </th>
-                        <?php for ($m = 1; $m <= 12; $m ++) { ?>
-                        <td class="text-center <?= $index == 'total' ? 'text-bold' : '' ?>">
-                            <?= Html::a($result['filtered'][$year][$m][$index], '/cases?is_b2b=no&date_created='.$year.'-'.str_pad($m, 2, '0', STR_PAD_LEFT).'&deal_status='.$index) ?>
-                            /
-                            <?= $result['total'][$year][$m][$index] ?>
-                            <!-- <div class="text-muted"><?= $result['total'][$year][$m][$index] == 0 ? '0' : number_format(100 * $result['filtered'][$year][$m][$index] / $result['total'][$year][$m][$index], 2)?>%</div> -->
-                        </td>
-                        <?php } ?>
-                        <td class="text-center text-bold">
-                            <?= Html::a($result['filtered'][$year][0][$index], '/cases?is_b2b=no&date_created='.$year.'&deal_status='.$index) ?>
-                            /
-                            <?= $result['total'][$year][0][$index] ?>
-                            <!-- <div class="text-muted"><?= $result['total'][$year][0]['total'] == 0 ? '0' : number_format(100 * $result['filtered'][$year][0][$index] / $result['total'][$year][0]['total'], 2)?>%</div> -->
-                        </td>
-                    </tr>
-                    <?php } // foreach indexList ?>
-                    <?php } // if grouped by source ?>
-                </tbody>
-            </table>
+                            <?php } elseif ($groupby == 'seller') { ?>
+
+                            <?php foreach ($result['grouped-seller'] as $sid=>$sre) {
+                                $ownerName = $sid;
+                                foreach ($ownerList as $owner) {
+                                    if ($owner['id'] == $sid) {
+                                        $ownerName = $owner['lname'].' - '.$owner['email'];
+                                        break;
+                                    }
+                                }
+                                ?>
+                            <tr class="success">
+                                <td class="text-bold" onclick="$('.togglable').toggle(0);"><?= $ownerName ?></td>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <td class="text-success text-center">
+                                    <?php if ($result['grouped-seller'][$sid][$yr][$m]['total'] == 0) { ?>
+                                    <?php } else { ?>
+                                    <?= rtrim0(number_format(100 * $result['grouped-seller'][$sid][$yr][$m]['won'] / $result['grouped-seller'][$sid][$yr][$m]['total'], 2)) ?>%
+                                    <?php } ?>
+                                </td>
+                                <?php } ?>
+                                <td class="text-success text-center text-bold">
+                                    <?php if ($result['grouped-seller'][$sid][$yr][0]['total'] == 0) { ?>
+                                    <?php } else { ?>
+                                    <?= rtrim0(number_format(100 * $result['grouped-seller'][$sid][$yr][0]['won'] / $result['grouped-seller'][$sid][$yr][0]['total'], 2)) ?>%
+                                    <?php } ?>
+                                </td>
+                            </tr>
+                                <?php foreach ($indexList as $index=>$item) { ?>
+                            <tr class="togglable">
+                                <th>
+                                    <i class="fa fa-square position-left" style="color:<?= $item['color'] ?>"></i>
+                                    <?= $item['label'] ?>
+                                </th>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <td class="text-center <?= $index == 'total' ? 'text-bold' : '' ?>">
+                                    <?= $result['grouped-seller'][$sid][$yr][$m][$index] ?>
+                                </td>
+                                <?php } ?>
+                                <td class="text-center text-bold">
+                                    <?= $result['grouped-seller'][$sid][$yr][0][$index] ?>
+                                </td>
+                            </tr>
+                                <?php } ?>
+                            <?php } ?>
+
+                            <?php } else { ?>
+                            <tr>
+                                <th>
+                                    <div><i class="fa fa-star position-left" style="color:gold"></i> <?= Yii::t('x', 'Conversion rate') ?> (<?= Yii::t('x', 'Won') ?>/<?= Yii::t('x', 'Total') ?>)</div>
+                                    <div><i class="fa fa-star position-left" style="color:purple"></i> <?= Yii::t('x', 'Highest possible rate') ?> (<?= Yii::t('x', 'Won') ?>+<?= Yii::t('x', 'Pending') ?>/<?= Yii::t('x', 'Total') ?>)</div>
+                                </th>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <td class="text-center success text-success" width="6%">
+                                    <div style="font-size:150%"><?= $result['filtered'][$yr][$m]['total'] == 0 ? '0' : rtrim0(number_format(100 * $result['filtered'][$yr][$m]['won'] / $result['filtered'][$yr][$m]['total'], 2))?>%</div>
+                                    <div><?= $result['filtered'][$yr][$m]['total'] == 0 ? '0' : rtrim0(number_format(100 * ($result['filtered'][$yr][$m]['won'] + $result['filtered'][$yr][$m]['pending']) / $result['filtered'][$yr][$m]['total'], 2))?>%</div>
+                                </td>
+                                <?php } ?>
+                                <td class="text-center success text-bold text-success" width="8%">
+                                    <div style="font-size:150%"><?= $result['filtered'][$yr][0]['total'] == 0 ? '0' : rtrim0(number_format(100 * $result['filtered'][$yr][0]['won'] / $result['filtered'][$yr][0]['total'], 2))?>%</div>
+                                    <div><?= $result['filtered'][$yr][0]['total'] == 0 ? '0' : rtrim0(number_format(100 * ($result['filtered'][$yr][0]['won'] + $result['filtered'][$yr][0]['pending']) / $result['filtered'][$yr][0]['total'], 2))?>%</div>
+                                </td>
+                            </tr>
+                            <?php foreach ($indexList as $index=>$item) { ?>
+                            <tr>
+                                <th>
+                                    <i class="fa fa-square position-left" style="color:<?= $item['color'] ?>"></i>
+                                    <?= $item['label'] ?> (<?= Yii::t('x', 'Filtered') ?>/<?= Yii::t('x', 'Total') ?>)
+                                </th>
+                                <?php for ($m = 1; $m <= 12; $m ++) { ?>
+                                <td class="text-center <?= $index == 'total' ? 'text-bold' : '' ?>">
+                                    <?php
+                                    $href = ($link == '')? '/cases?is_b2b=no&date_created='.$yr.'-'.str_pad($m, 2, '0', STR_PAD_LEFT).'&deal_status='.$index: '/cases?is_b2b=no&'.$link.'&'.$sql_clause.'='.$yr.'-'.str_pad($m, 2, '0', STR_PAD_LEFT).'&deal_status='.($index != 'total'?$index:'');
+                                    ?>
+                                    <?= Html::a($result['filtered'][$yr][$m][$index], $href) ?>
+                                    /
+                                    <?= $result['total'][$yr][$m][$index] ?>
+                                    <!-- <div class="text-muted"><?= $result['total'][$yr][$m][$index] == 0 ? '0' : number_format(100 * $result['filtered'][$yr][$m][$index] / $result['total'][$yr][$m][$index], 2)?>%</div> -->
+                                </td>
+                                <?php } ?>
+                                <td class="text-center text-bold">
+
+                                    <?php
+                                    $href = ($link == '')? '/cases?is_b2b=no&date_created='.$yr.'&deal_status='.$index: '/cases?is_b2b=no&'.$link.'&'.$sql_clause.'='.$yr.'&deal_status='.($index != 'total'?$index:'');
+                                    ?>
+                                    <?= Html::a($result['filtered'][$yr][0][$index], $href) ?>
+                                    /
+                                    <?= $result['total'][$yr][0][$index] ?>
+                                    <!-- <div class="text-muted"><?= $result['total'][$yr][0]['total'] == 0 ? '0' : number_format(100 * $result['filtered'][$yr][0][$index] / $result['total'][$yr][0]['total'], 2)?>%</div> -->
+                                </td>
+                            </tr>
+                            <?php } // foreach indexList ?>
+                            <?php } // if grouped by source ?>
+                        </tbody>
+                    </table>
+                </div>
+                <? } ?>
+            </div>
         </div>
     </div>
-</div> 
+</div>
+<?php $chartIndexList = ['total', 'lost', 'won', 'pending'];
+?>
 <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-<script type="text/javascript">
-    google.charts.load('current', {'packages':['corechart']});
-    google.charts.setOnLoadCallback(drawVisualization);
 
-    <?php $chartIndexList = ['total', 'lost', 'won', 'pending']; ?>
-    function drawVisualization() {
-        var data = google.visualization.arrayToDataTable([
-            ['<?= Yii::t('x', 'Month') ?>'<?php foreach ($chartIndexList as $index) { ?>, '<?= $indexList[$index]['label'] ?>'<?php }?>],
+
+<script>
+    google.charts.load('current', {'packages': ['corechart', 'bar'] });
+    google.charts.setOnLoadCallback(drawStuff);
+
+function drawStuff() {
+    var table = new google.visualization.DataTable();
+    table.addColumn('string', '<?= Yii::t('x', 'Month') ?>');
+        <?php foreach ($years as $yr) {
+            foreach ($chartIndexList as $index) { ?>
+                table.addColumn('number', '<?= $yr . ' ' . $indexList[$index]["label"] ?>');
+            <?php }?>
+        <?php }?>
+        // table.addColumn({id: 'year', type: 'string', label: null, role: 'annotation'});//{type:'number', role:'interval'}
+        <?php
+            $arr_months = [];
+            for ($m = 1; $m <= 12; $m ++) {
+                $arr_m = [];
+                $arr_m[] = strval($m);
+                foreach ($years as $y) {
+                    foreach ($chartIndexList as $index) {
+                        $arr_m[] = $result['filtered'][$y][$m][$index];
+                    }
+                }
+                $arr_months[] = $arr_m;
+            }
+
+            foreach ($arr_months as $month) {?>
+                table.addRow([<?php foreach ($month as $k => $v) {
+                        if($k == 0 || strlen($v) == 4){
+                            echo '"'.$v.'"';
+                        } else {
+                            echo $v;
+                        }
+                         echo ($k < count($month) - 1 ? ',' : '');
+                    }?>]);
+            <?php } ?>
+
             <?php
-            foreach ($result['filtered'] as $y=>$r) {
-                for ($m = 1; $m <= 12; $m ++) { ?>
-            ['<?= $m ?>'<?php foreach ($chartIndexList as $index) { ?>, <?= $result['filtered'][$year][$m][$index]?><?php }?>],
-            <?php } }?>
-      
-        ]);
-    
-        var options = {
-            title : 'Number of Cases',
-            vAxis: {title: 'Số hồ sơ'},
-            hAxis: {title: 'Tháng (<?= $year ?>)'},
-            seriesType: 'bars',
-            series: {0: {type: 'line'}},
-            colors: [<?php foreach ($chartIndexList as $index) { echo '\'', $indexList[$index]['color'], '\'', ($index == 'pending' ? '' : ', '); } ?>],
-            isStacked: true
-        };
-        
-        var chart = new google.visualization.ComboChart(document.getElementById('chart1'));
-        chart.draw(data, options);
-    }
+            $arr_line = [];
+            $cnt = 0;
+            foreach ($years as $y) {
+
+                foreach($chartIndexList as $index) {
+                    $cnt++;
+                }
+                $arr_line[] = $cnt;
+            }
+
+            $cnt = 0;
+            $stack = 0;
+            $series = [];
+            foreach ($years as $y) {
+                for($i = 1; $i <=count($chartIndexList); $i++) {
+                    $series[$cnt] = $stack;
+                    $cnt++;
+                }
+                $stack++;
+            }
+            ?>
+    // Set chart options
+    var options = {
+        isStacked: true,
+        legend: {position: 'top', alignment: 'start'},
+        title : 'Number of Cases',
+        hAxis: {title: 'Tháng (<?= implode(',', $years) ?>)'},
+        vAxis: {
+            viewWindow: {
+                min: 0,
+                max: 1000
+            }
+        },
+        series: {
+                <?php
+                $cnt_color = 0;
+                $colors = ['black','#f44336','#4caf50','#2196f3'];
+                foreach ($series as $k => $v) {
+                    // if(in_array($k, $arr_line)) continue;
+                    if ($cnt_color == count($chartIndexList)) {
+                        $cnt_color = 0;
+                    }
+                ?>
+                <?= $k?>: { targetAxisIndex: <?= $v?>, color: '<?= $colors[$cnt_color]?>' },
+                <?php $cnt_color ++; } ?>
+            },
+    };
+
+    // Instantiate and draw our chart, passing in some options.
+    var chart = new google.charts.Bar(document.getElementById('chart1'));
+    chart.draw(table, google.charts.Bar.convertOptions(options));
+};
 </script>
-  
+
 <?php
 
 $js = <<<'JS'
+
+    $('.has-drp input').daterangepicker({
+        autoUpdateInput: false,
+        locale: {
+            format: 'YYYY-MM-DD',
+            cancelLabel: 'Any date'
+        },
+        ranges: {
+           'Last year': [moment().subtract(1, 'year').startOf('year'), moment().subtract(1, 'year').endOf('year')],
+           'Last month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')],
+           'Last week': [moment().subtract(1, 'week').startOf('week'), moment().subtract(1, 'week').endOf('week')],
+           'Last 30 days': [moment().subtract(29, 'days'), moment()],
+           'Last 7 days': [moment().subtract(6, 'days'), moment()],
+           'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+           'Today': [moment(), moment()],
+           'Tomorrow': [moment().add(1, 'days'), moment().add(1, 'days')],
+           'Next 7 Days': [moment(), moment().add(6, 'days')],
+           'Next 30 Days': [moment(), moment().add(29, 'days')],
+           'This month': [moment().startOf('month'), moment().endOf('month')],
+           'This year': [moment().startOf('year'), moment().endOf('year')],
+           'Next month': [moment().add(1, 'months').startOf('month'), moment().add(1, 'months').endOf('month')],
+           'Next year': [moment().add(1, 'years').startOf('year'), moment().add(1, 'years').endOf('year')],
+        },
+    })
+    $('.has-drp input').on('apply.daterangepicker', function(ev, picker) {
+        $(this).val(picker.startDate.format('YYYY-MM-DD') + ' -- ' + picker.endDate.format('YYYY-MM-DD'));
+    });
+
+    $('.has-drp input').on('cancel.daterangepicker', function(ev, picker) {
+        $(this).val('');
+        $(this).parent().addClass('d-none')
+    });
     // $('.selectpicker').selectpicker();
     $('[data-toggle="popover"]').popover()
     $('.action-show-filters').on('click', function(e){
@@ -687,8 +860,19 @@ $js = <<<'JS'
         $('.action-cancel-filters').hide()
     })
     $('.has-select2 select').select2()
+    $('[name="date_created"], [name="date_assigned"], [name="date_closed"], [name="date_won"], [name="date_start"], [name="date_end"]').on('change', function(){
+        var val = $(this).val()
+        if (val == 'custom') {
+            $(this).parent().parent().find('.col-sm-5.has-drp').removeClass('d-none').find(':input:eq(0)').focus();
+        } else {
+            $(this).parent().parent().find('.col-sm-5.has-drp').addClass('d-none').find(':input:eq(0)').val('');
+        }
+    })
 JS;
+$this->registerCssFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.3/daterangepicker.min.css', ['depends'=>'yii\web\JqueryAsset']);
 
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-daterangepicker/3.0.3/daterangepicker.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.12.2/js/bootstrap-select.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJs($js);
 Yii::$app->params['js'] = $js;

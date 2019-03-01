@@ -673,9 +673,6 @@ $js = <<<'JS'
     var downloadToken = new Date().getTime();
     $('#search_form').submit(function(){
         if ($('#export_fields').val().length > 0) {
-            // downloadToken = new Date().getTime(); //use the current timestamp as the token value
-            // $('[name="downloadToken"]').val(downloadToken);
-            // timer();
             blockUIForDownload();
         }
         return true;

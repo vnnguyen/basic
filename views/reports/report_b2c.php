@@ -85,6 +85,7 @@ th {background-color:#f3f3f3;}
                 <?php if ($doanhthu != '') { ?><strong>Doanh thu:</strong> <?= $doanhthu ?> <span class="text-muted"><?= $currency ?></span>; <?php } ?>
                 <?php if ($loinhuan != '') { ?><strong>Lợi nhuận:</strong> <?= $loinhuan ?> <span class="text-muted"><?= $currency ?></span>; <?php } ?>
                 <?php if (!empty($diemden)) { ?><strong>Điểm đến:</strong> <?= implode(', ', $diemden) ?> (<?= $dkdiemden ?>); <?php } ?>
+                <?php if (!empty($kx_source) || !empty($tx_source)) { ?><strong>Nguồn:</strong> <?= implode(', ', $kx_source) ?> | <?= implode(', ', $tx_source) ?>; <?php } ?>
                 &nbsp;
                 &middot;
                 <a href="#" class="action-cancel-filters" style="display:none;"><?= Yii::t('x', 'Cancel') ?></a>
@@ -114,7 +115,7 @@ th {background-color:#f3f3f3;}
                                 <label class="col-sm-3 control-label">Loại tiền quy đổi:</label>
                                 <div class="col-sm-9"><?= Html::dropdownList('currency', $currency, $currencyList, ['class'=>'form-control']) ?></div>
                             </div>
-<!--
+                        <!--
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label">(X) Doanh thu:</label>
                                 <div class="col-sm-9"><?= Html::textInput('doanhthu', $doanhthu, ['class'=>'form-control', 'placeholder'=>'VD. 1000-2000']) ?></div>
@@ -134,17 +135,21 @@ th {background-color:#f3f3f3;}
                                 <label class="col-sm-3 control-label">Số ngày tour:</label>
                                 <div class="col-sm-9"><?= Html::textInput('songay', $songay, ['class'=>'form-control', 'placeholder'=>'VD. 8-10']) ?></div>
                             </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label">Nguồn:</label>
+                                <div class="col-sm-4 has-select2"><?= Html::dropdownList('kx_source', $kx_source, ArrayHelper::map($channelList, 'id', 'name'), ['class'=>'form-control', 'multiple'=>'multiple']) ?></div>
+                                <div class="col-sm-5 has-select2"><?= Html::dropdownList('tx_source', $tx_source, ArrayHelper::map($typeList, 'id', 'name'), ['class'=>'form-control', 'multiple'=>'multiple']) ?></div>
+                            </div>
 
-                            <!--
+
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label">(X) Điểm đến:</label>
-                                <div class="col-sm-9 has-select2"><?= Html::dropdownList('diemden', '', ArrayHelper::map($destList, 'code', 'name_en'), ['class'=>'form-control', 'multiple'=>'multiple']) ?></div>
-                            </div>                            
+                                <div class="col-sm-9 has-select2"><?= Html::dropdownList('diemden', $diemden, ArrayHelper::map($destList, 'code', 'name_en'), ['class'=>'form-control', 'multiple'=>'multiple']) ?></div>
+                            </div>
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label">(X) Điều kiện điểm đến:</label>
-                                <div class="col-sm-9"><?= Html::dropdownList('dkdiemden', '', $dkdiemdenList, ['class'=>'form-control', 'placeholder'=>'VD. 8-10']) ?></div>
+                                <div class="col-sm-9"><?= Html::dropdownList('dkdiemden', $dkdiemden, $dkdiemdenList, ['class'=>'form-control', 'placeholder'=>'VD. 8-10']) ?></div>
                             </div>
--->
                         </div>
                     </div>
                     <div class="-text-right">
@@ -339,7 +344,11 @@ th {background-color:#f3f3f3;}
             </table>
         </div>
     </div>
-
+    <div class="actions-fillter mb-2 text-right d-none">
+        <form id="form_fillter">
+            <button name="export-data" class="btn btn-info export-data" type="submit">Export to excel</button>
+        </form>
+    </div>
     <div class="card">
         <div class="card-header bg-white">
             <h6 class="card-title"><i class="fa fa-circle-o mr-2"></i><?= Yii::t('x', 'Chi tiết thực tế các tour trong từng tháng') ?></h6>
@@ -356,6 +365,8 @@ th {background-color:#f3f3f3;}
                     <th class="text-right" width="120">Giá vốn</th>
                     <th class="text-right" width="120">Lơi nhuận</th>
                     <th class="text-right" width="80">% lãi</th>
+                    <th class="text-center" width="60">Kx</th>
+                    <th class="text-center" width="60">Tx</th>
                     <th>Note</th>
                 </tr>
 
@@ -373,6 +384,8 @@ th {background-color:#f3f3f3;}
                     <td class="text-right text-danger"><?= number_format($detailItem[4]) ?> <span class="text-muted"><?= $currency ?></span></td>
                     <td class="text-right text-success"><?= number_format($detailItem[3] - $detailItem[4]) ?> <span class="text-muted"><?= $currency ?></span></td>
                     <td class="text-right"><?= number_format($detailItem[3] == 0 ? 0 : 100 * ($detailItem[3] - $detailItem[4]) / $detailItem[3], 2) ?> <span class="text-muted">%</span></td>
+                    <td class="text-center"><?= $detailItem[7] ?></td>
+                    <td class="text-center"><?= $detailItem[8] ?></td>
                     <td></td>
                 </tr>
                 <?php } ?>
@@ -385,6 +398,8 @@ th {background-color:#f3f3f3;}
                     <th class="text-right text-danger"><?= number_format($result[$year][$m][6]['actual']) ?> <span class="text-muted"><?= $currency ?></span></th>
                     <th class="text-right text-success"><?= number_format($result[$year][$m][7]['actual']) ?> <span class="text-muted"><?= $currency ?></span></th>
                     <th class="text-right"><?= number_format($result[$year][$m][17]['actual'], 2) ?> <span class="text-muted">%</span></th>
+                    <th class="text-center"><?= 0 ?></th>
+                    <th class="text-center"><?= 0 ?></th>
                     <th></th>
                 </tr>
                 <tr><td colspan="9"></td></tr>
@@ -435,6 +450,26 @@ th {background-color:#f3f3f3;}
 <?php
 
 $js = <<<'JS'
+// $('.export-data').on('click', function(){
+//     // console.log();
+//     var url = $('#form_fillter').prop('action');
+//     $.ajax({
+//         url: url,
+//         method: 'GET'
+//     })
+//     .done(function(data) {
+//         console.log(data);
+
+//     }, 'json')
+//     .fail(function(data) {
+//         if (data['message']) {
+//             alert(data['message']);
+//         } else {
+//             alert('Error export!');
+//         }
+//     });
+//     return false;
+// });
 $('[data-toggle="popover"]').popover()
 $('.action-show-filters').on('click', function(e){
     e.preventDefault()

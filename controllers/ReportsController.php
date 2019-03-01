@@ -35,6 +35,9 @@ class ReportsController extends MyController
             'xexport' => [
                 'class' => 'lajax\translatemanager\controllers\actions\ExportAction',
             ],
+            'b2c-conversion-rate'=>[
+                'class'=>'app\controllers\actions\reports\B2cConversionRate',
+            ],
         ];
     }
 
