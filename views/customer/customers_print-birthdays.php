@@ -1,21 +1,20 @@
-<?
+<?php
 use yii\helpers\Html;
 use yii\helpers\ArrayHelper;
-use yii\widgets\LinkPager;
-use yii\widgets\ActiveForm;
 
-
-$this->title = 'Customers birthdates ('.count($theUsers).')';
-$this->params['icon'] = 'group';
-$this->params['breadcrumb'] = [
+Yii::$app->params['page_title'] = 'Customers birthdates ('.count($theUsers).')';
+Yii::$app->params['page_icon'] = 'group';
+Yii::$app->params['page_breadcrumbs'] = [
 	['Customers', 'customers'],
 	['Birthdates', 'customers/birthdays'],
 ];
 
 ?>
 <div class="col-md-12">
-	<? if (empty($theUsers)) { ?><p>No data found.</p><? } else { ?>
-	<table class="table table-bordered table-condensed table-striped">
+	<?php if (empty($theUsers)) { ?>
+	<div class="text-danger">No data found.</div>
+	<?php } else { ?>
+	<table class="table table-bordered table-narrow table-striped">
 		<thead>
 			<tr>
 				<th width="30">Nationality</th>
@@ -28,7 +27,7 @@ $this->params['breadcrumb'] = [
 			</tr>
 		</thead>
 		<tbody>
-			<? foreach ($theUsers as $li) { ?>
+			<?php foreach ($theUsers as $li) { ?>
 			<tr>
 				<td><?= strtoupper($li['country_code']) ?></td>
 				<td><?= $li['fname'] ?></td>
@@ -38,8 +37,8 @@ $this->params['breadcrumb'] = [
 				<td>
 					<?
 					foreach ($li['metas'] as $meta) {
-						if ($meta['k'] == 'email') {
-							echo $meta['v'];
+						if ($meta['name'] == 'email') {
+							echo $meta['value'];
 							break;
 						}
 					}
@@ -48,8 +47,8 @@ $this->params['breadcrumb'] = [
 				<td>
 					<?
 					foreach ($li['metas'] as $meta) {
-						if ($meta['k'] == 'tel' || $meta['k'] == 'mobile') {
-							echo $meta['v'];
+						if ($meta['name'] == 'tel' || $meta['name'] == 'mobile') {
+							echo $meta['value'];
 							break;
 						}
 					}
@@ -58,16 +57,16 @@ $this->params['breadcrumb'] = [
 				<td>
 					<?
 					foreach ($li['metas'] as $meta) {
-						if ($meta['k'] == 'address') {
-							echo $meta['v'];
+						if ($meta['name'] == 'address') {
+							echo $meta['value'];
 							break;
 						}
 					}
 					?>
 				</td>
 			</tr>
-			<? } ?>
+			<?php } ?>
 		</tbody>
 	</table>
-	<? } ?>
+	<?php } ?>
 </div>

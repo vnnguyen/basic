@@ -1,0 +1,83 @@
+<?php
+$languageList = [
+    'de'=>'Deutsch',
+    'en'=>'English',
+    'es'=>'Espanol',
+    'fr'=>'Francais',
+    'it'=>'Italiano',
+    'vi'=>'Tiếng Việt',
+    'zh'=>'中文',
+];
+
+$customerProfileList = [
+    1=>Yii::t('p', 'Grand voyageur'),
+    2=>Yii::t('p', 'Backpacker'),
+    3=>Yii::t('p', 'Expatrié'),
+    4=>Yii::t('p', 'Origines Vietnamiennes'),
+    5=>Yii::t('p', 'Origines Laotiennes'),
+    6=>Yii::t('p', 'Origines Cambodgiennes'),
+    7=>Yii::t('p', 'Adoption d’un enfant en Asie du Sud-Est'),
+    8=>Yii::t('p', 'Membre d’une association : précisez'),
+    10=>Yii::t('p', 'Photographe professionnel'),
+    11=>Yii::t('p', 'Voyage avec un enfant en bas âge'),
+];
+
+$travelPrefList = [
+    1=>Yii::t('p', 'Client très exigent'),
+    2=>Yii::t('p', 'Budget  critère principal'),
+    3=>Yii::t('p', 'Confort comme priorité'),
+    4=>Yii::t('p', 'Séjour Balnéaire'),
+    5=>Yii::t('p', 'Interaction Locale'),
+    6=>Yii::t('p', 'Aime le calme'),
+    7=>Yii::t('p', 'Pas de nuits chez l’Habitant'),
+    8=>Yii::t('p', 'Préférence pour hôtels de charme/boutique'),
+];
+
+$likeList = [
+    1=>Yii::t('p', 'Photographie'),
+    2=>Yii::t('p', 'Vélo'),
+    3=>Yii::t('p', 'VTT'),
+    4=>Yii::t('p', 'Plongée sous-marine'),
+    5=>Yii::t('p', 'Snorkeling'),
+    6=>Yii::t('p', 'Sport nautiques'),
+    7=>Yii::t('p', 'Golf'),
+    8=>Yii::t('p', 'Equitation'),
+    9=>Yii::t('p', 'Yoga'),
+    10=>Yii::t('p', 'Danse'),
+    11=>Yii::t('p', 'Ski'),
+    12=>Yii::t('p', 'Autres sports'),
+    13=>Yii::t('p', 'Moto'),
+    14=>Yii::t('p', 'Gastronomie locale'),
+    15=>Yii::t('p', 'Nature, paysages, grands espaces'),
+    16=>Yii::t('p', 'Les sites culturels et monuments'),
+    17=>Yii::t('p', 'Artisanat'),
+    18=>Yii::t('p', 'Art et architecture'),
+    19=>Yii::t('p', 'Activités artistiques : théâtre, spectacles, expositions'),
+    20=>Yii::t('p', 'Musique'),
+    21=>Yii::t('p', 'Lecture'),
+    22=>Yii::t('p', 'Jardinage'),
+    23=>Yii::t('p', 'Plage et farniente'),
+    24=>Yii::t('p', 'Histoire'),
+    25=>Yii::t('p', 'Les rencontres'),
+    26=>Yii::t('p', 'Bateau'),
+    27=>Yii::t('p', 'Pêche'),
+    28=>Yii::t('p', 'Bricolage'),
+    29=>Yii::t('p', 'Archéologie'),
+    30=>Yii::t('p', 'Faune / sites animaliers'),
+    31=>Yii::t('p', 'Développement durable'),
+    32=>Yii::t('p', 'Shopping'),
+    33=>Yii::t('p', 'Marches / randonnées'),
+];
+
+$dislikeList = [
+    1=>Yii::t('p', 'Les grandes villes'),
+    2=>Yii::t('p', 'La foule'),
+    3=>Yii::t('p', 'Trop de musées'),
+    4=>Yii::t('p', 'Trop de sites à visiter (temples, monuments…)'),
+    5=>Yii::t('p', 'Courir pendant le voyage'),
+    6=>Yii::t('p', 'Faire des trajets longs'),
+    7=>Yii::t('p', 'Sport / activité physique intense'),
+    8=>Yii::t('p', 'Le luxe, un confort standard suffit'),
+    9=>Yii::t('p', 'Arrêts shopping obligatoires'),
+    10=>Yii::t('p', 'Etre trop encadré pendant le voyage'),
+];

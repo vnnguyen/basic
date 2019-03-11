@@ -278,23 +278,25 @@ foreach ($theTours as $tour) { ?>
                     <?php if ($orderby == 'created') { ?>
                     <td class="text-center"><?= DateTimeHelper::convert($tour['tour']['created_dt'], 'j/n') ?></td>
                     <?php } ?>
-                    <td class="text-center"><strong><?
-    if ($dayIn != $tour['day_from']) {
-        $dayIn = $tour['day_from'];
-        $jOrjn = 'j/n';
-        // if ($orderby == 'startdate' && $time == date('Y-m')) {
-        //     $jOrjn = 'j';
-        // }
-        echo date($jOrjn, strtotime($dayIn));
-    }
-?></strong>
+                    <td class="text-center"><strong>
+                    <?
+                        if ($dayIn != $tour['day_from']) {
+                            $dayIn = $tour['day_from'];
+                            $jOrjn = 'j/n';
+                            // if ($orderby == 'startdate' && $time == date('Y-m')) {
+                            //     $jOrjn = 'j';
+                            // }
+                            echo date($jOrjn, strtotime($dayIn));
+                        }
+                    ?>
+                    </strong>
                     </td>
                     <td class="text-center">
                         <?php
                         $jOrjn = 'j/n';
-if ($orderby == 'enddate' && $time == date('Y-m')) {
-    $jOrjn = 'j';
-}
+                            if ($orderby == 'enddate' && $time == date('Y-m')) {
+                                $jOrjn = 'j';
+                            }
                         ?>
                         <?= date($jOrjn, strtotime($tour['day_from'].' + '.($tour['day_count'] - 1).'days')) ?>
                     </td>

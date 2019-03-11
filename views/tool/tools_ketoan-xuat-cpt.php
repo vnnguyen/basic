@@ -154,6 +154,7 @@ echo $code;
 </div>
 <?php
 $js = <<<TXT
+    // processing download
     var downloadToken = new Date().getTime();
     $('form').submit(function(){
         // if ($('#export_fields').val().length > 0) {
@@ -184,6 +185,8 @@ $js = <<<TXT
         $.cookie('downloadToken', null); //clears this cookie value
         $.unblockUI();
     }
+    // end download
+
 TXT;
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js', ['depends'=>'app\assets\MainAsset']);
 $this->registerJs($js);
