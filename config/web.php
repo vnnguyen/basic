@@ -136,6 +136,7 @@ $config = [
         ],
         'cache' => $params['components.cache'],
 
+
         'errorHandler' => [
             'errorAction' => 'default/error',
         ],
@@ -176,7 +177,10 @@ $config = [
                 // HUAN, TEST DV CP
                 '<c_:testdv>'=>'<c_>/index',
 
-                // '<c>/<a>/<id:\d+>' => '<c>/<a>',
+                '<c>/<a>/<id:\d+>' => '<c>/<a>',
+
+
+
                 'demo/<a>/<id:\d+>' => 'demo/<a>',
                 'cptour/<a>/<id:\d+>' => 'cptour/<a>',
 
@@ -184,7 +188,7 @@ $config = [
                 '<c_:files|tours|vendors>/r/<id:\d+>'=>'<c_>/r',
 
                 '<c_:accounts|attachments|c___s|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|products|programs|projects|referrals|reports|spaces|tasks|tours|u___s|vendors>'=>'<c_>/index',
-                '<c_:accounts|attachments|cases|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|products|programs|projects|referrals|reports|spaces|tasks|tours|users|vendors>/<id:\d+>'=>'<c_>/r',
+                '<c_:accounts|attachments|cases|companies|contacts|countries|destinations|dv3|feedbacks|filebrowser|files|inquiries|mails|mentions|orgs|payments|places|posts|products|programs|projects|referrals|reports|sample-days|sample-segments|spaces|tasks|tools|tours|users|vendors>/<id:\d+>'=>'<c_>/r',
                 '<c_:accounts|attachments|cases|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|products|programs|projects|referrals|reports|spaces|tasks|tours|u___s|vendors>/<id:\d+>/<a_>'=>'<c_>/<a_>',
                 '<c_:accounts|attachments|c___s|companies|contacts|countries|destinations|feedbacks|filebrowser|files|inquiries|mails|mentions|payments|places|posts|p______s|programs|projects|referrals|reports|spaces|tasks|tours|u___s|vendors>/<a_>'=>'<c_>/<a_>',
 

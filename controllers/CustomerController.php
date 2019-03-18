@@ -27,6 +27,9 @@ class CustomerController extends MyController
             'index'=>[
                 'class'=>'app\controllers\actions\customers\Index',
             ],
+            'export-concat-files'=>[
+                'class'=>'app\controllers\actions\customers\ExportConcatFiles',
+            ],
         ];
     }
     public function actionAjax($action = '', $task_id = 0)

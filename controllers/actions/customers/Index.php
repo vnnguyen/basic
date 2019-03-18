@@ -5,7 +5,7 @@ use Yii;
 use yii\web\Response;
 use yii\data\Pagination;
 
-use app\models\Contact;
+use common\models\Contact;
 use common\models\Country;
 use common\models\ProfileCustomer;
 use common\models\Product;
@@ -56,25 +56,12 @@ class Index extends \yii\base\Action
                     $profile->save(false);
                 }
             }
-            // foreach ($paxIdList as $id) {
-            //     echo '<br>', $id;
-            //     $sql = 'SELECT id FROM at_profiles_customer WHERE user_id=:id LIMIT 1';
-            //     $profileId = Yii::$app->db->createCommand($sql, [':id'=>$id])->queryScalar();
-            //     if (!$profileId) {
-            //         echo ' -- NONE';
-            //     }
-            // }
-            // \fCore::expose($paxIdList);
             exit;
         }
 
         if (!in_array(USER_ID, [1,2,3,4,11,118,695,4432,1351,4432,7756,26435,29296,30554,14671, 18598, 27388, 35071])) {
             //throw new HttpException(403, 'Access denied');
         }
-
-        // if ($output == 'download' && !in_array(USER_ID, [1,695,4432,14671,18598])) {
-        //     throw new HttpException(403, 'Access denied');
-        // }
 
 
         $query = Contact::find()
@@ -240,11 +227,28 @@ class Index extends \yii\base\Action
             ->asArray()
             ->all();
 
+
         if (Yii::$app->request->get('output') == 'download') {
+            $speed = strtotime(date('Y-m-d H:i:s'));
             $arr = ['ID', 'NAME-1', 'NAME-2', 'NAME', 'GENDER', 'COUNTRY', 'Age', 'Language', 'EMAIL', 'PHONE', 'ADDRESS', 'TOURS', 'Customer profile', 'Travel preferences', 'Likes', 'Dislikes', 'No. of bookings', 'No. of referrals'];
+
+
+            /*
+            config cache
+             */
+            // $client = new \yii\caching\MemCache;
+            // $client->connect('localhost', 11211);
+            // $pool = new \Cache\Adapter\Memcache\MemcacheCachePool($client);
+            // $simpleCache = new \Cache\Bridge\SimpleCache\SimpleCacheBridge($pool);
+
+            // \PhpOffice\PhpSpreadsheet\Settings::setCache($simpleCache);
+            // end config
+
+
 
             $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
             $spreadsheet->getActiveSheet()->fromArray($arr, null, 'A1');
+            $activeSheet = $spreadsheet->getActiveSheet();
             $row = 2;
 
             $query->andWhere('at_ct.owner = "at"');
@@ -428,17 +432,11 @@ class Index extends \yii\base\Action
                         $arr[] = implode(', ', $c_dislikes);
                         $arr[] = $customer['profileCustomer']['booking_count'];
                         $arr[] = $customer['profileCustomer']['won_referral_count'];
-                        $spreadsheet->getActiveSheet()->fromArray($arr, null, 'A'. $row);
+                        $activeSheet->fromArray($arr, null, 'A'. $row);
                         $row ++;
                     }
-
-
-                    // $theCptx = $query;
-                    // foreach ($theTours as $tour) {
-                    // }
                 }
             }
-
             header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
             header('Content-Disposition: attachment;filename=customers_list_'.date('Ymd-His'). '.Xlsx');
 
@@ -468,51 +466,6 @@ class Index extends \yii\base\Action
             ->asArray()
             ->all();
 
-
-        if ($output == 'download') {
-            $filename = 'customers_list_'.date('Ymd-His').'.csv';
-            header('Content-Type: text/csv');
-            header('Content-Disposition: attachment;filename='.$filename);
-
-            $out = fopen('php://output', 'w');
-            fwrite($out, chr(239) . chr(187) . chr(191)); // BOM
-
-            $arr = ['ID', 'NAME-1', 'NAME-2', 'NAME', 'GENDER', 'COUNTRY', 'BDAY', 'BMONTH', 'BYEAR', 'EMAIL', 'PHONE', 'ADDRESS', 'TOURS', 'TAGS'];
-            fputcsv($out, $arr);
-
-            foreach ($theUsers as $customer) {
-                $arr = [];
-                $arr[] = $customer['id'];
-                $arr[] = $customer['fname'];
-                $arr[] = $customer['lname'];
-                $arr[] = $customer['name'];
-                $arr[] = $customer['gender'];
-                $arr[] = $customer['country_code'];
-                $arr[] = $customer['bday'];
-                $arr[] = $customer['bmonth'];
-                $arr[] = $customer['byear'];
-                $arr[] = $customer['email'];
-                $arr[] = $customer['phone'];
-                $cAddr = '';
-                foreach ($customer['metas'] as $meta) {
-                    if ($meta['k'] == 'address') {
-                        $cAddr = $meta['v'];
-                        break;
-                    }
-                }
-                $arr[] = $cAddr;
-                $tours = [];
-                foreach ($customer['bookings'] as $tour) {
-                    $tours[] = $tour['product']['op_code'];
-                }
-                $arr[] = implode(', ', $tours);
-                $arr[] = '';
-                fputcsv($out, $arr);
-            }
-
-            fclose($out);
-            exit;
-        }
 
         return $this->controller->render('customer_index', [
             'name'=>$name,
