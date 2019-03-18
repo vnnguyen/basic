@@ -20,13 +20,16 @@ use common\models\ProfileCustomer;
 use \PHPExcel;
 use \PHPExcel_IOFactory;
 
+use Box\Spout\Writer\WriterFactory;
+use Box\Spout\Common\Type;
+
 class CustomerController extends MyController
 {
     public function actions() {
         return [
-            'index'=>[
-                'class'=>'app\controllers\actions\customers\Index',
-            ],
+            // 'index'=>[
+            //     'class'=>'app\controllers\actions\customers\Index',
+            // ],
             'export-concat-files'=>[
                 'class'=>'app\controllers\actions\customers\ExportConcatFiles',
             ],
@@ -168,8 +171,320 @@ class CustomerController extends MyController
             return $response;
         }
     }
-
     public function actionIndex(
+        $name = '',
+        $gender = '',
+        $age = '',
+        $language = '',
+        $country = '',
+        $email = '',
+        $tel = '',
+        $address = '',
+
+        array $profile = [], array $preferences = [], array $likes = [], array $dislikes = [], $amba = '',
+
+        $year = '',
+        $code = '',
+        $output = 'view', // view or download
+        $rcount = 0, // Number of referral cases
+        $bcount = 0 // Number of bookings
+    )
+    {
+        // HUAN fix missing profile customer
+        if (USER_ID == 1 && isset($_GET['fixprofile'])) {
+            $sql = 'SELECT user_id FROM at_booking_user GROUP BY user_id ORDER BY user_id DESC LIMIT 30000, 5000';
+            $paxIdList = Yii::$app->db->createCommand($sql)->queryColumn();
+            $profiles = ProfileCustomer::find()
+                ->select(['id', 'user_id'])
+                ->where(['user_id'=>$paxIdList])
+                ->indexBy('user_id')
+                ->asArray()
+                ->all();
+            foreach ($paxIdList as $paxId) {
+                if (!isset($profiles[$paxId])) {
+                    echo '<br>', $paxId, ' : NONE';
+                    $profile = new ProfileCustomer;
+                    $profile->created_dt = NOW;
+                    $profile->updated_dt = NOW;
+                    $profile->created_by = USER_ID;
+                    $profile->updated_by = USER_ID;
+                    $profile->user_id = $paxId;
+                    $profile->save(false);
+                }
+            }
+            // foreach ($paxIdList as $id) {
+            //     echo '<br>', $id;
+            //     $sql = 'SELECT id FROM at_profiles_customer WHERE user_id=:id LIMIT 1';
+            //     $profileId = Yii::$app->db->createCommand($sql, [':id'=>$id])->queryScalar();
+            //     if (!$profileId) {
+            //         echo ' -- NONE';
+            //     }
+            // }
+            // \fCore::expose($paxIdList);
+            exit;
+        }
+
+        if (!in_array(USER_ID, [1,2,3,4,11,118,695,4432,1351,4432,7756,26435,29296,30554,14671, 27388, 35071, 51011, 51183, 34718])) {
+            //throw new HttpException(403, 'Access denied');
+        }
+
+        if ($output == 'download' && !in_array(USER_ID, [1, 695, 4432, 14671, 17090, 51011, 34718])) {
+            throw new HttpException(403, 'Access denied');
+        }
+
+
+        $query = Contact::find()
+            ->innerJoinWith([
+                'profileCustomer',
+                'bookings'=>function($q){
+                    $q->select(['id', 'product_id']);
+                },
+                'bookings.product'=>function($q){
+                    $q->select(['id', 'op_code', 'day_from'])->andWhere(['owner'=>'at']);
+                },
+            ])
+            ->groupBy('contacts.id');
+
+        $personIdList = [];
+        $searchById = false;
+
+        if (strlen(trim($email)) > 2) {
+            $searchById = true;
+            $personIdListEmail = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'format'=>'email'])
+                ->andWhere(['like', 'value', $email])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListEmail : array_intersect($personIdList, $personIdListEmail);
+        }
+
+        if (strlen(trim($tel)) > 2) {
+            $searchById = true;
+            $personIdListTel = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'format'=>'tel'])
+                ->andWhere(['like', 'value', $tel])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListTel : array_intersect($personIdList, $personIdListTel);
+        }
+
+        if (strlen(trim($address)) > 2) {
+            $searchById = true;
+            $personIdListAddr = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'format'=>'address'])
+                ->andWhere(['like', 'value', $address])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListAddr : array_intersect($personIdList, $personIdListAddr);
+        }
+
+        if (!empty($profile) && (int)$profile[0] > 0) {
+            $searchById = true;
+            $personIdListProfile = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'name'=>'traveler_profile'])
+                ->andWhere('LOCATE(:profile, CONCAT("|", value, "|"))!=0', [':profile'=>'|'.$profile[0].'|'])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListProfile : array_intersect($personIdList, $personIdListProfile);
+
+        }
+
+        if (!empty($preferences) && (int)$preferences[0] > 0) {
+            $searchById = true;
+            $personIdListPrefs = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'name'=>'travel_preferences'])
+                ->andWhere('LOCATE(:prefs, CONCAT("|", value, "|"))!=0', [':prefs'=>'|'.$preferences[0].'|'])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListPrefs : array_intersect($personIdList, $personIdListPrefs);
+        }
+
+        if (!empty($likes) && (int)$likes[0] > 0) {
+            $searchById = true;
+            $personIdListLikes = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'name'=>'likes'])
+                ->andWhere('LOCATE(:like, CONCAT("|", value, "|"))!=0', [':like'=>'|'.$likes[0].'|'])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListLikes : array_intersect($personIdList, $personIdListLikes);
+        }
+
+        if (!empty($dislikes) && (int)$dislikes[0] > 0) {
+            $searchById = true;
+            $personIdListDislikes = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'name'=>'dislikes'])
+                ->andWhere('LOCATE(:dislike, CONCAT("|", value, "|"))!=0', [':dislike'=>'|'.$dislikes[0].'|'])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListDislikes : array_intersect($personIdList, $personIdListDislikes);
+        }
+
+        if ($amba != '') {
+            $searchById = true;
+            $personIdListAmba = Meta::find()
+                ->select(['rid'])
+                ->where(['rtype'=>'user', 'name'=>'ambassaddor_potentiality'])
+                ->andWhere(['value'=>$amba])
+                ->asArray()
+                ->column();
+            $personIdList = empty($personIdList) ? $personIdListAmba : array_intersect($personIdList, $personIdListAmba);
+        }
+
+
+        if ((int)$rcount > 0) {
+            $query->andWhere('won_referral_count>=:rcount', [':rcount'=>(int)$rcount]);
+        }
+
+        if ((int)$bcount > 0) {
+            $query->andWhere('booking_count>=:bcount', [':bcount'=>(int)$bcount]);
+        }
+
+        if ($name != '') {
+            $query->andWhere(['or', ['like', 'fname', $name], ['like', 'lname', $name], ['like', 'name', $name]]);
+        }
+
+        if (in_array($gender, ['male', 'female', 'other'])) {
+            $query->andWhere(['gender'=>$gender]);
+        }
+
+        if ($age != '') {
+            $thisYear = date('Y');
+            $ageFromTo = explode('-', $age);
+            if (is_array($ageFromTo) && count($ageFromTo) == 2) {
+                $from = (int)$ageFromTo[0];
+                $to = (int)$ageFromTo[1];
+                $query->andWhere('byear<=:from', [':from'=>$thisYear - $from])->andWhere('byear>=:to', [':to'=>$thisYear - $to]);
+            } else {
+                if ((int)$age == 0) {
+                    $query->andWhere(['byear'=>0]);
+                } else {
+                    $query->andWhere(['byear'=>$thisYear - $age]);
+                }
+            }
+        }
+
+        if (strlen($country) == 2) {
+            $query->andWhere(['country_code'=>$country]);
+        }
+
+        if (strlen($language) == 2) {
+            $query->andWhere(['contacts.language'=>$language]);
+        }
+
+        if (strlen($year) == 4 && (int)$year > 2006) {
+            $query->andWhere('YEAR(day_from)=:year', [':year'=>$year]);
+        }
+
+        if (strlen($code) >= 4) {
+            $query->andWhere(['like', 'op_code', $code]);
+        }
+
+        if ($searchById) {
+            $query->andWhere(['contacts.id'=>$personIdList]);
+        }
+
+        $countQuery = clone $query;
+        $pagination = new Pagination([
+            'totalCount' => $countQuery->count(),
+            'pageSize'=>25,
+            ]);
+
+        $theCustomers = $query
+            ->with([
+                'bookings',
+                'bookings.product',
+                'metas',
+            ])
+            ->orderBy('updated_dt DESC, created_dt DESC, lname, fname')
+            ->offset($pagination->offset)
+            ->limit($output == 'download' ? 50000 : $pagination->limit)
+            ->asArray()
+            ->all();
+
+        $countryList = Country::find()
+            ->select(['code', 'name_en'])
+            ->orderBy('name_en')
+            ->asArray()
+            ->all();
+
+        if ($output == 'download') {
+            $fileName = 'b2c_customers_'.date('Ymd_His', strtotime('+7 hours')).'.xlsx';
+            $writer = WriterFactory::create(Type::XLSX);
+            $writer->openToBrowser($fileName);
+
+            $headingArray = ['ID', 'NAME-1', 'NAME-2', 'NAME', 'GENDER', 'COUNTRY', 'BDAY', 'BMONTH', 'BYEAR', 'EMAIL', 'PHONE', 'ADDRESS', 'TOURS', 'TAGS'];
+            $valueArray = [];
+
+            foreach ($theCustomers as $customer) {
+                $arr = [];
+                $arr[] = $customer['id'];
+                $arr[] = $customer['fname'];
+                $arr[] = $customer['lname'];
+                $arr[] = $customer['name'];
+                $arr[] = $customer['gender'];
+                $arr[] = $customer['country_code'];
+                $arr[] = $customer['bday'];
+                $arr[] = $customer['bmonth'];
+                $arr[] = $customer['byear'];
+                $arr[] = $customer['email'];
+                $arr[] = $customer['phone'];
+                $cAddr = '';
+                foreach ($customer['metas'] as $meta) {
+                    if ($meta['name'] == 'address') {
+                        $cAddr = $meta['value'];
+                        break;
+                    }
+                }
+                $arr[] = $cAddr;
+                $tours = [];
+                foreach ($customer['bookings'] as $booking) {
+                    $tours[] = $booking['product']['op_code'];
+                }
+                $arr[] = implode(', ', $tours);
+                $arr[] = '';
+                $valueArray[] = $arr;
+            }
+
+            $writer->addRow($headingArray);
+            $writer->addRows($valueArray);
+            $writer->close();
+
+            exit;
+        }
+
+        return $this->render('customer_index', [
+            'name'=>$name,
+            'gender'=>$gender,
+            'age'=>$age,
+            'language'=>$language,
+            'country'=>$country,
+            'email'=>$email,
+            'tel'=>$tel,
+            'address'=>$address,
+
+            'profile'=>$profile,
+            'preferences'=>$preferences,
+            'likes'=>$likes,
+            'dislikes'=>$dislikes,
+            'amba'=>$amba,
+
+            'pagination'=>$pagination,
+            'theCustomers'=>$theCustomers,
+            'year'=>$year,
+            'code'=>$code,
+            'countryList'=>$countryList,
+            'bcount'=>$bcount,
+            'rcount'=>$rcount,
+        ]);
+    }
+    public function actionIndexOld(
         $name = '',
         $gender = '',
         $age = '',

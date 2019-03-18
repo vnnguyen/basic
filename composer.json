@@ -28,7 +28,8 @@
 		"bubasuma/yii2-simplechat": "^2.0",
 		"yiisoft/yii2-queue": "^2.1",
 		"yiicod/yii2-mailqueue": "*",
-		"webzop/yii2-notifications": "*"
+		"webzop/yii2-notifications": "*",
+		"box/spout": "^2.7"
 	},
     "repositories": [
         {

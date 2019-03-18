@@ -19,7 +19,7 @@ Yii::$app->params['page_layout'] = '-t';
     <div class="card">
         <div class="card-body">
             <div id="div-toggle-filters">
-                <strong class="text-info"><?= Yii::t('x', 'Viewing {count} B2C customers', ['count'=>number_format($pagination->totalCount)]) ?></strong>
+                <strong><?= Yii::t('x', 'Viewing {count} B2C customers', ['count'=>number_format($pagination->totalCount)]) ?></strong>
                 &middot;
                 <?php if ($name != '') { ?><strong><?= Yii::t('x', 'Name') ?>:</strong> <?= $name ?>; <?php } ?>
 
@@ -68,6 +68,23 @@ Yii::$app->params['page_layout'] = '-t';
                             </div>
                         </div>
                         <div class="col-md-6">
+                            <p><span class="text-bold text-uppercase"><?= Yii::t('x', 'CUSTOMER PROFILE') ?></span></p>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Year of travel') ?>:</label>
+                                <div class="col-sm-9"><?= Html::textInput('year', $year, ['class'=>'form-control', 'autocomplete'=>'off', 'placeholder'=>Yii::t('x', 'Year')]) ?></div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Tour code') ?>:</label>
+                                <div class="col-sm-9"><?= Html::textInput('code', $code, ['class'=>'form-control', 'autocomplete'=>'off', 'placeholder'=>Yii::t('x', 'Tour code')]) ?></div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'No. of bookings') ?>:</label>
+                                <div class="col-sm-9"><?= Html::dropdownList('bcount', $bcount, ['0'=>'Bookings', 1=>1,2=>2,3=>3,4=>4,5=>5], ['class'=>'form-control']) ?></div>
+                            </div>
+                            <div class="row form-group">
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'No. of referrals') ?>:</label>
+                                <div class="col-sm-9"><?= Html::dropdownList('rcount', $rcount, ['0'=>'Referrals', 1=>'1+',2=>'2+',3=>'3+',4=>'4+',5=>'5+'], ['class'=>'form-control']) ?></div>
+                            </div>
                             <div class="row form-group">
                                 <label class="col-sm-3 control-label"><?= Yii::t('x', 'Customer profile') ?>:</label>
                                 <div class="col-sm-9"><?= Html::dropdownList('profile[]', $profile, $customerProfileList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Customer profile')]) ?></div>
@@ -85,32 +102,13 @@ Yii::$app->params['page_layout'] = '-t';
                                 <div class="col-sm-9"><?= Html::dropdownList('dislikes[]', $dislikes, $dislikeList, ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Dislikes')]) ?></div>
                             </div>
                             <div class="row form-group">
-                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Tour code') ?>:</label>
-                                <div class="col-sm-9"><?= Html::textInput('code', $code, ['class'=>'form-control', 'autocomplete'=>'off', 'placeholder'=>Yii::t('x', 'Tour code')]) ?></div>
+                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Ambassador potentiality') ?>:</label>
+                                <div class="col-sm-9"><?= Html::dropdownList('amba', $amba, [0=>'A - Amba', 1=>'B - Ampo'], ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Ambassador potentiality')]) ?></div>
                             </div>
-                            <div class="row form-group">
-                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'No. of bookings') ?>:</label>
-                                <div class="col-sm-9"><?= Html::dropdownList('bcount', $bcount, ['0'=>'Bookings', 1=>1,2=>2,3=>3,4=>4,5=>5], ['class'=>'form-control']) ?></div>
-                            </div>
-                            <div class="row form-group">
-                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'No. of referrals') ?>:</label>
-                                <div class="col-sm-9"><?= Html::dropdownList('rcount', $rcount, ['0'=>'Referrals', 1=>'1+',2=>'2+',3=>'3+',4=>'4+',5=>'5+'], ['class'=>'form-control']) ?></div>
-                            </div>
-                            <div class="row form-group">
-                                <label class="col-sm-3 control-label"><?= Yii::t('x', 'Output') ?>:</label>
-                                <div class="col-sm-9"><?= Html::dropdownList('output', 'view', ['view'=>Yii::t('x', 'View'), 'download'=>Yii::t('x', 'Download')], ['class'=>'form-control']) ?></div>
-                                <?= Html::input('hidden', 'downloadToken', '', ['id' => 'download_token_value']) ?>
-                            </div>
-                            <?= Html::dropdownList('amba', $amba, [0=>'A - Amba', 1=>'B - Ampo'], ['class'=>'form-control', 'prompt'=>Yii::t('x', 'Ambassador potentiality')]) ?>
-
-                            <?= Html::textInput('year', $year, ['class'=>'form-control', 'autocomplete'=>'off', 'placeholder'=>Yii::t('x', 'Year')]) ?>
-
-
-
-
                         </div>
                     </div>
                     <div>
+                        <?= Html::dropdownList('output', 'view', ['view'=>Yii::t('x', 'View'), 'download'=>Yii::t('x', 'Download')], ['class'=>'form-control d-inline-block', 'style'=>'width:200px;']) ?>
                         <button class="btn btn-primary" type="submit"><?= Yii::t('x', 'Go') ?></button>
                         <a class="action-cancel-filters"><?= Yii::t('x', 'Cancel') ?></a>
                         &middot;
@@ -120,13 +118,6 @@ Yii::$app->params['page_layout'] = '-t';
             </div>
         </div>
 
-<?php
-
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.pack.js', ['depends'=>'yii\web\JqueryAsset']);
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.1.4/js/ion.rangeSlider.min.js', ['depends'=>'yii\web\JqueryAsset']);
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js', ['depends'=>'yii\web\JqueryAsset']);
-
-?>
     <?php if (empty($theCustomers)) { ?>
         <div class="card-body text-danger"><?= Yii::t('x', 'No data found.') ?></div>
     <?php } else { ?>
@@ -210,10 +201,6 @@ $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1
 
     <?php } // if theUsers ?>
 </div>
-
-<div id="domMessage" style="display:none;">
-    <h2 class="text-center"><img style="width: 20px; height: 20px" src="/img/busy1.gif" /> We are processing your request.  Please be patient.</h1>
-</div>
 <?php
 $js = <<<'TXT'
     $('.action-show-filters').on('click', function(e){
@@ -228,41 +215,10 @@ $js = <<<'TXT'
         $('.action-show-filters').show()
         $('.action-cancel-filters').hide()
     })
-
-    // processing download
-    var downloadToken = new Date().getTime();
-    $('form').submit(function(){
-        // if ($('#export_fields').val().length > 0) {
-        blockUIForDownload();
-        // }
-        return true;
-    });
-    var fileDownloadCheckTimer;
-    function blockUIForDownload() {
-        var attempts = 10000;
-        var token = new Date().getTime(); //use the current timestamp as the token value
-        $('#download_token_value').val(token);
-        $.blockUI({
-            message: $('#domMessage'),
-            css: {
-                borderRadius: '5px'
-            }
-            });
-        fileDownloadCheckTimer = window.setInterval(function () {
-            var cookieValue = $.cookie('downloadToken');
-            attempts--;
-            if (cookieValue == token || attempts == 0)
-                finishDownload();
-        }, 1000);
-    }
-    function finishDownload() {
-        window.clearInterval(fileDownloadCheckTimer);
-        $.cookie('downloadToken', null); //clears this cookie value
-        $.unblockUI();
-    }
-    // end download
-
-
 TXT;
-$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js', ['depends'=>'app\assets\MainAsset']);
+
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.pack.js', ['depends'=>'yii\web\JqueryAsset']);
+// $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/ion-rangeslider/2.1.4/js/ion.rangeSlider.min.js', ['depends'=>'yii\web\JqueryAsset']);
+$this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.11.2/js/bootstrap-select.min.js', ['depends'=>'yii\web\JqueryAsset']);
+
 $this->registerJs($js);
