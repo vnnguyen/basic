@@ -57,7 +57,7 @@ use yii\helpers\ArrayHelper;
  * @see https://getbootstrap.com/docs/4.2/components/navs/#tabs
  * @see https://getbootstrap.com/docs/4.2/components/card/#navigation
  * @author Antonio Ramirez <amigo.cobos@gmail.com>
- * @author Simon Karlen <simi.albi@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Tabs extends Widget
 {
@@ -77,11 +77,12 @@ class Tabs extends Widget
      * - active: bool, optional, whether this item tab header and pane should be active. If no item is marked as
      *   'active' explicitly - the first one will be activated.
      * - visible: bool, optional, whether the item tab header and pane should be visible or not. Defaults to true.
+     * - disabled: bool, optional, whether the item tab header and pane should be disabled or not. Defaults to false.
      * - items: array, optional, can be used instead of `content` to specify a dropdown items
      *   configuration array. Each item can hold three extra keys, besides the above ones:
      *     * active: bool, optional, whether the item tab header and pane should be visible or not.
      *     * content: string, required if `items` is not set. The content (HTML) of the tab pane.
-     *     * contentOptions: optional, array, the HTML attributes of the tab content container.
+     *     * options: optional, array, the HTML attributes of the tab content container.
      */
     public $items = [];
     /**
@@ -155,8 +156,9 @@ class Tabs extends Widget
         $this->prepareItems($this->items);
         return Nav::widget([
                 'dropdownClass' => $this->dropdownClass,
-                'options' => $this->options,
-                'items' => $this->items
+                'options' => ArrayHelper::merge(['role' => 'tablist'], $this->options),
+                'items' => $this->items,
+                'encodeLabels' => $this->encodeLabels,
             ]) . $this->renderPanes($this->panes);
     }
 
@@ -176,6 +178,7 @@ class Tabs extends Widget
         foreach ($items as $n => $item) {
             $options = array_merge($this->itemOptions, ArrayHelper::getValue($item, 'options', []));
             $options['id'] = ArrayHelper::getValue($options, 'id', $this->options['id'] . $prefix . '-tab' . $n);
+            unset($items[$n]['options']['id']); // @see https://github.com/yiisoft/yii2-bootstrap4/issues/108#issuecomment-465219339
 
             if (!ArrayHelper::remove($item, 'visible', true)) {
                 continue;
@@ -185,16 +188,21 @@ class Tabs extends Widget
             }
 
             $selected = ArrayHelper::getValue($item, 'active', false);
+            $disabled = ArrayHelper::getValue($item, 'disabled', false);
+            $headerOptions = ArrayHelper::getValue($item, 'headerOptions', $this->headerOptions);
             if (isset($item['items'])) {
                 $this->prepareItems($items[$n]['items'], '-dd' . $n);
                 continue;
             } else {
+                ArrayHelper::setValue($items[$n], 'options', $headerOptions);
                 if (!isset($item['url'])) {
                     ArrayHelper::setValue($items[$n], 'url', '#' . $options['id']);
                     ArrayHelper::setValue($items[$n], 'linkOptions.data.toggle', 'tab');
                     ArrayHelper::setValue($items[$n], 'linkOptions.role', 'tab');
                     ArrayHelper::setValue($items[$n], 'linkOptions.aria-controls', $options['id']);
-                    ArrayHelper::setValue($items[$n], 'linkOptions.aria-selected', $selected ? 'true' : 'false');
+                    if (!$disabled) {
+                        ArrayHelper::setValue($items[$n], 'linkOptions.aria-selected', $selected ? 'true' : 'false');
+                    }
                 } else {
                     continue;
                 }
@@ -237,7 +245,8 @@ class Tabs extends Widget
         foreach ($this->items as $i => $item) {
             $active = ArrayHelper::getValue($item, 'active', null);
             $visible = ArrayHelper::getValue($item, 'visible', true);
-            if ($visible && $active !== false) {
+            $disabled = ArrayHelper::getValue($item, 'disabled', false);
+            if ($visible && $active !== false && $disabled !== true) {
                 $this->items[$i]['active'] = true;
                 return;
             }

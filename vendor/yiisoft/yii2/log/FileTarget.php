@@ -64,9 +64,9 @@ class FileTarget extends Target
      * systems which do not play well with rename on open files. Rotation by renaming however is
      * a bit faster.
      *
-     * The problem with windows systems where the [rename()](http://www.php.net/manual/en/function.rename.php)
+     * The problem with windows systems where the [rename()](https://secure.php.net/manual/en/function.rename.php)
      * function does not work with files that are opened by some process is described in a
-     * [comment by Martin Pelletier](http://www.php.net/manual/en/function.rename.php#102274) in
+     * [comment by Martin Pelletier](https://secure.php.net/manual/en/function.rename.php#102274) in
      * the PHP documentation. By setting rotateByCopy to `true` you can work
      * around this problem.
      */
@@ -101,8 +101,10 @@ class FileTarget extends Target
      */
     public function export()
     {
-        $logPath = dirname($this->logFile);
-        FileHelper::createDirectory($logPath, $this->dirMode, true);
+        if (strpos($this->logFile, '://') === false || strncmp($this->logFile, 'file://', 7) === 0) {
+            $logPath = dirname($this->logFile);
+            FileHelper::createDirectory($logPath, $this->dirMode, true);
+        }
 
         $text = implode("\n", array_map([$this, 'formatMessage'], $this->messages)) . "\n";
         if (($fp = @fopen($this->logFile, 'a')) === false) {

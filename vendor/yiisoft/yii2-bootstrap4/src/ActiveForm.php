@@ -60,7 +60,7 @@ use yii\base\InvalidConfigException;
  * @see http://getbootstrap.com/css/#forms
  *
  * @author Michael Härtl <haertl.mike@gmail.com>
- * @author Simon Karlen <simi.albi@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class ActiveForm extends \yii\widgets\ActiveForm
 {
@@ -122,7 +122,7 @@ class ActiveForm extends \yii\widgets\ActiveForm
             throw new InvalidConfigException('Invalid layout type: ' . $this->layout);
         }
 
-        if ($this->layout === 'inline') {
+        if ($this->layout === self::LAYOUT_INLINE) {
             Html::addCssClass($this->options, 'form-inline');
         }
         parent::init();

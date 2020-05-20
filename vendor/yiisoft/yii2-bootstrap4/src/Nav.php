@@ -59,6 +59,7 @@ class Nav extends Widget
      * - label: string, required, the nav item label.
      * - url: optional, the item's URL. Defaults to "#".
      * - visible: bool, optional, whether this menu item is visible. Defaults to true.
+     * - disabled: bool, optional, whether this menu item is disabled. Defaults to false.
      * - linkOptions: array, optional, the HTML attributes of the item's link.
      * - options: array, optional, the HTML attributes of the item container (LI).
      * - active: bool, optional, whether the item should be on active state or not.
@@ -167,12 +168,8 @@ class Nav extends Widget
         $items = ArrayHelper::getValue($item, 'items');
         $url = ArrayHelper::getValue($item, 'url', '#');
         $linkOptions = ArrayHelper::getValue($item, 'linkOptions', []);
-
-        if (isset($item['active'])) {
-            $active = ArrayHelper::remove($item, 'active', false);
-        } else {
-            $active = $this->isItemActive($item);
-        }
+        $disabled = ArrayHelper::getValue($item, 'disabled', false);
+        $active = $this->isItemActive($item);
 
         if (empty($items)) {
             $items = '';
@@ -189,8 +186,11 @@ class Nav extends Widget
         Html::addCssClass($options, 'nav-item');
         Html::addCssClass($linkOptions, 'nav-link');
 
-        if ($this->activateItems && $active) {
-            Html::addCssClass($options, 'active'); // In NavBar the "nav-item" get's activated
+        if ($disabled) {
+            ArrayHelper::setValue($linkOptions, 'tabindex', '-1');
+            ArrayHelper::setValue($linkOptions, 'aria-disabled', 'true');
+            Html::addCssClass($linkOptions, 'disabled');
+        } elseif ($this->activateItems && $active) {
             Html::addCssClass($linkOptions, 'active');
         }
 
@@ -230,8 +230,8 @@ class Nav extends Widget
             if (is_array($child) && !ArrayHelper::getValue($child, 'visible', true)) {
                 continue;
             }
-            if (ArrayHelper::remove($items[$i], 'active', false) || $this->isItemActive($child)) {
-                Html::addCssClass($items[$i]['options'], 'active');
+            if ($this->isItemActive($child)) {
+                ArrayHelper::setValue($items[$i], 'active', true);
                 if ($this->activateParents) {
                     $active = true;
                 }
@@ -263,6 +263,9 @@ class Nav extends Widget
     {
         if (!$this->activateItems) {
             return false;
+        }
+        if (isset($item['active'])) {
+            return ArrayHelper::getValue($item, 'active', false);
         }
         if (isset($item['url']) && is_array($item['url']) && isset($item['url'][0])) {
             $route = $item['url'][0];

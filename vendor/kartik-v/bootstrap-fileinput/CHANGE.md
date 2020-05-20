@@ -1,6 +1,199 @@
 Change Log: `bootstrap-fileinput`
 =================================
 
+## version 5.0.8
+
+**Date:** 13-Dec-2019
+
+- (enh #1514): Enhancements to duplicate file selection.
+    - New event `fileduplicateerror` will be triggered after every duplicate file detected.
+    - Duplicate error container can be closed by clicking the `close` icon.
+    - New property `fadeDelay` used in fade out / fade in animations of error containers.    
+- (enh #1513): New `filebeforeload` event (only for ajax uploads). Can be used to abort loading of specific files at runtime.
+*Usage:*
+```
+    $('#input').on('filebeforeload', function(event, file, index, reader) {
+        // perform your validations based on the 'file' or other parameters
+        if (file.name === 'UNAPPROVED_FILE.txt') {
+            return false; // will abort the file loading for the selected file
+        }
+    });
+```    
+- (enh #1512): Include parameter to include initial preview files in `getFilesCount` method.
+- (bug #1510): Lock browse button correctly when disable method is called.
+- (bug #1509): Correct zoom slideshow to show only files with zoom enabled via `showZoom`.
+- (bug #1508): Correct file caption after files are uploaded.
+- (enh #1503): Correct Mozilla PDF rendering bug.
+- (bug #1499, #1502): Correct duplicate file check error rendering.
+- (enh #1497): Better validation of progress display when `showPreview` is `false`.
+- (bug #1482): Validate `initialPreviewShowDelete` setting correctly.
+- (bug #1480): Correct preview content setting after validation error.
+ 
+## version 5.0.7
+
+**Date:** 17-Nov-2019
+
+- (enh #1496): Correct isEmpty check for functions.
+- (enh #1485): Update Portugese Brazilian Translations.
+- (enh #1479): Methods updated:
+   - Include `addToStack` method.
+   - Remove `updateStack` method
+   - Rename `clearStack` to `clearFileStack` method
+- (enh #1478): Update Slovak Translations.
+- (enh #1477): Update Czech Translations.
+- (enh #1476): Update Hungarian Translations.
+- (enh #1475): Prevent invalid thumb validation when `showPreview` is `false`.
+- (enh #1474): Hide upload icon for file validation errors.
+- (enh #1471): Improve pt-PT and pt-BR translations.
+- (enh #1468): Update Uzbek Translations.
+- (enh #1467): Update Czekh Translations.
+- (enh #1466): Update Slovak Translations.
+- (bug #1465): Correct content.length parsing issue in preview cache.
+- (enh #1461): Allow two different max file count checks.
+    - `maxFileCount` and `msgFilesTooMany` for files being selected before upload
+    - `maxTotalFileCount` and `msgTotalFilesTooMany` for total files selected and files included in initial preview
+- (enh #1448): New boolean properties `focusCaptionOnBrowse` and `focusCaptionOnClear` which default to `true`.
+  
+## version 5.0.6
+
+**Date:** 11-Sep-2019
+
+- (enh #1464): Correct preview frame float styling issues.
+- (bug #1463): Correct file input unlock after file validation errors (for non-ajax mode).
+- (bug #1460): Correct `filebatchselected` event trigger.
+- (bug #1459): Upload Async does not recognize initialPreview correctly for ajax response immediately sent with uploadUrl.
+- (bug #1457): Correct `removeFromPreviewOnError` validation.
+- (enh #1455): Default preview template to `other` when invalid file type is passed.
+
+## version 5.0.5
+
+**Date:** 23-Aug-2019
+
+- (enh #1450): Update Russian Translations.
+- (enh #1449): Lock file input while files are being read for preview.
+- (enh #1446): New property `showConsoleLogs` to control display of plugin console messages.
+- (enh #1445): Correct invalid thumb frame log errors.
+- (enh #1442): Implement `.npmignore` to clean unwanted files for NPM package.
+- (enh #1438): Activating Open Collective.
+- (enh #1436): Improve Portuguese translations.
+- (enh #1435): Handle special characters in file thumb id attribute.
+- (enh #1429): Enhance thumbnail preview identifiers.
+
+## version 5.0.4
+
+**Date:** 30-Jun-2019
+
+- (enh #1422): Correct drag indicator SCSS.
+- (enh #1420): Correct `preferIconicPreview` parsing.
+- (bug #1413): Correct `getFileStack` and `getFileList` methods.
+- Implement sponsorship.
+- Implement sentiment bot.
+
+## version 5.0.3
+
+**Date:** 12-May-2019
+
+- (enh #1409): Correct the sequence of raise of `filechunksuccess` event.
+- Implement stale bot.
+- (enh #1400): Enhance image auto orientation for zoom images when thumbnail is hidden.
+- (enh #1399): Enhance Krajee Explorer themes for better image preview.
+- (enh #1398): Resumable uploads enhancements (only when `enableResumableUpload` is `true`):
+    - Add new properties to fileActionSettings:
+        - `indicatorPaused`
+        - `indicatorPausedTitle`
+    - Enhance pause and resume behavior by showing appropriate indicators on the file thumbnails
+    - Add `resume` method and enhance `pause` method for resumable uploads
+    - Remove upload button from individual thumbnails and ability to upload selective single file for resumable uploads.
+- (enh #1397): Correct `uploadParamNames` to include all parameters.
+
+## version 5.0.2
+
+**Date:** 18-Apr-2019
+
+- (enh #1394): New error message properties (updates to locales).
+    - `msgProgressError`
+    - `msgDeleteError`
+    - `msgUploadError` (modification)
+- (enh #1393): Standardize error alert formats for ajax deletes.
+- (enh #1136): Allow proper retry of error uploads based on `retryErrorUploads` setting.
+- Better management of console log messages.
+- (bug #1391): Correct resumable upload progress update behavior when `showPreview` is `false`.
+- (bug #1390): Correct remove button display validation set via `fileActionSettings`.
+- (bug #1385): Correct resize image error.
+- (bug #1383): Validate for undefined zoom data.
+    
+## version 5.0.1
+
+**Date:** 26-Mar-2019
+
+- (enh #1382):  Better defaults for `resumableUploadOptions.chunkSize` and `progressDelay`.
+    - Set defaults for `progressDelay` to `0` and `resumableUploadOptions.chunkSize` to `2048 KB` i.e. (`2 MB`)
+- (bug #1381): Fix `uploadExtraData` to be submitted correctly with ajax responses.
+- (enh #1379): Add ability to sanitize zoom cache. New property `sanitizeZoomCache` which is a function callback and defaults to:
+    ```js
+    function(content) {
+        var $container = $(document.createElement('div')).append(content);
+        $container.find('input,select,.file-thumbnail-footer').remove();
+        return $container.html();
+    }
+    ```
+- (enh #276): Add ability to change ajax submission URL dynamically e.g. `uploadUrl`, `deleteUrl`, `resumableUploadOptions.testUrl`. 
+  These can now be also setup as a function callback that will be executed at runtime.
+
+## version 5.0.0
+
+### MAJOR RELEASE
+
+**Date:** 24-Mar-2019
+
+- (enh #1378): Allow throttling / delaying xhr progress updates.
+    - New property `uploadProgressDelay` in microseconds - will default to `100`  - this will control how frequent the xhr upload progress will be checked. If set to null or 0 - will do it every microsecond.
+    - New property `maxAjaxThreads` (will default to `5`) that will allow to spawn only this limit of ajax requests in parallel.
+    - The above is complemented by `resumableUploadOptions['maxThreads']` (defaults to 4) which is applicable for spawning number of ajax chunk requests for resumable uploads. The `resumableUploadOptions['maxThreads']` property must be less than or equal to `maxThreads` - else it will be over-ridden by `maxThreads` global setting.
+- (enh #1377): Display extended upload statistics like bitrate and pending time.
+    - add `layoutTemplates['stats']` for displaying stats
+    ```js
+    layoutTemplates.stats = '<div class="text-info file-upload-stats">' +
+        '<span class="pending-time">{pendingTime}</span> ' +
+        '<span class="upload-speed">{uploadSpeed}</span>' +
+        '</div>';
+    ```
+    - token `{stats}` will be replaced with above
+    - by default '{stats}' will be appended at the end of `layoutTemplates['progress']`
+    - display pending time remaining and upload speed within stats
+    - enhance xhr progress to support updating stats
+- (enh #1374): Allow exif data of images to be read from server.
+    - `initialPreviewConfig` sent from the server can contain the `exif` property as an object.
+    - allows auto orientation of JPEG image files based on exif orientation
+    - `autoOrientImageInitial` is a new boolean property that controls whether images need to be auto-oriented based on exif orientation.
+- (enh #1373): Selectively disable file selection and preview for certain file extensions.
+        - `allowedPreviewTypes` (existing)
+        - `allowedPreviewMimeTypes` (existing)
+        - `allowedPreviewExtensions` (new)
+        - `disabledPreviewTypes` (new)
+        - `disabledPreviewExtensions` (new) - defaults to `['msi', 'exe', 'com', 'zip', 'rar', 'app', 'vb', 'scr']`
+        - `disabledPreviewMimeTypes` (new) - defaults to `['application/octet-stream']`
+- (enh #1370): Add ability for pausing and resuming uploads
+- (enh #1368): Better enhanced file management and queuing. 
+    - New `fileManager` and `resumableManager` internal objects. 
+    - `filestack` property has been removed
+    - `addToFileStack` and `updateFileStack` methods have been removed
+- (enh #1321): Add ability to define separate thumbnail and zoom images / file data. 
+- (enh #1264, #1145): Allow configurable file actions as a callback. 
+    - The `showXXX` properties in `fileActionSettings` ca3n now be setup as a callback.
+    - Can read any property from the `initialPreviewConfig` for initial preview thumbnails
+- (enh #1249, #290): Add capability for resumable and chunk uploads.
+    - New properties `enableResumableUpload` and `resumableUploadOptions`
+
+## version 4.5.3
+
+**Date:** 21-Mar-2019
+
+- (enh #1371): Capture file identifier in thumbnails
+- (enh #1367, #1286): Better validation of piexif.js and other code enhancements.
+- (enh #1362, #1337, #1269): AutoOrientImage enhancement for mobile safari.
+- (enh #1336): Ability to configure `alt` and `title` attributes for images in `initialPreviewConfig`.
+
 ## version 4.5.2
 
 **Date:** 03-Jan-2019
@@ -520,7 +713,7 @@ Change Log: `bootstrap-fileinput`
 - (enh #481): Universal Module Definition for use with CommonJS, AMD or browser globals.
 - (enh #474): Upload via button within each preview thumbnail skips last file for async uploads.
 - (enh #477): Fix IE10 specific styling bug for file input block button.
-- (enh #465): Add Català translations.
+- (enh #465): Add CatalĂ  translations.
 - (enh #462): Responsive buttons and new property `buttonLabelClass`.
 - (enh #460): Update CSS selectors prefix to start with `file`.
 - (enh #454): Update Turkish Translations.

@@ -601,7 +601,7 @@ class BaseArrayHelper
     {
         if ($caseSensitive) {
             // Function `isset` checks key faster but skips `null`, `array_key_exists` handles this case
-            // http://php.net/manual/en/function.array-key-exists.php#107786
+            // https://secure.php.net/manual/en/function.array-key-exists.php#107786
             return isset($array[$key]) || array_key_exists($key, $array);
         }
 
@@ -625,7 +625,7 @@ class BaseArrayHelper
      * When sorting by multiple keys with different sorting directions, use an array of sorting directions.
      * @param int|array $sortFlag the PHP sort flag. Valid values include
      * `SORT_REGULAR`, `SORT_NUMERIC`, `SORT_STRING`, `SORT_LOCALE_STRING`, `SORT_NATURAL` and `SORT_FLAG_CASE`.
-     * Please refer to [PHP manual](http://php.net/manual/en/function.sort.php)
+     * Please refer to [PHP manual](https://secure.php.net/manual/en/function.sort.php)
      * for more details. When sorting by multiple keys with different sort flags, use an array of sort flags.
      * @throws InvalidArgumentException if the $direction or $sortFlag parameters do not have
      * correct number of elements as that of $key.
@@ -648,9 +648,9 @@ class BaseArrayHelper
             throw new InvalidArgumentException('The length of $sortFlag parameter must be the same as that of $keys.');
         }
         $args = [];
-        foreach ($keys as $i => $key) {
+        foreach ($keys as $i => $k) {
             $flag = $sortFlag[$i];
-            $args[] = static::getColumn($array, $key);
+            $args[] = static::getColumn($array, $k);
             $args[] = $direction[$i];
             $args[] = $flag;
         }
@@ -676,7 +676,7 @@ class BaseArrayHelper
      * @param string $charset the charset that the data is using. If not set,
      * [[\yii\base\Application::charset]] will be used.
      * @return array the encoded data
-     * @see http://www.php.net/manual/en/function.htmlspecialchars.php
+     * @see https://secure.php.net/manual/en/function.htmlspecialchars.php
      */
     public static function htmlEncode($data, $valuesOnly = true, $charset = null)
     {
@@ -709,7 +709,7 @@ class BaseArrayHelper
      * @param bool $valuesOnly whether to decode array values only. If false,
      * both the array keys and array values will be decoded.
      * @return array the decoded data
-     * @see http://www.php.net/manual/en/function.htmlspecialchars-decode.php
+     * @see https://secure.php.net/manual/en/function.htmlspecialchars-decode.php
      */
     public static function htmlDecode($data, $valuesOnly = true)
     {
@@ -807,14 +807,14 @@ class BaseArrayHelper
     /**
      * Check whether an array or [[\Traversable]] contains an element.
      *
-     * This method does the same as the PHP function [in_array()](http://php.net/manual/en/function.in-array.php)
+     * This method does the same as the PHP function [in_array()](https://secure.php.net/manual/en/function.in-array.php)
      * but additionally works for objects that implement the [[\Traversable]] interface.
      * @param mixed $needle The value to look for.
      * @param array|\Traversable $haystack The set of values to search.
      * @param bool $strict Whether to enable strict (`===`) comparison.
      * @return bool `true` if `$needle` was found in `$haystack`, `false` otherwise.
      * @throws InvalidArgumentException if `$haystack` is neither traversable nor an array.
-     * @see http://php.net/manual/en/function.in-array.php
+     * @see https://secure.php.net/manual/en/function.in-array.php
      * @since 2.0.7
      */
     public static function isIn($needle, $haystack, $strict = false)
@@ -837,11 +837,11 @@ class BaseArrayHelper
     /**
      * Checks whether a variable is an array or [[\Traversable]].
      *
-     * This method does the same as the PHP function [is_array()](http://php.net/manual/en/function.is-array.php)
+     * This method does the same as the PHP function [is_array()](https://secure.php.net/manual/en/function.is-array.php)
      * but additionally works on objects that implement the [[\Traversable]] interface.
      * @param mixed $var The variable being evaluated.
      * @return bool whether $var is array-like
-     * @see http://php.net/manual/en/function.is-array.php
+     * @see https://secure.php.net/manual/en/function.is-array.php
      * @since 2.0.8
      */
     public static function isTraversable($var)
@@ -923,41 +923,49 @@ class BaseArrayHelper
     public static function filter($array, $filters)
     {
         $result = [];
-        $forbiddenVars = [];
+        $excludeFilters = [];
 
-        foreach ($filters as $var) {
-            $keys = explode('.', $var);
-            $globalKey = $keys[0];
-            $localKey = isset($keys[1]) ? $keys[1] : null;
-
-            if ($globalKey[0] === '!') {
-                $forbiddenVars[] = [
-                    substr($globalKey, 1),
-                    $localKey,
-                ];
+        foreach ($filters as $filter) {
+            if ($filter[0] === '!') {
+                $excludeFilters[] = substr($filter, 1);
                 continue;
             }
 
-            if (!array_key_exists($globalKey, $array)) {
-                continue;
+            $nodeValue = $array; //set $array as root node
+            $keys = explode('.', $filter);
+            foreach ($keys as $key) {
+                if (!array_key_exists($key, $nodeValue)) {
+                    continue 2; //Jump to next filter
+                }
+                $nodeValue = $nodeValue[$key];
             }
-            if ($localKey === null) {
-                $result[$globalKey] = $array[$globalKey];
-                continue;
+
+            //We've found a value now let's insert it
+            $resultNode = &$result;
+            foreach ($keys as $key) {
+                if (!array_key_exists($key, $resultNode)) {
+                    $resultNode[$key] = [];
+                }
+                $resultNode = &$resultNode[$key];
             }
-            if (!isset($array[$globalKey][$localKey])) {
-                continue;
-            }
-            if (!array_key_exists($globalKey, $result)) {
-                $result[$globalKey] = [];
-            }
-            $result[$globalKey][$localKey] = $array[$globalKey][$localKey];
+            $resultNode = $nodeValue;
         }
 
-        foreach ($forbiddenVars as $var) {
-            list($globalKey, $localKey) = $var;
-            if (array_key_exists($globalKey, $result)) {
-                unset($result[$globalKey][$localKey]);
+        foreach ($excludeFilters as $filter) {
+            $excludeNode = &$result;
+            $keys = explode('.', $filter);
+            $numNestedKeys = count($keys) - 1;
+            foreach ($keys as $i => $key) {
+                if (!array_key_exists($key, $excludeNode)) {
+                    continue 2; //Jump to next filter
+                }
+
+                if ($i < $numNestedKeys) {
+                    $excludeNode = &$excludeNode[$key];
+                } else {
+                    unset($excludeNode[$key]);
+                    break;
+                }
             }
         }
 

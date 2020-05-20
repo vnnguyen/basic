@@ -30,7 +30,7 @@ use yii\helpers\ArrayHelper;
  * ```
  * @see https://getbootstrap.com/docs/4.2/components/dropdowns/
  * @author Antonio Ramirez <amigo.cobos@gmail.com>
- * @author Simon Karlen <simi.albi@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Dropdown extends Widget
 {
@@ -43,8 +43,10 @@ class Dropdown extends Widget
      * - url: string|array, optional, the URL of the item link. This will be processed by [[\yii\helpers\Url::to()]].
      *   If not set, the item will be treated as a menu header when the item has no sub-menu.
      * - visible: bool, optional, whether this menu item is visible. Defaults to true.
+     * - disabled: bool, optional, whether this menu item is disabled. Defaults to false.
      * - linkOptions: array, optional, the HTML attributes of the item link.
      * - options: array, optional, the HTML attributes of the item.
+     * - active: bool, optional, whether the item should be on active state or not.
      * - items: array, optional, the submenu items. The structure is the same as this property.
      *   Note that Bootstrap doesn't support dropdown submenu. You have to add your own CSS styles to support it.
      * - submenuOptions: array, optional, the HTML attributes for sub-menu container tag. If specified it will be
@@ -111,8 +113,18 @@ class Dropdown extends Widget
             $label = $encodeLabel ? Html::encode($item['label']) : $item['label'];
             $itemOptions = ArrayHelper::getValue($item, 'options', []);
             $linkOptions = ArrayHelper::getValue($item, 'linkOptions', []);
-//            $linkOptions['tabindex'] = '-1';
+            $active = ArrayHelper::getValue($item, 'active', false);
+            $disabled = ArrayHelper::getValue($item, 'disabled', false);
+
             Html::addCssClass($linkOptions, 'dropdown-item');
+            if ($disabled) {
+                ArrayHelper::setValue($linkOptions, 'tabindex', '-1');
+                ArrayHelper::setValue($linkOptions, 'aria-disabled', 'true');
+                Html::addCssClass($linkOptions, 'disabled');
+            } elseif ($active) {
+                Html::addCssClass($linkOptions, 'active');
+            }
+
             $url = array_key_exists('url', $item) ? $item['url'] : null;
             if (empty($item['items'])) {
                 if ($url === null) {
@@ -129,7 +141,7 @@ class Dropdown extends Widget
                 Html::addCssClass($submenuOptions, ['dropdown-submenu']);
                 Html::addCssClass($linkOptions, ['dropdown-toggle']);
 
-                $lines[] = Html::beginTag('div', ['class' => ['dropdown'], 'aria-expanded' => 'false']);
+                $lines[] = Html::beginTag('div', array_merge_recursive(['class' => ['dropdown'], 'aria-expanded' => 'false'], $itemOptions));
                 $lines[] = Html::a($label, $url, array_merge([
                     'data-toggle' => 'dropdown',
                     'aria-haspopup' => 'true',

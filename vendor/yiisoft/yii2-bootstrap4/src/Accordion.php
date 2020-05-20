@@ -49,7 +49,7 @@ use yii\helpers\ArrayHelper;
  *
  * @see https://getbootstrap.com/docs/4.2/components/collapse/#accordion-example
  * @author Antonio Ramirez <amigo.cobos@gmail.com>
- * @author Simon Karlen <simi.albi@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class Accordion extends Widget
 {
@@ -187,7 +187,7 @@ class Accordion extends Widget
                 'type' => 'button',
                 'data-toggle' => 'collapse',
                 'data-target' => '#' . $options['id'],
-                'aria-expanded' => ($index === 0),
+                'aria-expanded' => ($index === 0) ? 'true' : 'false',
                 'aria-controls' => $options['id']
             ], $this->itemToggleOptions);
 

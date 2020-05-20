@@ -32,16 +32,16 @@
         },
         {
             "name": "Simon Karlen",
-            "email": "simi.albi@gmail.com"
+            "email": "simi.albi@outlook.com"
         }
     ],
     "require": {
         "yiisoft/yii2": "~2.0",
-        "npm-asset/bootstrap": "~4.2"
+        "npm-asset/bootstrap": "^4.3"
     },
     "require-dev": {
         "yiisoft/yii2-coding-standards": "~2.0",
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "<7"
     },
     "repositories": [
         {

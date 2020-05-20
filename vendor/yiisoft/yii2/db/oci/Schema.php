@@ -372,7 +372,7 @@ SQL;
 
     /**
      * @Overrides method in class 'Schema'
-     * @see http://www.php.net/manual/en/function.PDO-lastInsertId.php -> Oracle does not support this
+     * @see https://secure.php.net/manual/en/function.PDO-lastInsertId.php -> Oracle does not support this
      *
      * Returns the ID of the last inserted row or sequence value.
      * @param string $sequenceName name of the sequence object (required by some DBMS)
@@ -614,7 +614,7 @@ SQL;
                 $phName = QueryBuilder::PARAM_PREFIX . (count($params) + count($returnParams));
                 $returnParams[$phName] = [
                     'column' => $name,
-                    'value' => null,
+                    'value' => '',
                 ];
                 if (!isset($columnSchemas[$name]) || $columnSchemas[$name]->phpType !== 'integer') {
                     $returnParams[$phName]['dataType'] = \PDO::PARAM_STR;

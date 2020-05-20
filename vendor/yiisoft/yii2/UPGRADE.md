@@ -51,6 +51,118 @@ if you want to upgrade from version A to version C and there is
 version B between A and C, you need to follow the instructions
 for both A and B.
 
+Upgrade from Yii 2.0.32
+-----------------------
+
+* `yii\helpers\ArrayHelper::filter` now correctly filters data when passing a filter with more than 2 "levels",
+  e.g. `ArrayHelper::filter($myArray, ['A.B.C']`. Until Yii 2.0.32 all data after the 2nd level was returned,
+  please see the following example:
+  
+  ```php
+  $myArray = [
+      'A' => 1,
+      'B' => [
+          'C' => 1,
+          'D' => [
+              'E' => 1,
+              'F' => 2,
+          ]
+      ],
+  ];
+  ArrayHelper::filter($myArray, ['B.D.E']);
+  ```
+  
+  Before Yii 2.0.33 this would return
+  
+  ```php
+  [
+      'B' => [
+          'D' => [
+              'E' => 1,
+              'F' => 2, //Please note the unexpected inclusion of other elements
+          ],
+      ],
+  ]
+  ```
+
+  Since Yii 2.0.33 this returns
+
+  ```php
+  [
+      'B' => [
+          'D' => [
+              'E' => 1,
+          ],
+      ],
+  ]
+  ```
+  
+  Note: If you are only using up to 2 "levels" (e.g. `ArrayHelper::filter($myArray, ['A.B']`), this change has no impact.
+  
+* `UploadedFile` class `deleteTempFile()` and `isUploadedFile()` methods introduced in 2.0.32 were removed.
+
+* Exception will be thrown if `UrlManager::$cache` configuration is incorrect (previously misconfiguration was silently 
+  ignored and `UrlManager` continue to work without cache). Make sure that `UrlManager::$cache` is correctly configured 
+  or set it to `null` to explicitly disable cache.
+
+Upgrade from Yii 2.0.31
+-----------------------
+
+* `yii\filters\ContentNegotiator` now generates 406 'Not Acceptable' instead of 415 'Unsupported Media Type' on
+  content-type negotiation fail.
+
+Upgrade from Yii 2.0.30
+-----------------------
+* `yii\helpers\BaseInflector::slug()` now ensures there is no repeating $replacement string occurrences.
+  In case you rely on Yii 2.0.16 - 2.0.30 behavior, consider replacing `Inflector` with your own implementation.
+  
+  
+Upgrade from Yii 2.0.28
+-----------------------
+
+* `yii\helpers\Html::tag()` now generates boolean attributes
+  [according to HTML specification](https://html.spec.whatwg.org/multipage/common-microsyntaxes.html#boolean-attribute).
+  For `true` value attribute is present, for `false` value it is absent.  
+
+Upgrade from Yii 2.0.20
+-----------------------
+
+* `yii\db\Query::select()` and `addSelect()` now normalize the format that columns are stored in when saving them 
+  to `$this->select`, so code that works directly with that property may need to be modified.
+  
+  For the following code:
+  
+  ```php
+  $a = $query->select('*');
+  $b = $query->select('id, name');
+  ```
+  
+  The value was stored as is i.e.
+  
+  ```php
+  // a
+  ['*']
+  
+  // b
+  ['id', 'name']
+  ``` 
+  
+  Now it is stored as
+  
+  ```php
+  // a
+  ['*' => '*']
+  
+  // b
+  ['id' => 'id', 'name' => 'name']
+  ```
+
+Upgrade from Yii 2.0.16
+-----------------------
+
+* In case you have extended the `yii\web\DbSession` class you should check if your 
+  custom implementation is compatible with the new `yii\web\DbSession::$fields` attribute.
+  Especially when overriding the `yii\web\DbSession::writeSession($id, $data)` function.
 
 Upgrade from Yii 2.0.15
 -----------------------
@@ -172,7 +284,10 @@ Upgrade from Yii 2.0.13
   - If you are using XCache or Zend data cache, those are going away in 2.1 so you might want to start looking for an alternative.
 
 * In case you aren't using CSRF cookies (REST APIs etc.) you should turn them off explicitly by setting
-  `\yii\web\Request::$enableCsrfCookie` to `false` in your config file. 
+  `\yii\web\Request::$enableCsrfCookie` to `false` in your config file.
+  
+* Previously headers sent after content output was started were silently ignored. This behavior was changed to throwing
+  `\yii\web\HeadersAlreadySentException`.
 
 Upgrade from Yii 2.0.12
 -----------------------
@@ -551,7 +666,7 @@ Upgrade from Yii 2.0 Beta
   You can add it with `ALTER TABLE log ADD COLUMN prefix TEXT AFTER log_time;`.
 
 * The `fileinfo` PHP extension is now required by Yii. If you use  `yii\helpers\FileHelper::getMimeType()`, make sure
-  you have enabled this extension. This extension is [builtin](http://www.php.net/manual/en/fileinfo.installation.php) in php above `5.3`.
+  you have enabled this extension. This extension is [builtin](https://secure.php.net/manual/en/fileinfo.installation.php) in php above `5.3`.
 
 * Please update your main layout file by adding this line in the `<head>` section: `<?= Html::csrfMetaTags() ?>`.
   This change is needed because `yii\web\View` no longer automatically generates CSRF meta tags due to issue #3358.

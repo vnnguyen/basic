@@ -28,7 +28,7 @@ use yii\base\InvalidConfigException;
  * @see http://getbootstrap.com/javascript/#buttons-checkbox-radio
  *
  * @author Paul Klimov <klimov.paul@gmail.com>
- * @author Simon Karlen <simi.albi@gmail.com>
+ * @author Simon Karlen <simi.albi@outlook.com>
  */
 class ToggleButtonGroup extends InputWidget
 {
@@ -55,7 +55,9 @@ class ToggleButtonGroup extends InputWidget
      * @see Html::checkbox()
      * @see Html::radio()
      */
-    public $labelOptions = [];
+    public $labelOptions = [
+        'class' => ['btn', 'btn-secondary']
+    ];
     /**
      * @var bool whether the items labels should be HTML-encoded.
      */
@@ -69,7 +71,7 @@ class ToggleButtonGroup extends InputWidget
     {
         parent::init();
         $this->registerPlugin('button');
-        Html::addCssClass($this->options, ['btn-group']);
+        Html::addCssClass($this->options, ['widget' => 'btn-group-toggle']);
         $this->options['data-toggle'] = 'buttons';
     }
 
