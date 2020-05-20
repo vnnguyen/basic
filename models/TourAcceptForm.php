@@ -1,15 +1,13 @@
-<?
+<?php
+namespace app\models;
 
-namespace common\models;
-
+use Yii;
 use yii\base\Model;
 
 class TourAcceptForm extends Model
 {
-    public $op_code;
-    public $op_name;
-    public $client_ref;
-    public $owner;
+    public $op_code, $op_name, $client_ref, $owner, $parent_tour_id, $parent_tour_relation;
+    public $op_brand, $op_brand_id, $op_brand_name, $op_brand_logo;
     public $operators = [];
     public $also = [];
 
@@ -19,15 +17,20 @@ class TourAcceptForm extends Model
             'op_code'=>'Tour code',
             'op_name'=>'Tour name',
             'owner'=>'Tour owner',
-            'operators'=>'Tour operators',
         ];
     }
 
     public function rules()
     {
         return [
-            [['op_code', 'op_name', 'owner', 'client_ref'], 'trim'],
-            [['op_code', 'op_name', 'owner', 'operators'], 'required', 'message'=>'Còn thiếu'],
+            [[
+                'op_code', 'op_name', 'client_ref',
+                'op_brand', 'op_brand_id', 'op_brand_name', 'op_brand_logo',
+                'parent_tour_id', 'parent_tour_relation',
+                ], 'trim'],
+            [[
+                'op_code', 'op_name',
+                ], 'required', 'message'=>Yii::t('x', 'Required')],
         ];
     }
 

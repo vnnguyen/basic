@@ -52,23 +52,9 @@ Yii::$app->params['page_actions'] = Yii::$app->params['page_actions'] ?? $this->
 $this->beginPage();
 
 if (in_array(USER_ID, [24820])) {
-    // New orange 13
     $body_class = 'red-theme size-15';
-} elseif (in_array(USER_ID, [8162, 34596, 40673])) {
-    // Black 15
-    $body_class = 'purple-theme size-15';
-} elseif (in_array(USER_ID, [1])) {
-    // Green 15
-    $body_class = 'green-theme size-15';
-} elseif (in_array(USER_ID, [1351, 27388, 34595, 39748, 12952, 29296])) {
-    // Black 15
-    $body_class = 'green-theme size-15';
-} elseif (in_array(USER_ID, [5246])) {
-    // Black 15
-    $body_class = 'blue-theme size-15';
 } else {
-    // Lotus 15
-    $body_class = 'lotus font-helvetica size-15';
+    $body_class = 'blue-theme size-15';
 }
 
 if (isset($_GET['body_class'])) {
@@ -85,6 +71,11 @@ if (isset($_GET['body_class'])) {
     <title><?= Yii::$app->params['page_meta_title'] ?> - Amica Travel IMS</title>
     <?= Html::csrfMetaTags() ?>
     <?= $this->head() ?>
+    <style type="text/css">
+    @media (min-width: 769px) {
+        body.blue-theme.sidebar-xs .sidebar-main .navigation>li>ul {background-color:#fff}
+    }
+    </style>
 </head>
 
 <body class="<?= $body_class ?> <?= Yii::$app->params['body_class'] ?? '' ?>">

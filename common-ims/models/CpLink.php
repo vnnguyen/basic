@@ -3,7 +3,7 @@ namespace common\models;
 
 // Client page links
 
-class Cplink extends MyActiveRecord
+class CpLink extends MyActiveRecord
 {
     public $attachments = [];
 
@@ -21,9 +21,8 @@ class Cplink extends MyActiveRecord
     public function rules()
     {
         return [
-            [['booking_id', 'user_id', 'message'], 'trim'],
-            [['booking_id', 'email', 'message'], 'required'],
-            [['attachments'], 'safe'],
+            [['message'], 'required'],
+            // [['attachments'], 'safe'],
         ];
     }
 
@@ -32,14 +31,24 @@ class Cplink extends MyActiveRecord
         return $this->hasOne(User::className(), ['id'=>'created_by']);
     }
 
-    public function getCase()
+    public function getUpdatedBy()
     {
-        return $this->hasOne(Kase::className(), ['id'=>'case_id']);
+        return $this->hasOne(User::className(), ['id'=>'created_by']);
     }
 
     public function getBooking()
     {
         return $this->hasOne(Booking::className(), ['id'=>'booking_id']);
+    }
+
+    public function getContact()
+    {
+        return $this->hasOne(Contact::className(), ['id'=>'customer_id']);
+    }
+
+    public function getCpRegistrations()
+    {
+        return $this->hasMany(CpRegistrations::className(), ['cplink_id'=>'id']);
     }
 
 }

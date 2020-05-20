@@ -1,7 +1,8 @@
-<?
+<?php
 
-namespace common\models;
+namespace app\models;
 
+use Yii;
 use yii\base\Model;
 
 class TourInCtForm extends Model

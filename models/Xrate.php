@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 use Yii;
 use app\helpers\DateTimeHelper;
 
@@ -26,9 +26,15 @@ class Xrate extends MyActiveRecord
 	public function rules()
 	{
 		return [
-			[['rate_dt', 'currency1', 'currency2', 'rate', 'note'], 'filter', 'filter' => 'trim'],
-			[['rate_dt', 'currency1', 'currency2', 'rate'], 'required'],
-			[['currency2'], 'compare', 'compareAttribute'=>'currency1', 'operator'=>'!='],
+			[[
+				'rate_dt', 'currency1', 'currency2', 'rate', 'note',
+				], 'trim'],
+			[[
+				'rate_dt', 'currency1', 'currency2', 'rate',
+				], 'required', 'message'=>Yii::t('x', 'Required')],
+			[[
+				'currency2',
+				], 'compare', 'compareAttribute'=>'currency1', 'operator'=>'!='],
 		];
 	}
 
@@ -37,10 +43,10 @@ class Xrate extends MyActiveRecord
 		if (parent::beforeSave($insert)) {
 			if ($insert) {
 				$this->created_at = NOW;
-				$this->created_by = \Yii::$app->user->identity->id;
+				$this->created_by = USER_ID;
 			}
 			$this->updated_at = NOW;
-			$this->updated_by = \Yii::$app->user->identity->id;
+			$this->updated_by = USER_ID;
 			return true;
 		}
 		return false;

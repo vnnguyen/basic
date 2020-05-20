@@ -1,6 +1,5 @@
 <?php
 namespace app\models;
-use common\models\MyActiveRecord;
 
 class Attachment extends MyActiveRecord
 {

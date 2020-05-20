@@ -13,7 +13,7 @@ class Nm extends MyActiveRecord
     {
         return [
             [[
-                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note',
+                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary',
                 ], 'trim'],
             [[
                 'language', 'title', 'body', 'meals',
@@ -25,10 +25,10 @@ class Nm extends MyActiveRecord
     {
         return [
             'nm/c'=>[
-                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note',
+                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary',
             ],
             'nm/u'=>[
-                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note',
+                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary',
             ],
         ];
     }

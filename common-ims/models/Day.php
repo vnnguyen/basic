@@ -5,14 +5,7 @@ class Day extends MyActiveRecord
 {
     public static function tableName()
     {
-        return '{{%days}}';
-    }
-
-    public function attributeLabels()
-    {
-        return [
-            'note'=>'Note',
-        ];
+        return 'days';
     }
 
     public function rules()

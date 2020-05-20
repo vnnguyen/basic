@@ -1,7 +1,7 @@
 <?
 
 namespace common\models;
-use yii;
+
 use yii\base\Model;
 
 class UsersUuForm extends Model
@@ -15,61 +15,48 @@ class UsersUuForm extends Model
 	public $bmonth = 0;
 	public $byear = 0;
 	public $country_code = 'fr';
+	public $email1;
+	public $email2;
+	public $email3;
+	public $phone1;
+	public $phone2;
+	public $address;
 	public $profession;
 	public $pob;
+	public $website;
 	public $note;
-	public $register_email ;
-	public $address ='';
-	public $email = '';
-	public $website = '';
-	public $type_website = '';
-	public $tel ='';
-	public $type_tel = '';	
-	public $relation ='';
-	public $type_rela ='';
-	public $marital_status = '';
-	public $v_address = '';
-	public $city = '';
-	public $country = '';
-	public $type_email ='';
-	
+
 	public function attributeLabels()
 	{
 		return [
-				'fname'=> Yii::t('app','First name'),
-				'lname'=> Yii::t('app','Last name'),
-				'name'=> Yii::t('app','Full name'),
-				'gender'=> Yii::t('app',' Gender'),
-				'bday'=> Yii::t('app','Day of birth'),
-				'bmonth'=> Yii::t('app','Month of birth'),
-				'byear'=> Yii::t('app','Year of birth'),
-				'country_code'=> Yii::t('app','Country'),
-				'profession'=> Yii::t('app','Profession'),
-				'pob'=> Yii::t('app','Place of birth'),
-				'address'=> Yii::t('app','Address'),
-				'register_email' => Yii::t('app','Register receive email'),
-				'email' => 'Email',
-				'website' => 'Website',
-				'type_website' => 'Type website',
-				'tel' => 'Phone',
-				'type_tel' => 'type phonenumber',
-				'relation' => 'Relation',
-				'type_relation' => 'Type relation',
-				'marital_status' => 'Status of relation',
-				'city' => 'Rity',
-				'country' => 'Country',
-				'type_email' => 'Type email',
+			'fname'=>'Họ',
+			'lname'=>'Tên',
+			'name'=>'Tên đầy đủ',
+			'gender'=>'Giới tính',
+			'bday'=>'Ngày sinh',
+			'bmonth'=>'Tháng sinh',
+			'byear'=>'Năm sinh',
+			'country_code'=>'Quốc tịch',
+			'email1'=>'Email 1',
+			'email2'=>'Email 2',
+			'email3'=>'Email 3',
+			'phone1'=>'Số ĐT 1',
+			'phone2'=>'Số ĐT 2',
+			'profession'=>'Nghề nghiệp',
+			'pob'=>'Nơi sinh',
+			'address'=>'Địa chỉ',
 		];
 	}
-	
+
 	public function rules()
 	{
 		return [
-				[['fname', 'lname', 'name', 'gender', 'bday', 'bmonth', 'byear', 'country_code', 'profession', 'pob', 'note', 'tags','register_email','address','email','website','marital_status'], 'trim'],
-				[['fname', 'lname', 'email'], 'required', 'message'=>'This field is required'],
-// 				[['email'], 'email', 'message'=>'Email khong hop le'],
-// 				[['email'], 'filter', 'filter'=>'strtolower'],
-// 				[['website'], 'url'],
+			[['fname', 'lname', 'name', 'gender', 'bday', 'bmonth', 'byear', 'country_code', 'email1', 'email2', 'email3', 'phone1', 'phone2', 'profession', 'pob', 'address', 'website', 'note', 'tags'], 'trim'],
+			[['fname', 'lname', 'name', 'gender', 'country_code'], 'required', 'message'=>'Còn thiếu'],
+			[['email1', 'email2', 'email3'], 'email', 'message'=>'Email không hợp lệ'],
+			[['email1', 'email2', 'email3'], 'filter', 'filter'=>'strtolower'],
+			[['website'], 'url'],
 		];
 	}
+
 }

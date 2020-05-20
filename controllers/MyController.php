@@ -77,26 +77,26 @@ class MyController extends Controller
         Yii::$app->params['active_asset'] = 'app\assets\MainAsset';
 
         // Hits
-        Yii::$app->db->createCommand('INSERT INTO hits (hit_dt, account_id, user_id, action, uri, ip, country_code) VALUES (:hit_dt, :account_id, :user_id, :action, :uri, :ip, :country_code)', [
-            ':hit_dt'=>NOW,
-            ':account_id'=>ACCOUNT_ID,
-            ':user_id'=>USER_ID,
-            ':action'=>Yii::$app->request->method, // browser method
-            ':uri'=>Yii::$app->request->getUrl(),
-            ':ip'=>USER_IP,
-            ':country_code'=>strtolower(USER_COUNTRY_CODE),
-        ])->execute();
+        // Yii::$app->db->createCommand('INSERT INTO hits (hit_dt, account_id, user_id, action, uri, ip, country_code) VALUES (:hit_dt, :account_id, :user_id, :action, :uri, :ip, :country_code)', [
+        //     ':hit_dt'=>NOW,
+        //     ':account_id'=>ACCOUNT_ID,
+        //     ':user_id'=>USER_ID,
+        //     ':action'=>Yii::$app->request->method, // browser method
+        //     ':uri'=>Yii::$app->request->getUrl(),
+        //     ':ip'=>USER_IP,
+        //     ':country_code'=>strtolower(USER_COUNTRY_CODE),
+        // ])->execute();
 
         // Online user list
-        if (USER_ID != 0) {
-            $uq = USER_ID.' | '.USER_IP.' | '.Yii::$app->request->userAgent;
-            $sql = 'INSERT INTO at_online_users (dt, user_id, id_ip_ua) VALUES (:dt, :id, :uq) ON DUPLICATE KEY UPDATE dt=:dt';
-            Yii::$app->db->createCommand($sql, [
-                ':dt'=>NOW,
-                ':id'=>USER_ID,
-                ':uq'=>$uq,
-            ])->execute();
-        }
+        // if (USER_ID != 0) {
+        //     $uq = USER_ID.' | '.USER_IP.' | '.Yii::$app->request->userAgent;
+        //     $sql = 'INSERT INTO at_online_users (dt, user_id, id_ip_ua) VALUES (:dt, :id, :uq) ON DUPLICATE KEY UPDATE dt=:dt';
+        //     Yii::$app->db->createCommand($sql, [
+        //         ':dt'=>NOW,
+        //         ':id'=>USER_ID,
+        //         ':uq'=>$uq,
+        //     ])->execute();
+        // }
 
         if (USER_ID == 1 && !isset($_GET['x'])) {
             //$this->layout = 'main_m454';
@@ -105,7 +105,7 @@ class MyController extends Controller
 
         // Prevent accidental upload
         // Yii::$app->session->set('ckfinder_authorized', false);
-        
+
         parent::__construct($id, $module, $config);
 
     }
@@ -193,7 +193,7 @@ class MyController extends Controller
         //$mb->addAttachment('@@/var/www/my.amicatravel.com/120303-help.pdf');
         //$files['attachment'] = [];
         //$files['attachment'][] = '/var/www/my.amicatravel.com/120303-help.pdf';
-        
+
         //$mb->addAttachment('@@/var/www/my.amicatravel.com/120303-help.pdf');
         //$mb->setDeliveryTime("tomorrow 8:00AM", "PST");
         //$mb->setClickTracking(true);

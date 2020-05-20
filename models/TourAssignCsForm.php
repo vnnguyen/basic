@@ -1,7 +1,8 @@
-<?
+<?php
 
-namespace common\models;
+namespace app\models;
 
+use Yii;
 use yii\base\Model;
 
 class TourAssignCsForm extends Model
@@ -11,14 +12,14 @@ class TourAssignCsForm extends Model
 	public function attributeLabels()
 	{
 		return [
-			'css'=>'Customer care staff',
+			'css'=>'Customer Relations staff',
 		];
 	}
 
 	public function rules()
 	{
 		return [
-			[['css'], 'required', 'message'=>'Required'],
+			[['css'], 'required', 'message'=>Yii::t('x', 'Required')],
 		];
 	}
 

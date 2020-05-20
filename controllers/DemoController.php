@@ -64,10 +64,99 @@ use app\models\MyMailQueueModel;
 
 use app\components\MyMailHandler;
 use \Mpdf\Mpdf as mPDF;
+require_once Yii::$app->basePath.'/googleClient/vendor/autoload.php';
 
 
 class DemoController extends MyController
 {
+    function getServiceAccountClient()
+    {
+        try {
+            // Create and configure a new client object.
+            $httpClient = new \GuzzleHttp\Client([
+                'verify' => false,
+            ]);
+            $client = new \Google_Client();
+            $client->setHttpClient($httpClient);
+            $client->setApplicationName('IMS');
+            // We only need permissions to compose and send emails
+            $client->addScope("https://www.googleapis.com/auth/gmail.compose");
+            $client->setAuthConfig(Yii::$app->basePath.'/googleClient/client_secret_343281053968-bf8kdca9bkbs7etnasf2r6mrk3k4j45g.apps.googleusercontent.com.json');
+            $client->setAccessType('offline');
+            $client->setApprovalPrompt('force');
+            $client->setIncludeGrantedScopes(true);
+            return $client;
+        } catch (Exception $e) {
+            print "An error occurred: " . $e->getMessage();
+        }
+    }
+
+    public function actionGmail_api_send(){
+        $user = 'me';
+        $strSubject = 'Test mail using GMail API' . date('M d, Y h:i:s A');
+        $strRawMessage = "From: myAddress<myemail@gmail.com>\r\n";
+        $strRawMessage .= "To: toAddress <nguyenvn099@gmail.com>\r\n";
+        $strRawMessage .= 'Subject: =?utf-8?B?' . base64_encode($strSubject) . "?=\r\n";
+        $strRawMessage .= "MIME-Version: 1.0\r\n";
+        $strRawMessage .= "Content-Type: text/html; charset=utf-8\r\n";
+        $strRawMessage .= 'Content-Transfer-Encoding: quoted-printable' . "\r\n\r\n";
+        $strRawMessage .= "this <b>is a test message!\r\n";
+        // The message needs to be encoded in Base64URL
+        $mime = rtrim(strtr(base64_encode($strRawMessage), '+/', '-_'), '=');
+        $msg = new \Google_Service_Gmail_Message();
+        $msg->setRaw($mime);
+        $client = $this->getServiceAccountClient();
+
+        // Load previously authorized credentials from a file.
+        $tokenPath = Yii::$app->basePath.'/googleClient/token.json';
+        if (isset($_GET['code'])) {
+            $authCode = $_GET['code'];
+            $accessToken = $client->fetchAccessTokenWithAuthCode($authCode);
+            // header('Location: ' . filter_var($redirectUri, FILTER_SANITIZE_URL));
+            if(!file_exists(dirname($tokenPath))) {
+                mkdir(dirname($tokenPath), 0700, true);
+            }
+            file_put_contents($tokenPath, json_encode($accessToken));
+
+        }
+        if (file_exists($tokenPath)) {
+         $accessToken = json_decode(file_get_contents($tokenPath), true);
+        } else {
+
+            // Request authorization from the user.
+            $authUrl = $client->createAuthUrl();
+            header('Location: ' . filter_var($authUrl, FILTER_SANITIZE_URL));
+        }
+        $client->setAccessToken($accessToken);
+
+        // Refresh the token if it's expired.
+        if ($client->isAccessTokenExpired()) {
+
+            // save refresh token to some variable
+            $refreshTokenSaved = $client->getRefreshToken();
+
+            // update access token
+            $client->fetchAccessTokenWithRefreshToken($refreshTokenSaved);
+
+            // pass access token to some variable
+            $accessTokenUpdated = $client->getAccessToken();
+
+            // append refresh token
+            $accessTokenUpdated['refresh_token'] = $refreshTokenSaved;
+
+            //Set the new acces token
+            $accessToken = $refreshTokenSaved;
+            $client->setAccessToken($accessToken);
+
+            // save to file
+            file_put_contents($tokenPath, json_encode($accessTokenUpdated));
+        }
+        $service = new \Google_Service_Gmail($client);
+        $service->users_messages->send("me", $msg);
+
+        exit('email sent');
+
+    }
     /*
     EXPORT WITH MPDF
     */

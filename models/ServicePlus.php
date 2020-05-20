@@ -1,11 +1,12 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 use Yii;
 
 class ServicePlus extends MyActiveRecord
 {
     public $code;
+    public $reasons = [];
 
     public static function tableName()
     {
@@ -16,11 +17,14 @@ class ServicePlus extends MyActiveRecord
     {
         return [
             [[
-                'name', 'svc_date', 'svc_success', 'code', 'context', 'sv', 'cp', 'result',
+                'svc_type', 'svc_link', 'svc_gifts', 'svc_date', 'svc_success', 'reasons', 'reason_detail', 'sv', 'cost_detail', 'result',
             ], 'trim'],
             [[
-                'name', 'svc_date', 'code',
+                'svc_type', 'sv', 'svc_date',
             ], 'required', 'message'=>Yii::t('x', 'Required')],
+            [[
+                'svc_link',
+            ], 'url', 'message'=>Yii::t('x', 'Invalid URL')],
         ];
     }
 
@@ -37,6 +41,11 @@ class ServicePlus extends MyActiveRecord
     public function getCreatedBy()
     {
         return $this->hasOne(User::className(), ['id'=>'created_by']);
+    }
+
+    public function getAttachments()
+    {
+        return $this->hasMany(Attachment::className(), ['rid'=>'id'])->andWhere(['rtype'=>'service-plus']);
     }
 
 }

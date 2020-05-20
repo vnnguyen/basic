@@ -1,5 +1,7 @@
-<?
+<?php
 namespace common\models;
+
+use Yii;
 
 class Cpt extends MyActiveRecord
 {
@@ -20,7 +22,7 @@ class Cpt extends MyActiveRecord
 
     public function getTour()
     {
-        return $this->hasOne(Tour::className(), ['id'=>'tour_id']);
+        return $this->hasOne(Product::className(), ['id'=>'tour_id']);
     }
 
     public function getCp()
@@ -45,12 +47,12 @@ class Cpt extends MyActiveRecord
 
     public function getCreatedBy()
     {
-        return $this->hasOne(User::className(), ['id'=>'created_by']);
+        return $this->hasOne(User2::className(), ['id'=>'created_by']);
     }
 
     public function getUpdatedBy()
     {
-        return $this->hasOne(User::className(), ['id'=>'updated_by']);
+        return $this->hasOne(User2::className(), ['id'=>'updated_by']);
     }
 
     public function getComments()
@@ -66,6 +68,11 @@ class Cpt extends MyActiveRecord
     public function getMtt()
     {
         return $this->hasMany(Mtt::className(), ['cpt_id'=>'dvtour_id']);
+    }
+
+    public function getCptTietkiem()
+    {
+        return $this->hasMany(CptTietkiem::className(), ['cpt_id'=>'dvtour_id']);
     }
 
 }

@@ -1,16 +1,15 @@
 <?php
-
 namespace common\models;
 
 class TourGuide2 extends MyActiveRecord
 {
     public static function tableName() {
-        return '{{%tour_guides}}';
+        return 'tour_guides';
     }
 
     public function getGuide()
     {
-        return $this->hasOne(Person::className(), ['id'=>'guide_user_id']);
+        return $this->hasOne(Contact::className(), ['id'=>'guide_user_id']);
     }
 
     public function getTour()

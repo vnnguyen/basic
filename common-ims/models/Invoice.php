@@ -66,7 +66,7 @@ class Invoice extends MyActiveRecord
 
 	public function getPayer()
 	{
-		return $this->hasOne(User2::className(), ['id'=>'payer_id']);
+		return $this->hasOne(Person::className(), ['id'=>'payer_id']);
 	}
 
 }

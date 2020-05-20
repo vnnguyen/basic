@@ -1,5 +1,4 @@
 <?php
-
 namespace common\models;
 
 use Yii;
@@ -59,7 +58,7 @@ class LoginForm extends Model
     public function getUser()
     {
         if ($this->_user === false) {
-            $this->_user = User2::findByUsername($this->email);
+            $this->_user = User::findByUsername($this->email);
         }
         return $this->_user;
     }

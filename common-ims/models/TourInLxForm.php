@@ -1,16 +1,24 @@
-<?php
+<?
 
 namespace common\models;
 
-use Yii;
 use yii\base\Model;
 
 class TourInLxForm extends Model
 {
-    public $name, $days, $vp, $pax, $chuxe, $laixe, $loaixe;
-    public $dieuhanh, $huongdan, $giakm, $giadb, $giatb;
+    public $name;
+    public $days;
+    public $vp;
+    public $pax;
+    public $chuxe;
+    public $laixe;
+    public $loaixe;
+    public $dieuhanh;
+    public $huongdan;
+    public $giakm;
+    public $giadb;
+    public $giatb;
     public $note;
-    public $cpkhac_ten, $cpkhac_dvi, $cpkhac_gia, $cpkhac_sl;
 
     public function attributeLabels()
     {
@@ -27,16 +35,9 @@ class TourInLxForm extends Model
     public function rules()
     {
         return [
-            [[
-                'name', 'days', 'vp', 'pax', 'chuxe', 'laixe', 'loaixe', 'dieuhanh', 'huongdan', 'giakm', 'giadb', 'giatb', 'note',
-                'cpkhac_ten', 'cpkhac_dvi', 'cpkhac_gia', 'cpkhac_sl'
-                ], 'trim'],
-            [[
-                'pax', 'giakm', 'giadb', 'giatb'
-                ], 'default', 'value'=>0],
-            [[
-                'vp', 'pax', 'dieuhanh'
-                ], 'required', 'message'=>Yii::t('app', 'Required')],
+            [['name', 'days', 'vp', 'pax', 'chuxe', 'laixe', 'loaixe', 'dieuhanh', 'huongdan', 'giakm', 'giadb', 'giatb', 'note'], 'trim'],
+            [['pax', 'giakm', 'giadb', 'giatb'], 'default', 'value'=>0],
+            [['vp', 'pax', 'dieuhanh'], 'required', 'message'=>'Required'],
         ];
     }
 

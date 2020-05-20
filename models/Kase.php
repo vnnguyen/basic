@@ -1,19 +1,25 @@
 <?php
 namespace app\models;
 
+use Yii;
+
 class Kase extends MyActiveRecord
 {
+    public $_kx = '';
+    public $_kx_cost = '';
+    public $_kx_cost_currency = '';
+    public $_device = '';
     public $emails = '';
     public static function tableName()
     {
-        return '{{%cases}}';
+        return 'files';
     }
 
     public function attributeLabels()
     {
         return [
             'name'=>'Case name',
-            'cofr'=>'Seller in France',
+            'cofr'=>'Amica contact in France',
             'company_id'=>'Travel / Tour company',
             'ref'=>'ID of referrer user',
             'info'=>'Note',
@@ -23,54 +29,36 @@ class Kase extends MyActiveRecord
     public function rules()
     {
         return [
-            [['name'], 'unique'],
-            [['cofr', 'campaign_id'], 'default', 'value'=>0],
-            [['name', 'stype', 'info', 'why_closed', 'closed_note', 'web_referral', 'web_keyword', 'ref'], 'trim'],
-            [['name', 'owner_id', 'is_priority', 'language', 'is_b2b', 'how_contacted', 'how_found'], 'required', 'message'=>'Field is required'],
-            [['why_closed', 'closed_note'], 'required', 'on'=>'kase/close'],
-            [['company_id', 'ref', 'campaign_id'], 'default', 'value'=>0],
-            [['ref'], 'default', 'value'=>0],
+            [[
+                'name'], 'unique'],
+            [[
+                'cofr', 'campaign_id'], 'default', 'value'=>0],
+            [[
+                '_kx', '_kx_cost', '_kx_cost_currency', 'name', 'stype', 'info', 'why_closed', 'closed_note', 'web_referral', 'web_keyword', 'ref', '_device', 'ta_name', 'tl_name'], 'trim'],
+            [[
+                'name', 'is_priority', 'language', 'is_b2b', 'how_contacted', 'how_found'], 'required', 'message'=>Yii::t('x', 'Required')],
+            [[
+                'why_closed', 'closed_note'], 'required', 'on'=>'kase/close'],
+            [[
+                'company_id', 'ref', 'campaign_id'], 'default', 'value'=>0],
+            [[
+                'ref'], 'default', 'value'=>0],
         ];
     }
 
     public function scenarios()
     {
         return [
-            'kase/c'=>['name', 'language', 'is_b2b', 'is_priority', 'owner_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'emails'],
-            'b2b/kase/c'=>['name', 'stype', 'language', 'is_priority', 'owner_id', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword'],
-            'kase/u'=>['name', 'language', 'is_b2b', 'is_priority', 'owner_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'emails'],
-            'b2b/kase/u'=>['name', 'stype', 'language', 'is_priority', 'owner_id', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword'],
-            'kase/upa'=>['how_contacted', 'web_keyword', 'campaign_id', 'company_id', 'how_found', 'ref', 'info'],
+            'kase/c'=>['name', 'language', 'is_b2b', 'is_priority', 'owner_id', 'orig_seller_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'emails', '_kx'],
+            'b2b/kase/c'=>['name', 'stype', 'language', 'is_priority', 'owner_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'ta_name', 'tl_name'],
+            'kase/u'=>['name', 'language', 'is_b2b', 'is_priority', 'owner_id', 'orig_seller_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'emails', '_kx'],
+            'b2b/kase/u'=>['name', 'stype', 'language', 'is_priority', 'owner_id', 'cofr', 'info', 'how_found', 'how_contacted', 'company_id', 'campaign_id', 'ref', 'web_referral', 'web_keyword', 'ta_name', 'tl_name'],
+            'kase/upa'=>['_kx', '_kx_cost', '_kx_cost_currency', 'how_contacted', 'web_keyword', 'campaign_id', 'company_id', 'how_found', 'ref', 'info', '_device'],
             'inquiries_r'=>['name'],
             'update'=>['name', 'is_priority', 'owner_id'],
             'kase/close'=>['why_closed', 'closed_note'],
             'cases_reopen'=>[],
         ];
-    }
-
-    public function getPeople() {
-        return $this->hasMany(User::className(), ['id' => 'user_id'])
-            ->viaTable('at_case_user', ['case_id'=>'id']);
-    }
-    public function getCperson() {
-        return $this->hasMany(Person::className(), ['id' => 'user_id'])
-            ->viaTable('at_case_user', ['case_id'=>'id']);
-    }
-    public function getContact() {
-        return $this->hasMany(Contact::className(), ['id' => 'user_id'])
-            ->viaTable('at_case_user', ['case_id'=>'id']);
-    }
-
-    public function getOwner() {
-        return $this->hasOne(User::className(), ['id' => 'owner_id']);
-    }
-
-    public function getReferrer() {
-        return $this->hasOne(User::className(), ['id' => 'ref']);
-    }
-
-    public function getCompany() {
-        return $this->hasOne(Company::className(), ['id' => 'company_id']);
     }
 
     public function getCreatedBy() {
@@ -81,12 +69,37 @@ class Kase extends MyActiveRecord
         return $this->hasOne(User::className(), ['id' => 'updated_by']);
     }
 
+    public function getPeople() {
+        return $this->hasMany(Contact::className(), ['id' => 'user_id'])
+            ->viaTable('at_case_user', ['case_id'=>'id']);
+    }
+
+    public function getOwner() {
+        return $this->hasOne(User::className(), ['id' => 'owner_id']);
+    }
+
+    public function getReferrer() {
+        return $this->hasOne(Contact::className(), ['id' => 'ref']);
+    }
+
+    public function getCompany() {
+        return $this->hasOne(Client::className(), ['id' => 'company_id']);
+    }
+
     public function getStats() {
         return $this->hasOne(KaseStats::className(), ['case_id' => 'id']);
     }
 
     public function getTasks() {
         return $this->hasMany(Task::className(), ['rid' => 'id'])->where(['rtype'=>'case'])->orderBy('fuzzy, due_dt');
+    }
+
+    public function getKasePartners() {
+        return $this->hasMany(KasePartner::className(), ['case_id' => 'id']);
+    }
+
+    public function getMetas() {
+        return $this->hasMany(Meta::className(), ['rid' => 'id'])->where(['rtype'=>'case']);
     }
 
     public function getFiles() {

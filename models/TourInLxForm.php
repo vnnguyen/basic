@@ -1,6 +1,5 @@
 <?php
-
-namespace common\models;
+namespace app\models;
 
 use Yii;
 use yii\base\Model;
@@ -8,14 +7,13 @@ use yii\base\Model;
 class TourInLxForm extends Model
 {
     public $name, $days, $vp, $pax, $chuxe, $laixe, $loaixe;
-    public $dieuhanh, $huongdan, $giakm, $giadb, $giatb;
+    public $dieuhanh, $huongdan = [], $giakm, $giadb, $giatb, $invat;
     public $note;
     public $cpkhac_ten, $cpkhac_dvi, $cpkhac_gia, $cpkhac_sl;
 
     public function attributeLabels()
     {
         return [
-            'days'=>'In các ngày (vd 1-3,4,5-7)',
             'pax'=>'Số khách',
             'giakm'=>'Giá VND/km',
             'giadb'=>'Giá VND/ ngày Đông Bắc',
@@ -36,7 +34,7 @@ class TourInLxForm extends Model
                 ], 'default', 'value'=>0],
             [[
                 'vp', 'pax', 'dieuhanh'
-                ], 'required', 'message'=>Yii::t('app', 'Required')],
+                ], 'required', 'message'=>Yii::t('x', 'Required')],
         ];
     }
 

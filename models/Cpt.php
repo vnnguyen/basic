@@ -1,5 +1,7 @@
-<?
-namespace common\models;
+<?php
+namespace app\models;
+
+use Yii;
 
 class Cpt extends MyActiveRecord
 {
@@ -9,23 +11,29 @@ class Cpt extends MyActiveRecord
         return 'cpt';
     }
 
-    public function attributeLabels() {
+    public function scenarios() {
         return [
+            'costs/u/huan'=>['c_type', 'r_status', 'use_time', 'name', 'name2'],
         ];
     }
 
     public function rules() {
-        return [];
+        return [
+            [[
+                'c_type', 'r_status', 'name', 'name2', 'use_time',], 'trim'],
+            [[
+                'r_status', 'name', ], 'required', 'message'=>Yii::t('x', 'Required')],
+        ];
     }
 
     public function getTour()
     {
-        return $this->hasOne(Tour::className(), ['id'=>'tour_id']);
+        return $this->hasOne(Product::className(), ['id'=>'tour_id']);
     }
 
-    public function getCp()
+    public function getDvt()
     {
-        return $this->hasOne(Cp::className(), ['id'=>'cp_id']);
+        return $this->hasOne(Dvt::className(), ['id'=>'dvt_id']);
     }
 
     public function getVenue()
@@ -53,19 +61,54 @@ class Cpt extends MyActiveRecord
         return $this->hasOne(User::className(), ['id'=>'updated_by']);
     }
 
-    public function getComments()
+    public function getOwner()
     {
-        return $this->hasMany(Comment::className(), ['rid'=>'dvtour_id'])->onCondition(['rtype'=>'cpt'])->orderBy('created_at');
+        return $this->hasOne(User::className(), ['id' => 'owner_id']);
     }
 
-    public function getEdits()
+    public function getVendor()
     {
-        return $this->hasMany(CptEdit::className(), ['latest'=>'dvtour_id'])->orderBy('created_at DESC');
+        return $this->hasOne(Org::className(), ['id'=>'venue_id']);
+    }
+
+    public function getVendorContact()
+    {
+        return $this->hasOne(Contact::className(), ['id'=>'vendor_contact_id']);
+    }
+
+    public function getPayee()
+    {
+        return $this->hasOne(Contact::className(), ['id'=>'p_to_contact_id']);
+    }
+
+    public function getComments()
+    {
+        return $this->hasMany(Comment::className(), ['rid'=>'id'])->onCondition(['rtype'=>'cpt'])->orderBy('created_at');
+    }
+
+    public function getTransactions()
+    {
+        return $this->hasMany(Transaction::className(), ['cpt_id'=>'id']);
+    }
+
+    public function getReactions()
+    {
+        return $this->hasMany(Reaction::className(), ['rid'=>'id'])->andWhere(['rtype'=>'cpt']);
     }
 
     public function getMtt()
     {
-        return $this->hasMany(Mtt::className(), ['cpt_id'=>'dvtour_id']);
+        return $this->hasMany(Mtt::className(), ['cpt_id'=>'id']);
+    }
+
+    public function getCptTietkiem()
+    {
+        return $this->hasMany(CptTietkiem::className(), ['cpt_id'=>'id']);
+    }
+
+    public function getEdits()
+    {
+        return $this->hasMany(CptEdit::className(), ['cpt_id'=>'id'])->orderBy('edit_dt DESC');
     }
 
 }

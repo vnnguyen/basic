@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 // Hop dong dich vu
 
@@ -11,24 +11,17 @@ class Dvc extends MyActiveRecord
         return 'dvc';
     }
 
-    public function attributeLabels() {
-        return [
-        ];
-    }
-
     public function rules() {
         return [
             [[
-                'name', 'number', 'signed_dt',
+                'stype', 'name', 'number', 'signed_dt',
                 'valid_from_dt', 'valid_until_dt',
-                'body', 'note',
+                'signed_dt', 'amended_dt',
+                'description', 'body', 'note',
                 ], 'trim'],
             [[
-                'name',
+                'stype', 'name',
                 ], 'required'],
-            [[
-                'signed_dt', 'valid_from_dt', 'valid_until_dt',
-                ], 'default', 'value'=>'0000-00-00 00:00:00'],
             [[
                 'name',
                 ], 'unique', 'targetAttribute' => ['name', 'venue_id'], 'message'=>'Name already exists'],
@@ -39,14 +32,16 @@ class Dvc extends MyActiveRecord
     {
         return [
             'dvc/c'=>[
-                'name', 'number', 'signed_dt',
+                'stype', 'name', 'number', 'signed_dt',
                 'valid_from_dt', 'valid_until_dt',
-                'body', 'note',
+                'signed_dt', 'amended_dt',
+                'description', 'body', 'note',
                 ],
             'dvc/u'=>[
-                'name', 'number', 'signed_dt',
+                'stype', 'name', 'number', 'signed_dt',
                 'valid_from_dt', 'valid_until_dt',
-                'body', 'note',
+                'signed_dt', 'amended_dt',
+                'description', 'body', 'note',
                 ],
         ];
     }

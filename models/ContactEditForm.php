@@ -20,6 +20,8 @@ class ContactEditForm extends Model
         $tel, $tel2, $email, $email2, $email3, $email4, $website, $website2,
         $addr_street, $addr_city, $addr_state, $addr_country, $addr_postal,
 
+        $star, $comm, $tags,
+
         $traveler_profile, $traveler_profile_assoc_names,
         $travel_preferences, $diet, $allergies, $diet_note, $health_condition, $health_note,
         $transportation, $transportation_note, $future_travel_wishlist,
@@ -48,6 +50,8 @@ class ContactEditForm extends Model
 
                 'profession', 'job_title', 'employer',
 
+                'star', 'comm', 'tags',
+
                 'traveler_profile', 'traveler_profile_assoc_names',
                 'travel_preferences', 'diet', 'allergies', 'diet_note', 'health_condition', 'health_note',
                 'transportation', 'transportation_note', 'future_travel_wishlist',
@@ -59,7 +63,7 @@ class ContactEditForm extends Model
                 'test',
             ], 'trim'],
             [[
-                'name', 'fname', 'lname', 'gender'
+                'name', 'gender'
                 ], 'required', 'message'=>Yii::t('app', 'Required')],
         ];
     }

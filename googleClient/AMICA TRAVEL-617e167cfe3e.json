@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "amica-travel-1529973721309",
+  "private_key_id": "617e167cfe3ebde3f335ecfbfc925c541ccd2344",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDS466vot9ThJbG\nYxmAjINpPGUu+GdPg6GE4tBIdpQdx/YESYgFiwCLHRonRvYR3mzyg8dAB6TaiGb0\nyK+5qyXvPjj9iXwri1CWmoVfEJm3G4566EyeXTO2YttcmdjbYOgZ8ETmOifHsFT8\nvsx+MU7WrwA7r6fPK6UuJhs9vc66Vwcr1XttBobrMTp1Q4RTmPNSUMMul1mHtQZJ\nIUPLxvOoSfCnANQKEm6LmBUD8jdMTa9UjFyFU1G4RgIX+QIVANeTsjzHmV8dnAuj\nprDDaWMaOhzb3X0+1YxGiQB/AFaSGS0wvzlKbf21qMTW0/YLZsX4qQDgL8ZWd3Q9\nwBawdAGRAgMBAAECggEAIeEbALNhPlkYIdHs2GZ6fA8MUFHuwurqKV+Ix4NpQymL\nH+AyPnW4xiCMQZAYWwGJLiK2gVZZCRSNubh95o2UwA0WecC7FoHAlhlH4OBZWX3P\nU3Z7TJu7gYr7I7LBkGjOkNA1OWlRV7a/yITcdE92k22002HiSxl/ZV0Q1kfmbK/g\npJkgUEC/uua4t6bej/EYOIBKoGOYDXUlGTZ7nmWZR2HiS3KGzRV534w7opxXdMNG\nDqrYZXVUSdNQFLm6SJPFlqL5f50uXl7Z5NWo93noRLVbm9lirPfrGwCv34mQ3KJG\nV15aSCsPaB2G7Yv3TV41MXIe5NdMVLexFVo/dquxeQKBgQD6f1WrAtefgJ74V9G+\ntFQqcS5lUmwElSFi5M8HVWwzX+f/rg/fDXq5pt8kr3FJA+z+w+FSsrJgt/HJs9Jk\ndydL/It+PqpTh1weiOQEV4/yudJ4/5MpObQqJ6ook3IjGHHg4oSWHEWnk1HQORu6\nchS74Mt7UwlXnWvBIJ8N7A1plQKBgQDXhZz1LpLWvqdTBFlqUvbsm6EwuiKXjqAS\n8LCCZSJcRpqHsVmmsJoEgAHd9sUh8xAmmn5lAjUik2IkktcX6dUqIExeTmpb5eA3\nUkhG4PQImPhzxcyVMygE++w7WcbSJlXCKzkT3hFkuyLuwR/zsQPgpQfCuo26/H6t\nghOhB4fRDQKBgQCMmsDJVrUVUKrqltCijLHZiOIT+WmsQNEWo3wZj7dGNwUQHPHH\nr9c9Mg96lgeuhkeW0Pg+5RL++wD6yLbFsaQbIMxjtmUAsa/ha9EhJs0j323mgP5n\nW35nUxBN6kVcsbHqGvt1DrWCVEzN5eBMjRBaTNmqhXdu+GutYdQlimQU6QKBgC/D\nULGVjL1Cq1pekGJb2JU/OE3QMnJcDWWlKbj8KM1CaGTCDRg/8yIkLEXAtpd7gozL\nmE9SWew7tXhdgoWuMKuRVNthjXioTTR1a8cpe2ucWxNtNpWqLKhOHGBa2REhpcfO\nRGv+vuQQBQHckvQyuqVCbaHeLiLOalSRi0AYpyTRAoGAZIWMRj2gsdvQK9jamNWE\nw7Oh6u3akFQhfIYQv70M08uiRJ5yxjGXFR1VMO25snG822ZEHMpyo/K4LcMO4qNk\neBUYBxCRTRXHmOFdWEOHV9lkq3cqKO9gBX1T8ATrW39Px6gr+ciyBdg1qlCrnGyv\ny+qIZ8wLAlAZH6qVEWfqQA0=\n-----END PRIVATE KEY-----\n",
+  "client_email": "analytics-ims@amica-travel-1529973721309.iam.gserviceaccount.com",
+  "client_id": "110703858562432281907",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/analytics-ims%40amica-travel-1529973721309.iam.gserviceaccount.com"
+}

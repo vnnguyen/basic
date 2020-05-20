@@ -1,5 +1,5 @@
-<?
-namespace common\models;
+<?php
+namespace app\models;
 
 class Mtt extends MyActiveRecord
 {
@@ -46,7 +46,7 @@ class Mtt extends MyActiveRecord
 
 	public function getCpt()
 	{
-		return $this->hasOne(Cpt::className(), ['dvtour_id'=>'cpt_id']);
+		return $this->hasOne(Cpt::className(), ['id'=>'cpt_id']);
 	}
 
 }

@@ -1,40 +1,24 @@
 <?php
-namespace common\models;
+namespace app\models;
 
-class Tourguide extends MyActiveRecord
+class TourGuide extends MyActiveRecord
 {
-	public static function tableName()
-	{
-		return '{{%users}}';
-	}
+    public static function tableName() {
+        return 'tour_guides';
+    }
 
-	public function attributeLabels()
-	{
-		return [
-			'start_dt'=>'Start date',
-			'end_dt'=>'End date',
-			'info'=>'More information',
-		];
-	}
+    public function getGuide()
+    {
+        return $this->hasOne(Contact::className(), ['id'=>'guide_user_id']);
+    }
 
-	public function rules()
-	{
-		return [
-			['name, code, start_dt, end_dt, info', 'filter', 'filter'=>'trim'],
-			['name, code, start_dt, end_dt', 'required'],
-			['name', 'string', 'max'=>128],
-			['code', 'string', 'max'=>64],
-		];
-	}
+    public function getTour()
+    {
+        return $this->hasOne(Product::className(), ['id'=>'tour_id']);
+    }
 
-	public function getCreatedBy()
-	{
-		return $this->hasOne(User2::className(), ['id'=>'created_by']);
-	}
-
-	public function getUpdatedBy()
-	{
-		return $this->hasOne(User2::className(), ['id'=>'updated_by']);
-	}
-
+    public function getProfile()
+    {
+        return $this->hasOne(TourguideProfile::className(), ['user_id'=>'guide_user_id']);
+    }
 }

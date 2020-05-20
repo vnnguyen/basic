@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class Tour extends MyActiveRecord
 {
@@ -64,7 +64,7 @@ class Tour extends MyActiveRecord
     public function getOperators()
     {
         return $this->hasMany(User::className(), ['id'=>'user_id'])
-            ->viaTable('at_tour_user', ['tour_id'=>'id'], function($query){
+            ->viaTable('tour_user', ['tourold_id'=>'id'], function($query){
             $query->where(['role'=>'operator']);
         });
     }
@@ -77,7 +77,7 @@ class Tour extends MyActiveRecord
     public function getCskh()
     {
         return $this->hasMany(User::className(), ['id'=>'user_id'])
-            ->viaTable('at_tour_user', ['tour_id'=>'id'], function($query){
+            ->viaTable('tour_user', ['tourold_id'=>'id'], function($query){
             $query->where(['role'=>'cservice']);
         });
     }

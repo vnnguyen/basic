@@ -5,15 +5,16 @@ use Yii;
 
 class SampleDay extends MyActiveRecord
 {
-    public static function tableName() {
-        return 'at_ngaymau';
+    public static function tableName()
+    {
+        return 'sample_days';
     }
 
     public function rules()
     {
         return [
             [[
-                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary', 'is_selectable'
+                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary', 'is_selectable', 'dests', 'cats',
                 ], 'trim'],
             [[
                 'language', 'title', 'body', 'meals',
@@ -25,10 +26,10 @@ class SampleDay extends MyActiveRecord
     {
         return [
             'sample-days/c'=>[
-                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary', 'is_selectable'
+                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary', 'is_selectable', 'dests', 'cats',
             ],
             'sample-days/u'=>[
-                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary', 'is_selectable'
+                'language', 'title', 'body', 'tags', 'meals', 'transport', 'guides', 'note', 'summary', 'is_selectable', 'dests', 'cats',
             ],
         ];
     }
@@ -37,13 +38,13 @@ class SampleDay extends MyActiveRecord
     public function getPrograms()
     {
         return $this->hasMany(SampleProgram::className(), ['id' => 'day_id'])
-            ->viaTable('sample_tour_day_segment', ['segment_id' => 'id']);
+            ->viaTable('sample_day_segment', ['segment_id' => 'id']);
     }
 
     public function getSegments()
     {
         return $this->hasMany(SampleSegment::className(), ['id' => 'segment_id'])
-            ->viaTable('sample_tour_day_segment', ['day_id' => 'id']);
+            ->viaTable('sample_day_segment', ['day_id' => 'id']);
     }
 
     public function getSiblings()

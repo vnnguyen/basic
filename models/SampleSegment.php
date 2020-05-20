@@ -6,7 +6,7 @@ use Yii;
 class SampleSegment extends MyActiveRecord
 {
     public static function tableName() {
-        return 'at_ngaymau';
+        return 'sample_days';
     }
 
     public function rules()
@@ -36,7 +36,7 @@ class SampleSegment extends MyActiveRecord
     public function getDays()
     {
         return $this->hasMany(SampleDay::className(), ['id' => 'day_id'])
-            ->viaTable('sample_tour_day_segment', ['segment_id' => 'id']);
+            ->viaTable('sample_day_segment', ['segment_id' => 'id']);
     }
 
     public function getCreatedBy()

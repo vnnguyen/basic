@@ -1,32 +1,22 @@
-<?
-namespace common\models;
+<?php
+namespace app\models;
 
 class CptEdit extends MyActiveRecord
 {
 
     public static function tableName()
     {
-        return 'cpt_history';
+        return 'cpt_edits';
     }
 
-    public function getCpt()
+    public function getCost()
     {
-        return $this->hasOne(Cpt::className(), ['dvtour_id'=>'latest']);
+        return $this->hasOne(Cost::className(), ['id'=>'cpt_id']);
     }
 
     public function getCreatedBy()
     {
-        return $this->hasOne(User::className(), ['id'=>'created_by']);
-    }
-
-    public function getUpdatedBy()
-    {
-        return $this->hasOne(User::className(), ['id'=>'updated_by']);
-    }
-
-    public function getComments()
-    {
-        return $this->hasMany(Comment::className(), ['rid'=>'dvtour_id'])->onCondition(['rtype'=>'cpt'])->orderBy('created_at');
+        return $this->hasOne(User::className(), ['id'=>'edit_by']);
     }
 
 }

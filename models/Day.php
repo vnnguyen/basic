@@ -1,18 +1,11 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class Day extends MyActiveRecord
 {
     public static function tableName()
     {
-        return '{{%days}}';
-    }
-
-    public function attributeLabels()
-    {
-        return [
-            'note'=>'Note',
-        ];
+        return 'days';
     }
 
     public function rules()
@@ -34,6 +27,12 @@ class Day extends MyActiveRecord
     {
         return [
             'day/c'=>[
+                'day', 'name', 'body', 'summary', 'image', 'meals', 'guides', 'transport', 'note'
+            ],
+            'days/c'=>[
+                'day', 'name', 'body', 'summary', 'image', 'meals', 'guides', 'transport', 'note'
+            ],
+            'days/u'=>[
                 'day', 'name', 'body', 'summary', 'image', 'meals', 'guides', 'transport', 'note'
             ],
             'day/u'=>[

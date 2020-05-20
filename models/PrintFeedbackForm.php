@@ -1,6 +1,6 @@
-<?
+<?php
 
-namespace common\models;
+namespace app\models;
 
 use yii\base\Model;
 
@@ -28,7 +28,7 @@ class PrintFeedbackForm extends Model
 	{
 		return [
 			[['version', 'logoName', 'language', 'printDays', 'paxName', 'regionName', 'guideNames', 'driverNames'], 'trim'],
-			[['version', 'language', 'paxName'], 'required', 'message'=>'Required'],
+			[['version', 'paxName'], 'required', 'message'=>'Required'],
 		];
 	}
 

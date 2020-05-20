@@ -1,6 +1,7 @@
 <?php
-namespace common\models;
-use app\models\Complaint;
+namespace app\models;
+
+use Yii;
 
 class Incident extends MyActiveRecord
 {
@@ -20,25 +21,26 @@ class Incident extends MyActiveRecord
                 'name', 'description',
                 'tour_code', 'incident_date', 'stype', 'severity',
                 'incident_location',
-                'status', 'actions',  'owner_id', 'owners',
+                'status', 'actions',
+                'involving', 'owner_id', 'owners',
                 ], 'trim'],
             [[
                 'name', 'description',
-                'tour_code', 'incident_date', 'stype', 'severity',
+                'incident_date', 'stype', 'severity',
                 'status',
                 'owner_id',
-                ], 'required', 'message'=>\Yii::t('app', 'Required')],
+                ], 'required', 'message'=>Yii::t('x', 'Required')],
         ];
     }
 
     public function getCreatedBy()
     {
-        return $this->hasOne(User2::className(), ['id'=>'created_by']);
+        return $this->hasOne(User::className(), ['id'=>'created_by']);
     }
 
     public function getUpdatedBy()
     {
-        return $this->hasOne(User2::className(), ['id'=>'updated_by']);
+        return $this->hasOne(User::className(), ['id'=>'updated_by']);
     }
 
     public function getTour()
@@ -46,14 +48,19 @@ class Incident extends MyActiveRecord
         return $this->hasOne(Product::className(), ['id'=>'tour_id']);
     }
 
-    public function getComplaint()
+    public function getComplaints()
     {
         return $this->hasMany(Complaint::className(), ['incident_id'=>'id']);
     }
 
+    public function getPosts()
+    {
+        return $this->hasMany(Post::className(), ['rid'=>'id'])->andWhere(['rtype'=>'incident']);
+    }
+
     public function getOwner()
     {
-        return $this->hasOne(User2::className(), ['id'=>'owner_id']);
+        return $this->hasOne(User::className(), ['id'=>'owner_id']);
     }
 
     public function beforeSave($insert)

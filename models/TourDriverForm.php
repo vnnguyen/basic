@@ -1,6 +1,6 @@
 <?php
 
-namespace common\models;
+namespace app\models;
 
 use yii\base\Model;
 
@@ -16,6 +16,7 @@ class TourDriverForm extends Model
 	public $points;
 	public $note;
 	public $bookingStatus;
+	public $driverContactId;
 
 	public static $bookingStatusList = [
 		'draft'=>'Draft',
@@ -48,6 +49,7 @@ class TourDriverForm extends Model
 			[['vehicleType', 'vehicleNumber', 'driverCompany', 'driverName', 'useFromDt', 'useUntilDt', 'useTimezone', 'points', 'note', 'bookingStatus'], 'trim'],
 			[['vehicleType', 'driverName', 'useFromDt', 'useUntilDt', 'useTimezone', 'bookingStatus'], 'required', 'message'=>'Required'],
 			[['points'], 'default', 'value'=>0],
+			[['driverContactId'], 'default', 'value'=>0],
 			[['points'], 'integer'],
 		];
 	}

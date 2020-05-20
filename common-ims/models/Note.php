@@ -4,7 +4,7 @@ namespace common\models;
 class Note extends MyActiveRecord
 {
 	public static function tableName() {
-		return '{{%messages}}';
+		return 'posts';
 	}
 
 	public function rules()
@@ -25,28 +25,28 @@ class Note extends MyActiveRecord
 	}
 
 	public function getFrom() {
-		return $this->hasOne(User::className(), ['id' => 'from_id']);
+		return $this->hasOne(User2::className(), ['id' => 'from_id']);
 	}
 
 	public function getCreatedBy() {
-		return $this->hasOne(User::className(), ['id' => 'cb']);
+		return $this->hasOne(User2::className(), ['id' => 'created_by']);
 	}
 
 	public function getUpdatedBy() {
-		return $this->hasOne(User::className(), ['id' => 'ub']);
+		return $this->hasOne(User2::className(), ['id' => 'updated_by']);
 	}
 
 	public function getTo()
 	{
-		return $this->hasMany(User::className(), ['id'=>'user_id'])
-			->viaTable('at_message_to', ['message_id' => 'id']);
+		return $this->hasMany(User2::className(), ['id'=>'user_id'])
+			->viaTable('post_to', ['post_id' => 'id']);
 	}
 
 	public function getSto()
 	{
 		// Used in search
 		return $this->hasMany(User::className(), ['id'=>'user_id'])
-			->viaTable('at_message_to', ['message_id' => 'id']);
+			->viaTable('post_to', ['post_id' => 'id']);
 	}
 
 	public function getRelatedCase() {

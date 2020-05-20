@@ -5,7 +5,7 @@ class Inquiry extends MyActiveRecord {
 
 	public static function tableName()
 	{
-		return 'at_inquiries';
+		return 'inquiries';
 	}
 
 	public function rules()
@@ -34,7 +34,7 @@ class Inquiry extends MyActiveRecord {
 		return $this->hasOne(Kase::className(), ['id' => 'case_id']);
 	}
 	public function getSite()
-	{ 
+	{
 		return $this->hasOne(Site::className(), ['id' => 'site_id']);
 	}
 	public function getCreatedBy()

@@ -1,99 +1,83 @@
 <?php
-
 namespace app\models;
 
-use Yii;
-
-/**
- * This is the model class for table "dv".
- *
- * @property string $id
- * @property string $created_dt
- * @property string $created_by
- * @property string $updated_dt
- * @property string $updated_by
- * @property string $status
- * @property string $grouping
- * @property integer $sorder
- * @property string $name
- * @property string $xday
- * @property string $search
- * @property string $search_loc
- * @property string $conds
- * @property string $note
- * @property string $data
- * @property string $is_dependent
- * @property string $venue_id
- * @property string $supplier_id
- * @property string $unit
- * @property string $whobooks
- * @property string $whopays
- * @property string $maxpax
- * @property string $stype
- * @property string $receipt
- * @property string $default_vendor
- */
-class Dv extends \yii\db\ActiveRecord
+class Dv extends MyActiveRecord
 {
-    /**
-     * @inheritdoc
-     */
+    public $type1, $type2, $type3, $type4, $type5;
+    public $name1, $name2, $name3, $name4, $name5;
+
     public static function tableName()
     {
         return 'dv';
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function rules()
-    {
+    public function attributeLabels() {
         return [
-            [['created_dt', 'created_by', 'updated_dt', 'updated_by', 'status', 'grouping', 'sorder', 'name', 'xday', 'search', 'search_loc', 'conds', 'note', 'data', 'venue_id', 'supplier_id', 'unit', 'whobooks', 'whopays', 'maxpax', 'stype', 'receipt', 'default_vendor'], 'required'],
-            [['created_dt', 'updated_dt'], 'safe'],
-            [['created_by', 'updated_by', 'sorder', 'venue_id', 'supplier_id'], 'integer'],
-            [['status', 'xday', 'note', 'data', 'is_dependent'], 'string'],
-            [['grouping', 'search', 'search_loc', 'conds', 'receipt', 'default_vendor'], 'string', 'max' => 64],
-            [['name'], 'string', 'max' => 128],
-            [['unit', 'stype'], 'string', 'max' => 20],
-            [['whobooks', 'whopays'], 'string', 'max' => 2],
-            [['maxpax'], 'string', 'max' => 4],
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
-    public function attributeLabels()
-    {
+    public function rules() {
         return [
-            'id' => Yii::t('app', 'ID'),
-            'created_dt' => Yii::t('app', 'Created Dt'),
-            'created_by' => Yii::t('app', 'Created By'),
-            'updated_dt' => Yii::t('app', 'Updated Dt'),
-            'updated_by' => Yii::t('app', 'Updated By'),
-            'status' => Yii::t('app', 'Status'),
-            'grouping' => Yii::t('app', 'Grouping'),
-            'sorder' => Yii::t('app', 'Sorder'),
-            'name' => Yii::t('app', 'Name'),
-            'xday' => Yii::t('app', 'Xday'),
-            'search' => Yii::t('app', 'Search'),
-            'search_loc' => Yii::t('app', 'Search Loc'),
-            'conds' => Yii::t('app', 'Conds'),
-            'note' => Yii::t('app', 'Note'),
-            'data' => Yii::t('app', 'Data'),
-            'is_dependent' => Yii::t('app', 'Is Dependent'),
-            'venue_id' => Yii::t('app', 'Venue ID'),
-            'supplier_id' => Yii::t('app', 'Supplier ID'),
-            'unit' => Yii::t('app', 'Unit'),
-            'whobooks' => Yii::t('app', 'Whobooks'),
-            'whopays' => Yii::t('app', 'Whopays'),
-            'maxpax' => Yii::t('app', 'Maxpax'),
-            'stype' => Yii::t('app', 'Stype'),
-            'receipt' => Yii::t('app', 'Receipt'),
-            'default_vendor' => Yii::t('app', 'Default Vendor'),
+            [[
+                'status', 'stype', 'sorder', 'is_dependent', 'maxpax',
+                'grouping', 'venue_id',
+                'search_loc', 'name', 'search', 'xday',
+                'whobooks', 'whopays',
+                'unit', 'receipt', 'default_vendor', 'conds',
+                'note',
+                'type1', 'name1', 'type2', 'name2', 'type3', 'name3', 'type4', 'name4', 'type5', 'name5'
+                ], 'trim'],
+            [[
+                'name', 'search', 'is_dependent',
+                ], 'trim'],
         ];
     }
+
+    public function scenarios()
+    {
+        return [
+            'dv/c'=>[
+                'status', 'stype', 'sorder', 'is_dependent', 'maxpax',
+                'grouping', 'venue_id',
+                'search_loc', 'name', 'search', 'xday',
+                'whobooks', 'whopays',
+                'unit', 'receipt', 'default_vendor', 'conds',
+                'note',
+                'type1', 'name1', 'type2', 'name2', 'type3', 'name3', 'type4', 'name4', 'type5', 'name5'
+                ],
+            'dv/u'=>[
+                'status', 'stype', 'sorder', 'is_dependent', 'maxpax',
+                'grouping', 'venue_id',
+                'search_loc', 'name', 'search', 'xday',
+                'whobooks', 'whopays',
+                'unit', 'receipt', 'default_vendor', 'conds',
+                'note',
+                'type1', 'name1', 'type2', 'name2', 'type3', 'name3', 'type4', 'name4', 'type5', 'name5'
+                ],
+        ];
+    }
+
+    public function getCreatedBy()
+    {
+        return $this->hasOne(User::className(), ['id'=>'created_by']);
+    }
+
+    public function getUpdatedBy()
+    {
+        return $this->hasOne(User::className(), ['id'=>'updated_by']);
+    }
+
+    public function getSupplier()
+    {
+        return $this->hasOne(Supplier::className(), ['id'=>'supplier_id']);
+    }
+
+    public function getVenue()
+    {
+        return $this->hasOne(Venue::className(), ['id'=>'venue_id']);
+    }
+
+    // Chi phi (gia cua dv)
     public function getCp()
     {
         return $this->hasMany(Cp::className(), ['dv_id'=>'id']);

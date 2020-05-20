@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class Invoice extends MyActiveRecord
 {
@@ -46,12 +46,12 @@ class Invoice extends MyActiveRecord
 
 	public function getCreatedBy()
 	{
-		return $this->hasOne(User2::className(), ['id'=>'created_by']);
+		return $this->hasOne(User::className(), ['id'=>'created_by']);
 	}
 
 	public function getUpdatedBy()
 	{
-		return $this->hasOne(User2::className(), ['id'=>'updated_by']);
+		return $this->hasOne(User::className(), ['id'=>'updated_by']);
 	}
 
 	public function getBooking()
@@ -66,7 +66,7 @@ class Invoice extends MyActiveRecord
 
 	public function getPayer()
 	{
-		return $this->hasOne(User2::className(), ['id'=>'payer_id']);
+		return $this->hasOne(Contact::className(), ['id'=>'payer_id']);
 	}
 
 }

@@ -11,17 +11,12 @@ class Dvc extends MyActiveRecord
         return 'dvc';
     }
 
-    public function attributeLabels() {
-        return [
-        ];
-    }
-
     public function rules() {
         return [
             [[
                 'name', 'number', 'signed_dt',
                 'valid_from_dt', 'valid_until_dt',
-                'body', 'note',
+                'description', 'body', 'note',
                 ], 'trim'],
             [[
                 'name',
@@ -41,12 +36,12 @@ class Dvc extends MyActiveRecord
             'dvc/c'=>[
                 'name', 'number', 'signed_dt',
                 'valid_from_dt', 'valid_until_dt',
-                'body', 'note',
+                'description', 'body', 'note',
                 ],
             'dvc/u'=>[
                 'name', 'number', 'signed_dt',
                 'valid_from_dt', 'valid_until_dt',
-                'body', 'note',
+                'description', 'body', 'note',
                 ],
         ];
     }

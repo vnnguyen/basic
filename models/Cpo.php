@@ -1,5 +1,5 @@
-<?
-namespace common\models;
+<?php
+namespace app\models;
 
 class Cpo extends \yii\db\ActiveRecord
 {

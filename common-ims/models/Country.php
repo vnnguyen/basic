@@ -7,7 +7,7 @@ class Country extends MyActiveRecord
 {
 
 	public static function tableName() {
-		return '{{%countries}}';
+		return 'countries';
 	}
 
 	public function attributeLabels() {

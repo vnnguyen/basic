@@ -48,7 +48,7 @@ $count2 = \Yii::$app->db->createCommand($sql2)->queryScalar();
                 <div class="text-muted text-size-small">by A Great Consultant</div>
             </div>
             <div id="today-revenue"><svg width="196.88125610351562" height="50"><g transform="translate(0,0)" width="196.88125610351562"><defs><clipPath id="clip-line-small"><rect class="clip" width="196.88125610351562" height="50"></rect></clipPath></defs><path d="M20,8.46153846153846L46.14687601725261,25.76923076923077L72.29375203450522,5L98.44062805175781,15.384615384615383L124.58750406901042,5L150.73438008626303,36.15384615384615L176.88125610351562,8.46153846153846" clip-path="url(#clip-line-small)" class="d3-line d3-line-medium" style="stroke: rgb(255, 255, 255);"></path><g><line class="d3-line-guides" x1="20" y1="50" x2="20" y2="8.46153846153846" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line><line class="d3-line-guides" x1="46.14687601725261" y1="50" x2="46.14687601725261" y2="25.76923076923077" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line><line class="d3-line-guides" x1="72.29375203450522" y1="50" x2="72.29375203450522" y2="5" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line><line class="d3-line-guides" x1="98.44062805175781" y1="50" x2="98.44062805175781" y2="15.384615384615383" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line><line class="d3-line-guides" x1="124.58750406901042" y1="50" x2="124.58750406901042" y2="5" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line><line class="d3-line-guides" x1="150.73438008626303" y1="50" x2="150.73438008626303" y2="36.15384615384615" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line><line class="d3-line-guides" x1="176.88125610351562" y1="50" x2="176.88125610351562" y2="8.46153846153846" style="stroke: rgba(255, 255, 255, 0.298039); stroke-dasharray: 4, 2; shape-rendering: crispEdges;"></line></g><g><circle class="d3-line-circle d3-line-circle-medium" cx="20" cy="8.46153846153846" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle><circle class="d3-line-circle d3-line-circle-medium" cx="46.14687601725261" cy="25.76923076923077" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle><circle class="d3-line-circle d3-line-circle-medium" cx="72.29375203450522" cy="5" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle><circle class="d3-line-circle d3-line-circle-medium" cx="98.44062805175781" cy="15.384615384615383" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle><circle class="d3-line-circle d3-line-circle-medium" cx="124.58750406901042" cy="5" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle><circle class="d3-line-circle d3-line-circle-medium" cx="150.73438008626303" cy="36.15384615384615" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle><circle class="d3-line-circle d3-line-circle-medium" cx="176.88125610351562" cy="8.46153846153846" r="3" style="stroke: rgb(255, 255, 255); fill: rgb(41, 182, 246); opacity: 1;"></circle></g></g></svg></div>
-        </div>        
+        </div>
     </div>
     <div class="col-md-3">
         <div class="panel bg-violet-400">
@@ -270,9 +270,6 @@ $count2 = \Yii::$app->db->createCommand($sql2)->queryScalar();
                     <strong>CURRENTLY ONLINE</strong>
                 </div>
                 <div class="panel-body">
-                    <? foreach ($onlineUsers as $li) { ?>
-                    <?= Html::a(Html::img(DIR.'timthumb.php?zc=1&w=100&h=100&src='.$li['image'], ['class'=>'img-circle', 'style'=>'width:48px; height:48px; float:left; display:block; margin:0 0 4px 4px;']), '@web/users/r/'.$li['id'], ['title'=>$li['nickname']]) ?>
-                    <? } ?>
                 </div>
             </div>
             <? if (app\helpers\User::inGroups('any:it,lanhdao,banhang')) { ?>
@@ -307,41 +304,11 @@ $count2 = \Yii::$app->db->createCommand($sql2)->queryScalar();
                     <?= Html::a('View all', '@web/me/viewed', ['class'=>'pull-right']) ?>
                 </div>
                 <table class="table table-condensed">
-                    <? foreach ($theViewedItems as $it) { ?>
-                    <tr>
-                        <td><?
-                        if ($it['rtype'] == 'case') echo '<i class="text-muted fa fa-briefcase"></i> ';
-                        if ($it['rtype'] == 'tour') echo '<i class="text-muted fa fa-truck"></i> ';
-                        echo Html::a($it['name'], DIR.$it['rtype'].'s/r/'.$it['rid'], ['rel'=>'external']);
-                        ?></td>
-                    </tr>
-                    <? } ?>
+
                 </table>
             </div>
 
-            <!--
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    <?= Html::a('View all', '@web/me/starred', ['class'=>'pull-right']) ?>
-                    <strong>MY STARRED ITEMS</strong>
-                </div>
-                <table class="table table-condensed">
-                    <? if (empty($theStarredItems)) { ?><tr><td>No items found</td></tr><? } ?>
-                    <? foreach ($theStarredItems as $it) { ?>
-                    <tr>
-                        <td>
-                            <?
-                        if ($it['rtype'] == 'case') echo '<i class="text-muted fa fa-briefcase"></i> ';
-                        if ($it['rtype'] == 'tour') echo '<i class="text-muted fa fa-truck"></i> ';
-                        echo '<i class="fa fa-star text-warning"></i> ';
-                        echo Html::a($it['name'], DIR.$it['rtype'].'s/r/'.$it['rid'], ['rel'=>'external']);
-                            ?>
-                        </td>
-                    </tr>
-                    <? } ?>
-                </table>
-            </div>
-            -->
+
         </div>
     </div>
 </div>

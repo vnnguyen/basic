@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class Supplier extends MyActiveRecord
 {

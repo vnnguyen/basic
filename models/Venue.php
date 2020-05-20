@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 use Yii;
 
@@ -93,17 +93,17 @@ class Venue extends MyActiveRecord
 
     public function getGiao()
     {
-        return $this->hasOne(User2::className(), ['id' => 'giao_user_id']);
+        return $this->hasOne(User::className(), ['id' => 'giao_user_id']);
     }
 
     public function getCreatedBy()
     {
-        return $this->hasOne(User2::className(), ['id' => 'created_by']);
+        return $this->hasOne(User::className(), ['id' => 'created_by']);
     }
 
     public function getUpdatedBy()
     {
-        return $this->hasOne(User2::className(), ['id' => 'updated_by']);
+        return $this->hasOne(User::className(), ['id' => 'updated_by']);
     }
 
     public function getCompany()

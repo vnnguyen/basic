@@ -1,5 +1,5 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class Space extends MyActiveRecord
 {
@@ -18,8 +18,8 @@ class Space extends MyActiveRecord
     public function scenarios()
     {
         return [
-            'space/c'=>['name', 'description'],
-            'space/u'=>['name', 'description'],
+            'spaces/c'=>['name', 'description'],
+            'spaces/u'=>['name', 'description'],
         ];
     }
 

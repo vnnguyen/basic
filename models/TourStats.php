@@ -1,11 +1,11 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class TourStats extends MyActiveRecord
 {
 	public static function tableName()
 	{
-		return '{{%tour_stats}}';
+		return 'tour_stats';
 	}
 
     public function rules()
@@ -24,7 +24,7 @@ class TourStats extends MyActiveRecord
 
     public function afterFind()
     {
-        $this->countries = array_filter(explode(',', $this->countries));
+        $this->countries = explode(',', $this->countries);
         return parent::afterFind();
     }
 }

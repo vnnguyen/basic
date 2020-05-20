@@ -37,7 +37,7 @@ class Tour extends MyActiveRecord
 
     public function getCpt()
     {
-        return $this->hasMany(Cpt::className(), ['tour_id'=>'id']);
+        return $this->hasMany(Cpt::className(), ['tourold_id'=>'id']);
     }
 
     public function getTasks()
@@ -64,20 +64,36 @@ class Tour extends MyActiveRecord
     public function getOperators()
     {
         return $this->hasMany(User::className(), ['id'=>'user_id'])
-            ->viaTable('at_tour_user', ['tour_id'=>'id'], function($query){
-            $query->where(['role'=>'operator']);
+            ->viaTable('tour_user', ['tourold_id'=>'id'], function($query){
+            $query->where(['role'=>['operator', 'booker']]);
+        });
+    }
+
+    public function getRealOperators()
+    {
+        return $this->hasMany(User::className(), ['id'=>'user_id'])
+            ->viaTable('tour_user', ['tourold_id'=>'id'], function($query){
+            $query->where(['role'=>['operator']]);
+        });
+    }
+
+    public function getBookers()
+    {
+        return $this->hasMany(User::className(), ['id'=>'user_id'])
+            ->viaTable('tour_user', ['tourold_id'=>'id'], function($query){
+            $query->where(['role'=>['booker']]);
         });
     }
 
     public function getTourUsers()
     {
-        return $this->hasMany(TourUser::className(), ['tour_id'=>'id']);
+        return $this->hasMany(TourUser::className(), ['tourold_id'=>'id']);
     }
 
     public function getCskh()
     {
         return $this->hasMany(User::className(), ['id'=>'user_id'])
-            ->viaTable('at_tour_user', ['tour_id'=>'id'], function($query){
+            ->viaTable('tour_user', ['tourold_id'=>'id'], function($query){
             $query->where(['role'=>'cservice']);
         });
     }

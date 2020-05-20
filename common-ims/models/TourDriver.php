@@ -1,16 +1,15 @@
 <?php
-
 namespace common\models;
 
 class TourDriver extends MyActiveRecord
 {
     public static function tableName() {
-        return '{{%tour_drivers}}';
+        return 'tour_drivers';
     }
 
     public function getDriver()
     {
-        return $this->hasOne(Person::className(), ['id'=>'driver_user_id']);
+        return $this->hasOne(Contact::className(), ['id'=>'driver_user_id']);
     }
 
     public function getTour()

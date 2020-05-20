@@ -1,7 +1,7 @@
-<?
+<?php
 namespace app\models;
 
-class Cp extends \yii\db\ActiveRecord
+class Cp extends MyActiveRecord
 {
 
     public static function tableName()
@@ -15,41 +15,42 @@ class Cp extends \yii\db\ActiveRecord
     }
 
     public function rules() {
-        return [];
+        return [
+            [['period', 'conds', 'price', 'currency', 'info'], 'trim'],
+            [['dvc_id', 'price', 'currency'], 'required'],
+        ];
+    }
+
+    public function scenarios()
+    {
+        return [
+            'cp/c'=>['period', 'conds', 'price', 'currency', 'info'],
+            'cp/u'=>['dvc_id', 'period', 'conds', 'price', 'currency', 'info'],
+        ];
+    }
+
+    public function getCreatedBy()
+    {
+        return $this->hasOne(User::className(), ['id'=>'created_by']);
+    }
+
+    public function getUpdatedBy()
+    {
+        return $this->hasOne(User::className(), ['id'=>'updated_by']);
+    }
+
+    public function getDv()
+    {
+        return $this->hasOne(Dv::className(), ['id'=>'dv_id']);
+    }
+
+    public function getViaCompany()
+    {
+        return $this->hasOne(Company::className(), ['id'=>'via_company_id']);
     }
 
     public function getCpt()
     {
         return $this->hasMany(Cpt::className(), ['cp_id'=>'id']);
-    }
-
-    public function getCpg()
-    {
-        return $this->hasMany(Cpg::className(), ['cp_id'=>'id']);
-    }
-
-    public function getVenue()
-    {
-        return $this->hasOne(\common\models\Venue::className(), ['id'=>'venue_id']);
-    }
-
-    public function getByCompany()
-    {
-        return $this->hasOne(\common\models\Company::className(), ['id'=>'by_company_id']);
-    }
-
-    public function getViaCompany()
-    {
-        return $this->hasOne(\common\models\Company::className(), ['id'=>'via_company_id']);
-    }
-
-    public function getCreatedBy()
-    {
-        return $this->hasOne(\common\models\User::className(), ['id'=>'created_by']);
-    }
-
-    public function getUpdatedBy()
-    {
-        return $this->hasOne(\common\models\User::className(), ['id'=>'updated_by']);
     }
 }

@@ -1,16 +1,15 @@
 <?php
-
-namespace common\models;
+namespace app\models;
 
 class TourGuide2 extends MyActiveRecord
 {
     public static function tableName() {
-        return '{{%tour_guides}}';
+        return 'tour_guides';
     }
 
     public function getGuide()
     {
-        return $this->hasOne(Person::className(), ['id'=>'guide_user_id']);
+        return $this->hasOne(Contact::className(), ['id'=>'guide_user_id']);
     }
 
     public function getTour()
@@ -20,6 +19,6 @@ class TourGuide2 extends MyActiveRecord
 
     public function getProfile()
     {
-        return $this->hasOne(ProfileTourguide::className(), ['user_id'=>'guide_user_id']);
+        return $this->hasOne(TourguideProfile::className(), ['user_id'=>'guide_user_id']);
     }
 }

@@ -1,11 +1,11 @@
 <?php
-namespace common\models;
+namespace app\models;
 
 class Campaign extends MyActiveRecord
 {
 	public static function tableName()
 	{
-		return '{{%campaigns}}';
+		return 'campaigns';
 	}
 
 	public function attributeLabels()

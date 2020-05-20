@@ -4,7 +4,6 @@ namespace app\models;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
-use common\models\MyActiveRecord;
 
 class Contact extends MyActiveRecord
 {
@@ -15,6 +14,9 @@ class Contact extends MyActiveRecord
     public $raw_password_again;
     public $search;
     public $password_again;
+    public $star;
+    public $comm;
+    public $tags;
 
     public static $metaLabels = [
         'address'=>'Địa chỉ',
@@ -144,19 +146,9 @@ class Contact extends MyActiveRecord
         return $this->hasOne(TourguideProfile::className(), ['contact_id' => 'id']);
     }
 
-    public function getProfileTourguide()
+    public function getCustomerProfile()
     {
-        return $this->hasOne(ProfileTourguide::className(), ['user_id' => 'id']);
-    }
-
-    public function getProfileCustomer()
-    {
-        return $this->hasOne(ProfileCustomer::className(), ['user_id' => 'id']);
-    }
-
-    public function getProfileDriver()
-    {
-        return $this->hasOne(ProfileDriver::className(), ['user_id' => 'id']);
+        return $this->hasOne(CustomerProfile::className(), ['contact_id' => 'id']);
     }
 
     public function getDriverProfile()
@@ -214,12 +206,18 @@ class Contact extends MyActiveRecord
             ->viaTable('at_case_user', ['user_id'=>'id']);
     }
 
+    public function getFiles()
+    {
+        return $this->hasMany(Kase::className(), ['id' => 'case_id'])
+            ->viaTable('at_case_user', ['user_id'=>'id']);
+    }
+    
     public function getBookings()
     {
         return $this->hasMany(Booking::className(), ['id' => 'booking_id'])
-            ->viaTable('at_booking_user', ['user_id'=>'id']);
+            ->viaTable('booking_contact', ['contact_id'=>'id']);
     }
-
+    
     public function hasGroups()
     {
         return $this->hasMany(Term::className(), ['id'=>'term_id'])
@@ -235,6 +233,21 @@ class Contact extends MyActiveRecord
     public function getMembers()
     {
         return $this->hasMany(Member::className(), ['contact_id'=>'id']);
+    }
+
+    public function getTourGuides()
+    {
+        return $this->hasMany(TourGuide::className(), ['guide_user_id'=>'id']);
+    }
+
+    public function getTourDrivers()
+    {
+        return $this->hasMany(TourDriver::className(), ['driver_user_id'=>'id']);
+    }
+
+    public function getBookingContact()
+    {
+        return $this->hasMany(BookingContact::className(), ['contact_id'=>'id']);
     }
 
     public function hasTags()
@@ -255,5 +268,10 @@ class Contact extends MyActiveRecord
         return false;
     }
 
+    public function getPlaces()
+    {
+        return $this->hasMany(Place::className(), ['id'=>'place_id'])
+            ->viaTable('contact_place', ['contact_id'=>'id']);
+    }
 
 }

@@ -1,6 +1,6 @@
 <?
 namespace app\models;
-use yii;
+
 use yii\base\Model;
 use yii\helpers\FileHelper;
 use yii\web\UploadedFile;
@@ -24,18 +24,18 @@ class ProductUploadForm extends Model
     
     public function upload()
     {
-        if ($this->validate()) {//'/var/www/my.amicatravel.com/www
-            FileHelper::createDirectory(Yii::getAlias('@webroot').'/upload/products/'.$this->productId.'/pdf/');
-            FileHelper::createDirectory(Yii::getAlias('@webroot').'/upload/products/'.$this->productId.'/image/');
-            FileHelper::createDirectory(Yii::getAlias('@webroot').'/upload/products/'.$this->productId.'/excel/');
+        if ($this->validate()) {
+            FileHelper::createDirectory('/var/www/my.amicatravel.com/www/upload/products/'.$this->productId.'/pdf/');
+            FileHelper::createDirectory('/var/www/my.amicatravel.com/www/upload/products/'.$this->productId.'/image/');
+            FileHelper::createDirectory('/var/www/my.amicatravel.com/www/upload/products/'.$this->productId.'/excel/');
             foreach ($this->pdfFiles as $file) {
-                $file->saveAs(Yii::getAlias('@webroot').'/upload/products/'.$this->productId.'/pdf/'.$file->baseName . '.' . $file->extension);
+                $file->saveAs('/var/www/my.amicatravel.com/www/upload/products/'.$this->productId.'/pdf/'.$file->baseName . '.' . $file->extension);
             }
             foreach ($this->imageFiles as $file) {
-                $file->saveAs(Yii::getAlias('@webroot').'/upload/products/'.$this->productId.'/image/'.$file->baseName . '.' . $file->extension);
+                $file->saveAs('/var/www/my.amicatravel.com/www/upload/products/'.$this->productId.'/image/'.$file->baseName . '.' . $file->extension);
             }
             foreach ($this->excelFiles as $file) {
-                $file->saveAs(Yii::getAlias('@webroot').'/upload/products/'.$this->productId.'/excel/'.$file->baseName . '.' . $file->extension);
+                $file->saveAs('/var/www/my.amicatravel.com/www/upload/products/'.$this->productId.'/excel/'.$file->baseName . '.' . $file->extension);
             }
             return true;
         } else {

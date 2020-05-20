@@ -4,7 +4,6 @@ namespace app\models;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\web\IdentityInterface;
-use common\models\MyActiveRecord;
 
 class User extends MyActiveRecord implements IdentityInterface
 {
@@ -90,7 +89,7 @@ class User extends MyActiveRecord implements IdentityInterface
                 ], 'required', 'on'=>'me/my-settings/password', 'message'=>Yii::t('x', 'Required')],
             [[
                 'new_password_repeat',
-                ], 'string', 'length'=>[6, 32], 'on'=>['acp/users/c', 'acp/users/u', 'me/my-settings/password'], 'tooLong'=>Yii::t('x', 'Password too long'), 'tooShort'=>Yii::t('x', 'Password too short')],
+                ], 'string', 'length'=>[6, 32], 'on'=>['acp/users/c', 'acp/users/u', 'me/my-settings/password', 'contacts/user-profile'], 'tooLong'=>Yii::t('x', 'Password too long'), 'tooShort'=>Yii::t('x', 'Password too short')],
             [[
                 'new_password',
                 ], 'compare', 'message'=>Yii::t('x', 'Passwords do not match')],
@@ -104,21 +103,23 @@ class User extends MyActiveRecord implements IdentityInterface
             'me/my-settings/password'=>['new_password', 'new_password_repeat'],
             'acp/users/c'=>['status', 'login', 'name', 'mention', 'language', 'timezone', 'email', 'phone', 'new_password', 'new_password_repeat', 'note', 'contact_id'],
             'acp/users/u'=>['status', 'login', 'name', 'mention', 'language', 'timezone', 'email', 'phone', 'new_password', 'new_password_repeat', 'note', 'contact_id'],
+            'contacts/user-profile'=>['status', 'login', 'name', 'gender', 'mention', 'nickname', 'country_code', 'language', 'timezone', 'email', 'phone', 'new_password', 'new_password_repeat', 'note'],
         ];
     }
 
-    public function beforeSave($insert)
-    {
-        if (parent::beforeSave($insert)) {
-            if (($this->isNewRecord || $this->getScenario() === 'reset') && !empty($this->password)) {
-                if ($this->getScenario() === 'reset')
-                    $this->password_reset_token = '';
-                $this->password = Yii::$app->security->generatePasswordHash($this->password);
-            }
-            return true;
-        }
-        return false;
-    }
+    // public function beforeSave($insert)
+    // {
+    //     if (parent::beforeSave($insert)) {
+    //         if (($this->isNewRecord || $this->getScenario() === 'reset') && !empty($this->password)) {
+    //             if ($this->getScenario() === 'reset') {
+    //                 $this->password_reset_token = '';
+    //             }
+    //             $this->password = Yii::$app->security->generatePasswordHash($this->password);
+    //         }
+    //         return true;
+    //     }
+    //     return false;
+    // }
 
     public function getMetas()
     {
@@ -201,12 +202,12 @@ class User extends MyActiveRecord implements IdentityInterface
         return $this->hasMany(Kase::className(), ['id' => 'case_id'])
             ->viaTable('at_case_user', ['user_id'=>'id']);
     }
-
+    
     public function getContact()
     {
         return $this->hasOne(Contact::className(), ['id' => 'contact_id']);
     }
-
+    
     public function hasGroups()
     {
         return $this->hasMany(Term::className(), ['id'=>'term_id'])

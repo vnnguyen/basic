@@ -43,8 +43,8 @@ class Contact extends MyActiveRecord
     public function rules()
     {
         return [
-            [['fname', 'lname', 'name', 'country_code', 'email', 'phone', 'language', 'timezone', 'info'], 'filter', 'filter'=>'trim'],
-            [['fname', 'lname', 'name', 'gender'], 'required'],
+            [['fname', 'lname', 'name', 'country_code', 'email', 'phone', 'language', 'timezone', 'info'], 'trim'],
+            [['name', 'gender'], 'required'],
             [['nickname'], 'required', 'on'=>'meprefs'],
             [['gender'], 'in', 'range'=>['male', 'female']],
             [['bday', 'bmonth', 'byear'], 'default', 'value'=>0],
@@ -93,6 +93,9 @@ class Contact extends MyActiveRecord
     public function beforeSave($insert)
     {
         if (parent::beforeSave($insert)) {
+            if ($this->fname == '' && $this->lname == '') {
+                $this->lname = $this->name;
+            }
             if (($this->isNewRecord || $this->getScenario() === 'reset') && !empty($this->password)) {
                 if ($this->getScenario() === 'reset')
                     $this->password_reset_token = '';
@@ -113,7 +116,6 @@ class Contact extends MyActiveRecord
         return $this->hasMany(Meta::className(), ['rid' => 'id'])->where(['rtype'=>'user']);
     }
 
-
     public function getReferrals()
     {
         return $this->hasMany(Referral::className(), ['user_id' => 'id']);
@@ -131,6 +133,16 @@ class Contact extends MyActiveRecord
         return $this->hasOne(Member::className(), ['contact_id' => 'id']);
     }
 
+    public function getMemberProfile()
+    {
+        return $this->hasOne(MemberProfile::className(), ['contact_id' => 'id']);
+    }
+
+    public function getTourguideProfile()
+    {
+        return $this->hasOne(TourguideProfile::className(), ['contact_id' => 'id']);
+    }
+
     public function getProfileTourguide()
     {
         return $this->hasOne(ProfileTourguide::className(), ['user_id' => 'id']);
@@ -144,6 +156,11 @@ class Contact extends MyActiveRecord
     public function getProfileDriver()
     {
         return $this->hasOne(ProfileDriver::className(), ['user_id' => 'id']);
+    }
+
+    public function getDriverProfile()
+    {
+        return $this->hasOne(DriverProfile::className(), ['contact_id' => 'id']);
     }
 
     public function getSearch()
@@ -195,18 +212,28 @@ class Contact extends MyActiveRecord
         return $this->hasMany(Kase::className(), ['id' => 'case_id'])
             ->viaTable('at_case_user', ['user_id'=>'id']);
     }
-
+    
     public function getBookings()
     {
         return $this->hasMany(Booking::className(), ['id' => 'booking_id'])
-            ->viaTable('at_booking_user', ['user_id'=>'id']);
+            ->viaTable('booking_contact', ['contact_id'=>'id']);
     }
-
+    
     public function hasGroups()
     {
         return $this->hasMany(Term::className(), ['id'=>'term_id'])
             ->viaTable('at_term_rel', ['rid'=>'id'])
             ->where(['at_terms.taxonomy_id'=>1]);
+    }
+
+    public function getUsers()
+    {
+        return $this->hasMany(User::className(), ['contact_id'=>'id']);
+    }
+
+    public function getMembers()
+    {
+        return $this->hasMany(Member::className(), ['contact_id'=>'id']);
     }
 
     public function hasTags()

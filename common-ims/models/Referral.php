@@ -40,7 +40,7 @@ class Referral extends MyActiveRecord
 
 	public function getUser()
 	{
-		return $this->hasOne(User::className(), ['id'=>'user_id']);
+		return $this->hasOne(Contact::className(), ['id'=>'user_id']);
 	}
 
 	public function getCreatedBy()

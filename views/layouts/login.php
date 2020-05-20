@@ -1,51 +1,67 @@
-<?
-use yii\helpers\Html;
+<?php
+use app\assets\Limitless230hAsset as MainAsset;
 
-app\assets\Bootstrap3Asset::register($this);
+MainAsset::register($this);
 
-$this->registerMetaTag(['name'=>'viewport', 'content'=>'width=device-width, initial-scale=1.0']);
-$this->registerMetaTag(['http-equiv'=>'X-UA-Compatible', 'content'=>'IE=edge']);
+if (isset($_GET['lang']) && in_array($_GET['lang'], ['en', 'fr', 'vi'])) {
+    Yii::$app->language = $_GET['lang'];
+}
 
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/jquery-backstretch/2.0.4/jquery.backstretch.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJs("$.backstretch([
-    '/assets/img/bg01_160921.jpg?x',
-    '/assets/img/bg02_160921.jpg?x',
-    '/assets/img/bg03_160921.jpg?x',
+    '/assets/img/bg01_160921.jpg',
+    '/assets/img/bg02_160921.jpg',
+    '/assets/img/bg03_160921.jpg',
     ], {duration:6000, fade:800});");
 
-$css = <<<TXT
-#wrap {max-width:350px; margin:80px auto 0; opacity:0.9; background-color:#fff;}
-    #wrap2 {padding:24px;}
-        #hd {text-align:center; font-size:16px; font-weight:bold; color:#C4519D;}
-        h3 {margin:0 0 16px; text-align:center;}
-        input[type], select {border-radius:0; -moz-border-radius:0; -webkit-border-radius:0;}
-        label {font-weight:normal;}
-        #ft {text-align:center; color:#747474;}
-TXT;
-$this->registerCss($css);
+if (Yii::$app->request->hostName == 'my.secretindochina.com') {
+    Yii::$app->params['print_logo'] = 'https://www.secretindochina.com/assets/img/xlogo_new.png.pagespeed.ic.RyWkDerRIz.webp';
+}
 
 $this->beginPage();
+?><!doctype html>
+<html lang="<?= Yii::$app->language ?>">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="noindex, nofollow">
+    <title><?= $this->title ?></title>
+    <?php $this->head(); ?>
+    <style type="text/css">
+    .has-error .help-block {color:red;}
+    .has-error input {border-color:red;}
+    .content .card {max-width:380px}
+    </style>
+</head>
 
-?><!DOCTYPE html>
-<html lang="<?=Yii::$app->language?>">
-    <head>
-        <meta charset="utf-8" />
-        <title><?= Html::encode($this->title) ?></title>
-        <? $this->head(); ?>
-    </head>
-    <body>
-        <? $this->beginBody(); ?>
-        <div id="wrap">
-            <div id="wrap2">
-                <div id="hd"><img style="height:60px;" alt="<?= Yii::$app->params['brand_name'] ?>" src="<?= Yii::$app->params['print_logo'] ?>"></div>
-                <hr>
-                <h3><?= $this->title ?></h3>
-                <?= $content ?>
-                <hr>
-                <div id="ft">For help, call (04) 6273 4455</div>
+<body class="bg-slate-800">
+    <?php $this->beginBody(); ?>
+    <div class="page-content">
+        <div class="content-wrapper">
+            <div class="content d-flex justify-content-center align-items-center">
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <div class="text-center mb-3">
+                            <div class="mb-1"><img alt="<?= Yii::$app->params['brand_name'] ?>" src="<?= Yii::$app->params['print_logo'] ?>" style="height:48px;"></div>
+                            <h5 class="mb-0"><?= $this->title ?></h5>
+                            <span class="d-block text-muted"><!-- *** --></span>
+                            <?php
+                            foreach(Yii::$app->session->getAllFlashes() as $key=>$message) {
+                                if (Yii::$app->session->hasFlash($key)) { ?>
+                                            <div class="alert alert-<?= $key ?>"><?= $message ?></div><?
+                                }
+                            } ?>
+                        </div>
+                        <?= $content ?>
+                        <span class="form-text text-center text-muted">For help, <a href="#">contact your account manager</a></span>
+                    </div>
+                </div>
             </div>
         </div>
-        <? $this->endBody(); ?>
-    </body>
+    </div>
+    <?php $this->endBody(); ?>
+</body>
 </html>
-<? $this->endPage();
+<?php
+$this->endPage();

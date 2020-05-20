@@ -45,16 +45,16 @@ class ProfileMember extends MyActiveRecord
 
 	public function getUser()
 	{
-		return $this->hasOne(User2::className(), ['id' => 'user_id']);
+		return $this->hasOne(User::className(), ['id' => 'user_id']);
 	}
 
 	public function getSupervisor()
 	{
-		return $this->hasOne(User2::className(), ['id' => 'reports_to']);
+		return $this->hasOne(User::className(), ['id' => 'reports_to']);
 	}
 
 	public function getUpdatedBy()
 	{
-		return $this->hasOne(User2::className(), ['id' => 'updated_by']);
+		return $this->hasOne(User::className(), ['id' => 'updated_by']);
 	}
 }

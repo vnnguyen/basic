@@ -2,15 +2,6 @@
 
 $js = <<<'TXT'
 
-
-
-$('.panel').addClass('card');
-$('.panel-heading').addClass('card-header');
-$('.panel-body').addClass('card-body');
-
-
-
-
 // https://github.com/euank/node-parse-numeric-range
 
 function parsePart(str) {
@@ -41,7 +32,6 @@ function parsePart(str) {
   }
   return [];
 }
-
 
 function parseRange(str) {
   var parts = str.split(',');
@@ -77,39 +67,41 @@ $('a[href="#back"]').click(function(){history.go(-1); return false;});
 
 
 $('#goTop').goTop({
-	appear: 200,
-	scrolltime: 800,
-	src: "fa fa-arrow-circle-o-up",
-	width: 32,
-	place: "right",
-	fadein: 500,
-	fadeout: 500,
-	opacity: 0.5,
-	marginX: 2,
-	marginY: 2
+    appear: 200,
+    scrolltime: 800,
+    src: "fa fa-arrow-circle-o-up",
+    width: 32,
+    place: "right",
+    fadein: 500,
+    fadeout: 500,
+    opacity: 0.5,
+    marginX: 2,
+    marginY: 2
 });
 
-function formatRepo (repo) {
+function formatSearch (repo) {
     if (repo.loading) return repo.text;
-    var markup = "<a href='" + repo.url + "' class='select2-result display-block clearfix'>" + repo.avatar_url + repo.found + "</a>"
-	return markup;
+    var markup = '<a class="select2-result display-block clearfix" href="' + repo.url + '">' + repo.avatar_url + repo.found + '</a>'
+    return markup;
 }
 
-function formatRepoSelection (repo) {
-	return repo.found || repo.text;
-}
+var search_for = '' // anything
 
 $("#livesearch").select2({
+    // language: "vi",
     ajax: {
-        // url: "https://api.github.com/search/repositories",
-        url: "https://my.amicatravel.com/default/search",
+        url: function(){
+            return '/home/search?for=' + search_for
+        },
+        width: 'style',
         dataType: 'json',
         delay: 250,
         data: function (params) {
             return {
-                u: 1, // user id 1
-                q: params.term, // search term
-                page: params.page
+                u: 1, // user 1
+                q: params.term,
+                page: params.page || 1,
+                // for: $('#search-for').data('search')
             };
         },
         processResults: function (data, params) {
@@ -126,26 +118,32 @@ $("#livesearch").select2({
                 }
             };
         },
-        cache: true
+        // cache: true
     },
     closeOnSelect: false,
     escapeMarkup: function (markup) { return markup; }, // let our custom formatter work
-    minimumInputLength: 3,
-    templateResult: formatRepo,
-    // templateSelection: formatRepoSelection
+    minimumInputLength: 2,
+    templateResult: formatSearch,
+    width:'100%',
+    placeholder:'Type to search',
 });
 
 $('#livesearch').on('select2:selecting', function (evt) {
     return false;
-    // alert($(this).val());
-    // location.href = $(this).val();
 });
 
 $('#livesearch').on('select2:select', function (evt) {
     return false;
-    // alert($(this).val());
-    // location.href = $(this).val();
 });
+
+$('a[data-search]').on('click', function(e){
+    e.preventDefault()
+    var val = $(this).data('search')
+    var text = $(this).text()
+    $('#search-for').attr('data-search', val)
+    $('#search-for').text(text)
+    search_for = val
+})
 //-------------demo polling-----///
     console.log("Connection");
     // var UID = USER_ID;
@@ -231,9 +229,9 @@ $('#livesearch').on('select2:select', function (evt) {
     //     // E_SOURCE.close();
     // });
 ///----------end sse----------////
+
 TXT;
 
 $this->registerJsFile('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.5/js/select2.full.min.js', ['depends'=>'yii\web\JqueryAsset']);
 $this->registerJsFile('/assets/jquery.gotop_1.1.2/jquery.gotop.min.js', ['depends'=>'yii\web\JqueryAsset']);
-$js = str_replace('USER_ID', USER_ID, $js);
 $this->registerJs($js);

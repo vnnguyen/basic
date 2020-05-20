@@ -11,9 +11,9 @@ class Product extends MyActiveRecord
         'vpctour'=>['id'=>2, 'name'=>'VPC tour', 'alias'=>'vpctour'],
         'tcgtour'=>['id'=>3, 'name'=>'TCG tour', 'alias'=>'tcgtour'],
     ];
-
+    
     public static function tableName() {
-        return '{{%ct}}';
+        return 'tours';
     }
 
     public function rules() {
@@ -22,7 +22,7 @@ class Product extends MyActiveRecord
                 'title', 'about', 'client_id', 'client_series', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'tags', 'client_ref'
                 ], 'trim'],
             [[
-                'offer_type', 'language', 'title', 'pax', 'day_from', 'price_unit', 'price_for', 'price_from', 'price_until'
+                'offer_type', 'language', 'title', 'pax', 'start_date', 'price_unit', 'price_for', 'price_from', 'price_until'
                 ], 'required', 'message'=>Yii::t('x', 'Required')],
             [[
                 'pax'
@@ -34,8 +34,8 @@ class Product extends MyActiveRecord
                 'price'
                 ], 'default', 'value'=>0],
             [[
-                'day_from', 'price_from', 'price_until'
-                ], 'date', 'format'=>'Y-m-d', 'message'=>'Date must be of "yyyy-mm-dd" format'],
+                'start_date', 'price_from', 'price_until'
+                ], 'date', 'format'=>'php:Y-m-d', 'message'=>'Date must be of "yyyy-mm-dd" format'],
 
             [['op_code'], 'unique'],
             [['op_code', 'op_name'], 'required'],
@@ -46,9 +46,9 @@ class Product extends MyActiveRecord
         return [
             'product/c/prod'=>['title', 'about', 'language', 'pax', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_until', 'promo', 'tags'],
             'product/u/prod'=>['title', 'about', 'language', 'pax', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_until', 'promo', 'tags'],
-            'products_c'=>['title', 'about', 'offer_type', 'language', 'pax', 'day_from', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
-            'products_u'=>['title', 'about', 'offer_type', 'language', 'pax', 'day_from', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
-            'b2b/program/u'=>['title', 'client_id', 'client_series', 'about', 'offer_type', 'language', 'pax', 'day_from', 'intro', 'conditions', 'others', 'summary', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
+            'products_c'=>['title', 'about', 'offer_type', 'language', 'pax', 'start_date', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
+            'products_u'=>['title', 'about', 'offer_type', 'language', 'pax', 'start_date', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
+            'b2b/program/u'=>['title', 'client_id', 'client_series', 'about', 'offer_type', 'language', 'pax', 'start_date', 'intro', 'conditions', 'others', 'summary', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
             'product/pt'=>['prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until'],
             'product/copy'=>['title', 'summary'],
             'products_u-op'=>['op_code', 'op_name'],

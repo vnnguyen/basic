@@ -1,6 +1,5 @@
 <?php
 namespace common\models;
-use app\models\Complaint;
 
 class Incident extends MyActiveRecord
 {
@@ -20,7 +19,8 @@ class Incident extends MyActiveRecord
                 'name', 'description',
                 'tour_code', 'incident_date', 'stype', 'severity',
                 'incident_location',
-                'status', 'actions',  'owner_id', 'owners',
+                'status', 'actions',
+                'involving', 'owner_id', 'owners',
                 ], 'trim'],
             [[
                 'name', 'description',
@@ -46,7 +46,7 @@ class Incident extends MyActiveRecord
         return $this->hasOne(Product::className(), ['id'=>'tour_id']);
     }
 
-    public function getComplaint()
+    public function getComplaints()
     {
         return $this->hasMany(Complaint::className(), ['incident_id'=>'id']);
     }

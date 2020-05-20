@@ -13,7 +13,7 @@ return [
 
 	'components.db' => [
 		'class' => 'yii\db\Connection',
-		'dsn' => 'mysql:host=localhost;dbname=amica_my',
+		'dsn' => 'mysql:host=localhost;dbname=my_amica',
 		'username' => 'root',
 		'password' => '',
 		'charset' => 'utf8',
@@ -22,11 +22,11 @@ return [
 		//'schemaCacheExclude'=>['at_users'],
 		//'enableQueryCache'=>true,
 		//'queryCacheDuration'=>3600,
-		'tablePrefix'=>'at_',
+		// 'tablePrefix'=>'at_',
 	],
 
 	'components.user' => [
-		'identityClass' => 'common\models\User2',
+		'identityClass' => 'app\models\User',
 		'enableAutoLogin'=>true,
 		'authTimeout'=>720000,
 		'loginUrl'=>['login/index'],

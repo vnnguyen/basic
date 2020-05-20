@@ -7,7 +7,7 @@ class Event extends MyActiveRecord
 
 	public static function tableName()
 	{
-		return '{{%events}}';
+		return 'events';
 	}
 
 	public function attributeLabels()

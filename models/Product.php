@@ -11,9 +11,9 @@ class Product extends MyActiveRecord
         'vpctour'=>['id'=>2, 'name'=>'VPC tour', 'alias'=>'vpctour'],
         'tcgtour'=>['id'=>3, 'name'=>'TCG tour', 'alias'=>'tcgtour'],
     ];
-
+    
     public static function tableName() {
-        return '{{%ct}}';
+        return 'tours';
     }
 
     public function rules() {
@@ -22,7 +22,7 @@ class Product extends MyActiveRecord
                 'title', 'about', 'client_id', 'client_series', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'tags', 'client_ref'
                 ], 'trim'],
             [[
-                'offer_type', 'language', 'title', 'pax', 'day_from', 'price_unit', 'price_for', 'price_from', 'price_until'
+                'offer_type', 'language', 'title', 'pax', 'start_date', 'price_unit', 'price_for', 'price_from', 'price_until'
                 ], 'required', 'message'=>Yii::t('x', 'Required')],
             [[
                 'pax'
@@ -34,7 +34,7 @@ class Product extends MyActiveRecord
                 'price'
                 ], 'default', 'value'=>0],
             [[
-                'day_from', 'price_from', 'price_until'
+                'start_date', 'price_from', 'price_until'
                 ], 'date', 'format'=>'Y-m-d', 'message'=>'Date must be of "yyyy-mm-dd" format'],
 
             [['op_code'], 'unique'],
@@ -46,9 +46,9 @@ class Product extends MyActiveRecord
         return [
             'product/c/prod'=>['title', 'about', 'language', 'pax', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_until', 'promo', 'tags'],
             'product/u/prod'=>['title', 'about', 'language', 'pax', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_until', 'promo', 'tags'],
-            'products_c'=>['title', 'about', 'offer_type', 'language', 'pax', 'day_from', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
-            'products_u'=>['title', 'about', 'offer_type', 'language', 'pax', 'day_from', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
-            'b2b/program/u'=>['title', 'client_id', 'client_series', 'about', 'offer_type', 'language', 'pax', 'day_from', 'intro', 'conditions', 'others', 'summary', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
+            'products_c'=>['title', 'about', 'offer_type', 'language', 'pax', 'start_date', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
+            'products_u'=>['title', 'about', 'offer_type', 'language', 'pax', 'start_date', 'intro', 'conditions', 'others', 'summary', 'image', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
+            'b2b/program/u'=>['title', 'client_id', 'client_series', 'about', 'offer_type', 'language', 'pax', 'start_date', 'intro', 'conditions', 'others', 'summary', 'prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until', 'promo', 'tags'],
             'product/pt'=>['prices', 'price', 'price_unit', 'price_for', 'price_from', 'price_until'],
             'product/copy'=>['title', 'summary'],
             'products_u-op'=>['op_code', 'op_name'],
@@ -111,13 +111,57 @@ class Product extends MyActiveRecord
         return $this->hasMany(Tournote::className(), ['tour_id'=>'id']);
     }
 
+    public function getTourContacts()
+    {
+        return $this->hasMany(TourContact::className(), ['tour_id'=>'id']);
+    }
+
+    public function getContacts()
+    {
+        return $this->hasMany(Contact::className(), ['id'=>'contact_id'])
+            ->viaTable('tour_contact', ['tour_id'=>'id']);
+    }
+
     public function getTourStats() {
+        return $this->hasOne(TourStats::className(), ['tour_id' => 'id']);
+    }
+
+    public function getStats() {
         return $this->hasOne(TourStats::className(), ['tour_id' => 'id']);
     }
 
     public function getTour()
     {
-        return $this->hasOne(Tour::className(), ['ct_id'=>'id']);
+        return $this->hasOne(TourOld::className(), ['ct_id'=>'id']);
+    }
+
+    public function getTourOld()
+    {
+        return $this->hasOne(TourOld::className(), ['ct_id'=>'id']);
+    }
+
+    public function getOperators()
+    {
+        return $this->hasMany(User::className(), ['id'=>'user_id'])
+            ->viaTable('tour_user', ['tour_id'=>'id'], function($q){
+            $q->andWhere(['role'=>'operator']);
+        });
+    }
+
+    public function getBookers()
+    {
+        return $this->hasMany(User::className(), ['id'=>'user_id'])
+            ->viaTable('tour_user', ['tour_id'=>'id'], function($q){
+            $q->andWhere(['role'=>'booker']);
+        });
+    }
+
+    public function getCrStaff()
+    {
+        return $this->hasMany(User::className(), ['id'=>'user_id'])
+            ->viaTable('tour_user', ['tour_id'=>'id'], function($q){
+            $q->andWhere(['role'=>'cservice']);
+        });
     }
 
     public function getGuides()
@@ -140,5 +184,54 @@ class Product extends MyActiveRecord
         return $this->hasMany(QItemTransaction::className(), ['tour_id'=>'id']);
     }
 
+    public function getAdvances()
+    {
+        return $this->hasMany(TourAdvance::className(), ['tour_id'=>'id']);
+    }
 
+    public function getFeedbacks()
+    {
+        return $this->hasMany(Feedback::className(), ['tour_id'=>'id']);
+    }
+
+    public function getTourUsers()
+    {
+        return $this->hasMany(TourUser::className(), ['tour_id'=>'id']);
+    }
+
+    public function getDvt()
+    {
+        return $this->hasMany(Dvt::className(), ['tour_id'=>'id']);
+    }
+
+    public function getTasks()
+    {
+        return $this->hasMany(Task::className(), ['rid'=>'id'])->andWhere(['rtype'=>'tour']);
+    }
+
+    public function getPrints()
+    {
+        return $this->hasMany(TourPrint::className(), ['tour_id'=>'id']);
+    }
+
+    public function getCpt()
+    {
+        return $this->hasMany(Cpt::className(), ['tour_id'=>'id']);
+    }
+
+    public function getCosts()
+    {
+        return $this->hasMany(Cost::className(), ['tour_id'=>'id']);
+    }
+
+    public function getSurveyAnswers()
+    {
+        return $this->hasMany(SurveyAnswer::className(), ['tour_id'=>'id']);
+    }
+
+    public function getCpLinks()
+    {
+        return $this->hasMany(CpLink::className(), ['booking_id'=>'id'])
+            ->viaTable('bookings', ['product_id'=>'id']);
+    }
 }

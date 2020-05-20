@@ -5,7 +5,7 @@ class Destination extends MyActiveRecord
 {
 
 	public static function tableName() {
-		return '{{%destinations}}';
+		return 'destinations';
 	}
 
 	public function attributeLabels() {

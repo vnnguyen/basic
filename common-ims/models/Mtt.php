@@ -1,4 +1,4 @@
-<?
+<?php
 namespace common\models;
 
 class Mtt extends MyActiveRecord
@@ -31,12 +31,12 @@ class Mtt extends MyActiveRecord
 
 	public function getCreatedBy()
 	{
-		return $this->hasOne(User::className(), ['id'=>'created_by']);
+		return $this->hasOne(User2::className(), ['id'=>'created_by']);
 	}
 
 	public function getUpdatedBy()
 	{
-		return $this->hasOne(User::className(), ['id'=>'updated_by']);
+		return $this->hasOne(User2::className(), ['id'=>'updated_by']);
 	}
 
 	public function getLtt()
