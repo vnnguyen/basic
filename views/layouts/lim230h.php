@@ -176,7 +176,7 @@ select#livesearch[multiple] {height:36px;}
 
 .fb-title {font-family: 'Mali', cursive; color:#4caf50;}
 .fb-content {font-family: 'Mali', cursive;}
-.uploader_file_preview {float:left; width:60px; height:60px; display:inline-block; margin-right:12px;} 
+.uploader_file_preview {float:left; width:60px; height:60px; display:inline-block; margin-right:12px;}
 .mb-12 {margin-bottom:12px;}
 .-cke_chrome {border-radius:3px; border-color:#ddd!important;}
 .-cke_top {margin:0!important; padding:0 8px!important; border-bottom-color:#eee!important; -background-color:#eee!important;}
@@ -356,7 +356,7 @@ select#livesearch[multiple] {height:36px;}
     <?php $this->beginBody(); ?>
     <!-- Main navbar -->
     <div class="navbar navbar-expand-md navbar-light alpha-<?= $themeColor ?> fixed-top d-print-none">
-    
+
         <!-- Header with logos -->
         <div class="navbar-header navbar-dark bg-<?= $themeColor ?> d-none d-md-flex align-items-md-center">
             <div class="navbar-brand navbar-brand-md" style="font-size:21px; font-weight:300; padding-top:inherit; padding-bottom:inherit;">
@@ -365,7 +365,7 @@ select#livesearch[multiple] {height:36px;}
                 </a>
                 <span class="text-white"><strong>ims</strong> / workspace</span>
             </div>
-    
+
             <div class="navbar-brand navbar-brand-xs py-0">
                 <a href="/" class="d-inline-block">
                     <img src="/assets/img/<?= $themeLogo ?>" alt="Logo" style="height:24px">
@@ -373,8 +373,8 @@ select#livesearch[multiple] {height:36px;}
             </div>
         </div>
         <!-- /header with logos -->
-    
-    
+
+
         <!-- Mobile controls -->
         <div class="d-flex flex-1 d-md-none align-items-center">
             <div class="navbar-brand mr-auto" style="font-size:23px; font-weight:300;">
@@ -396,8 +396,8 @@ select#livesearch[multiple] {height:36px;}
             </button>
         </div>
         <!-- /mobile controls -->
-        
-        
+
+
         <!-- Navbar content -->
         <div class="collapse navbar-collapse" id="navbar-mobile">
             <ul class="navbar-nav mr-md-2">
@@ -440,7 +440,7 @@ select#livesearch[multiple] {height:36px;}
             <select id="livesearch" multiple="multiple" class="form-control"></select>
 
             <ul class="navbar-nav ml-md-2">
-                <!-- 
+                <!--
                 <li class="nav-item">
                     <a href="#" class="navbar-nav-link">
                         <i class="fal fa-bell"></i>
@@ -554,7 +554,7 @@ select#livesearch[multiple] {height:36px;}
             </ul>
         </div>
         <!-- /navbar content -->
-        
+
     </div>
     <!-- /main navbar -->
 
@@ -567,7 +567,7 @@ select#livesearch[multiple] {height:36px;}
                 <a href="#" class="sidebar-mobile-main-toggle">
                     <i class="icon-arrow-left8"></i>
                 </a>
-                IMS 
+                IMS
                 <a href="#" class="sidebar-mobile-expand">
                     <i class="icon-screen-full"></i>
                     <i class="icon-screen-normal"></i>
@@ -587,7 +587,7 @@ select#livesearch[multiple] {height:36px;}
                             <div class="media-body">
                                 <div class="media-title font-weight-semibold"><?= Yii::$app->user->identity->contact->name ?></div>
                                 <div class="font-size-xs opacity-50">
-                                    <i class="fal fa-map-marker font-size-sm"></i> &nbsp;<?= Yii::$app->user->identity->contact->memberProfile->location ?>
+                                    <i class="fal fa-map-marker font-size-sm"></i> &nbsp;<?//= Yii::$app->user->identity->contact->memberProfile->location ?>
                                 </div>
                             </div>
                             <div class="ml-3 align-self-center">
@@ -745,7 +745,7 @@ select#livesearch[multiple] {height:36px;}
                         if ($iii < count(Yii::$app->params['page_actions'])) { ?>
                         </ul>
                         <ul class="ml-1 nav nav-pills nav-pills-bordered nav-pills-toolbar mb-0"><?php
-                        } 
+                        }
                     } else {
                         $iBtnIcon = '';
                         if (isset($iBtn['icon'])) {
@@ -795,7 +795,7 @@ select#livesearch[multiple] {height:36px;}
 
             </div><!-- #my-page-content -->
             <?php if (!empty($this->blocks['page-fixed-bottom'])) { ?><div id="my-page-fixed-bottom"><?= $this->blocks['page-fixed-bottom'] ?></div><!-- #my-page-fixed-bottom --><?php } ?>
-            
+
         </div>
         <!-- /main content -->
 
