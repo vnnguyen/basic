@@ -75,7 +75,41 @@ for($k = 1; $k <= $soDinh; $k ++){
 }
 $stop_loop = 1000;
 $traveler = 10 * 25;
+function path($start, $end, $td){
+    $p = [];
+    $mid = $td[$start][$end];
+    if($mid !== -1){
+        $p[] = $mid;
+        
+        $left = [];
+        $right = [];
+        if ($td[$start][$mid] !== -1){
+            $left = path($start, $mid, $td);
+        }
+        
+        if ($td[$mid][$end] !== -1){
+            $right = path($mid, $end, $td);
+        }
+        
+        if (!empty($left)) {
+            $p = array_push($left, $mid);
+            $p = $left;
+        }
+        if (!empty($right)) {
+            array_unshift($right, $mid);
+            $p = $right;
+        }
+        return $p;
+    } else {
+        $p = [];
+    }
+    return $p;
+    
 
+    
+}
+$last = 6;
+$commback = false;
 do {
     $n_loop ++;
     for ($i = 1; $i <= $traveler ; $i++) { 
@@ -83,9 +117,9 @@ do {
         $w = [];
         $w[] = $start;
         $cost = 0;
-        $not_yet_visited = [1,4,3];
+        $not_yet_visited = [4,3];
         $q = 1;
-        $last = $start;
+        
         while(!empty($not_yet_visited) && $start){
             $next = point($start, $not_yet_visited, $t, $distanc);
             
@@ -96,10 +130,18 @@ do {
 
         }
         if (!$cost > 0) continue;
-        // $cost = $cost + $distanc[ $start ][ $last ];
+        if ($commback){
+            $cost = $cost + $distanc[ $start ][ $last ];
+        }
+        
+    
         if ($cost < $cost_best) {
             $cost_best = $cost;
             $best_router = $w;
+            
+            if ($commback){
+                array_push($best_router, $last);
+            }
             $stop_loop = 1000;
         } else {
             $stop_loop --;
@@ -114,13 +156,25 @@ do {
                 $t[$j][$i] = $t[$i][$j];
             }
         }
-        echo implode('=>', $best_router) . '<br>';
     }
     echo $cost_best . '<br>';
     echo implode('=>', $best_router) . '<br>';
 
     
-}while ($n_loop < 1);die;
+}while ($n_loop < 1);
+$full_router = [$best_router[0]];
+for ($i=1; $i < count($best_router); $i++) { 
+    $next = $best_router[$i];
+        $p = path($best_router[$i - 1], $next, $td);
+        if(!empty($p)){
+            foreach($p as $v){
+                $full_router[] = $v;
+            }
+        } 
+        $full_router[] = $next;
+}
+var_dump($full_router);die;
+
 function point($start, $not_yet_visited, $t, $distanc){
     
     $p = p($start, $not_yet_visited, $t, $distanc);
