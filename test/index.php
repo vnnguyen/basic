@@ -1,5 +1,5 @@
 <?php
-$soDinh = 5;//so dinh
+$soDinh = 7;//so dinh
 $start = 1;// diem bat dau
 $distanc = [];// luu do dai cac canh
 $t = [];//luu nong do vet
@@ -43,8 +43,14 @@ $distanc[1][2] = $distanc[2][1] = 5;
 $distanc[1][4] = $distanc[4][1] = 9;
 $distanc[1][5] = $distanc[5][1] = 1;
 $distanc[2][3] = $distanc[3][2] = 2;
-$distanc[3][4] = $distanc[4][3] = 7;
+$distanc[3][4] = $distanc[4][3] = 20;
 $distanc[4][5] = $distanc[5][4] = 2;
+$distanc[2][6] = $distanc[6][2] = 4;
+$distanc[2][7] = $distanc[7][2] = 2;
+$distanc[3][7] = $distanc[7][3] = 6;
+
+$distanc[4][7] = $distanc[7][4] = 3;
+$distanc[6][7] = $distanc[7][6] = 1;
 
 for($i = 1; $i <= $soDinh-1; $i ++){
     for($j = $i + 1; $j <= $soDinh; $j ++){
@@ -67,71 +73,80 @@ for($k = 1; $k <= $soDinh; $k ++){
         }
     }
 }
+$stop_loop = 1000;
+$traveler = 10 * 25;
 
 do {
     $n_loop ++;
     for ($i = 1; $i <= $traveler ; $i++) { 
-        $w[1] = $start;
-        $mark = resetMark($soDinh);
-        $mark[1] = true;
+        $start = 6;
+        $w = [];
+        $w[] = $start;
         $cost = 0;
-        for ($j = 2; $j <= $soDinh; $j++) {
-           
-            // chon diem tiep theo
-            $w[$j] = point($j, $soDinh, $t, $distanc, $mark); //rand($j, $soDinh);//
+        $not_yet_visited = [1,4,3];
+        $q = 1;
+        $last = $start;
+        while(!empty($not_yet_visited) && $start){
+            $next = point($start, $not_yet_visited, $t, $distanc);
+            
+            $cost = $cost + $distanc[ $start ][ $next ];
+            $w[] = $next;
+            $start = $next;
+            $not_yet_visited = array_values(array_diff($not_yet_visited, [$next]));
 
-            $cost = $cost + $distanc[ $w[$j-1] ][ $w[$j] ];
-
-            $mark[$w[$j]] = True;
-            echo $w[$j] .'-'. $n_loop. ' <br>';
         }
+        if (!$cost > 0) continue;
+        // $cost = $cost + $distanc[ $start ][ $last ];
+        if ($cost < $cost_best) {
+            $cost_best = $cost;
+            $best_router = $w;
+            $stop_loop = 1000;
+        } else {
+            $stop_loop --;
+            if (!$stop_loop > 0) break;
+        }
+        for($i = 1; $i <= $soDinh-1; $i ++){
+            for($j = $i + 1; $j <= $soDinh; $j ++){
+                $delta[$i][$j] = $delta[$i][$j] + $q/$cost;
+                $delta[$j][$i] = $delta[$i][$j];
+
+                $t[$i][$j] = 0.8 * $t[$i][$j] + $delta[$i][$j];
+                $t[$j][$i] = $t[$i][$j];
+            }
+        }
+        echo implode('=>', $best_router) . '<br>';
     }
-    // $cost = $cost + $distanc[ $w[$soDinh] ][ $w[1] ];
-    // if ($cost < $cost_best) {
-    //     $cost_best = $cost;
-    //     $best_router = $w;
-    // }
-    // for($i = 1; $i <= $soDinh-1; $i ++){
-    //     for($j = $i + 1; $j <= $soDinh; $j ++){
-    //         $delta[$i][$j] = $delta[$i][$j] + $q/$cost;
-    //         $delta[$j][$i] = $delta[$i][$j];
+    echo $cost_best . '<br>';
+    echo implode('=>', $best_router) . '<br>';
 
-    //         $t[$i][$j] = 0.8 * $delta[$i][$j] + $q/$cost;
-    //         $t[$j][$i] = $t[$i][$j];
-    //     }
-    // }
-} while ($n_loop < 500);
-function point($k, $soDinh, $t, $distanc, $mark){
-    $sum = $dem = 0; 
-    resetUv($soDinh);
-    for ($i=1; $i <= $soDinh ; $i++) { 
-        if (!$mark[$i]) {
-            $dem ++;
-            $uv[$dem] = $i;
-        }
-    } 
-    $p = p($k - 1, $uv, $t, $distanc);
-    var_dump($p);die;
     
-    $r = rand(1, 10) / 10;
+}while ($n_loop < 1);die;
+function point($start, $not_yet_visited, $t, $distanc){
+    
+    $p = p($start, $not_yet_visited, $t, $distanc);
+    
+    $r = (float)rand(1, 10) / 10;
     $t = 0;
-    $i = 1;
-    while ($t < 0.8) {
-        $t += $p[$uv[$i]];
+    $i = 0;
+
+    while (!($t > $r)) {
+        $t += $p[$i];
         $i ++;
+        if ($i > count($p) - 1) $i = 0;
     }
-    return $uv[$i];
+    return $not_yet_visited[$i];
 }
-function p($start, $uv, $t, $distanc){
-    $p = [0];
-    
+function p($start, $not_yet_visited, $t, $distanc){
+    $p = [];
     $sum = [];
-    foreach($uv as $v){
-        $t_start_v = $t[$start][$v];
-        $start_v = $distanc[$start][$v];
-        $sum[] = ($t_start_v  * 1/ $distanc[$start][$v]);
+    foreach($not_yet_visited as $v){
+        if (!isset($t[$start][$v])){var_dump($not_yet_visited);var_dump($start);var_dump($v);die;}
+        $sum[] = ($t[$start][$v]  * 1/ $distanc[$start][$v]);
     }
-    return $sum;
+    foreach($sum as $v){
+        $p[] = array_sum($sum) == 0? 0: $v/array_sum($sum);
+    }
+    return $p;
 }
 
 ?>
