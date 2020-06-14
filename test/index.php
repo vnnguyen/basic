@@ -12,7 +12,7 @@ $cost_best = 10000000;
 $best_router = [];
 $q = 1;
 $td = [];
-$stop_loop = 1000;
+$stop_loop = 2000;
 $n_loop = 0;
 $traveler = 1 * 25;
 $last = 6;
@@ -144,31 +144,40 @@ do {
             if ($commback){
                 array_push($best_router, $last);
             }
-            $stop_loop = 200;
+            $stop_loop = 2000;
         } else {
             $stop_loop --;
             if ($stop_loop <= 0) break 2;
         }
-        // array_unique($w);var_dump($w);die;
-        for($i = 0; $i < count($w)-1; $i ++){
-            for($j = $i + 1; $j < count($w); $j ++){
-                $delta[$w[$i]][$w[$j]] = $delta[$w[$i]][$w[$j]] + $q/$cost;
-                $delta[$w[$j]][$w[$i]] = $delta[$w[$i]][$w[$j]];
-
-                $t[$w[$i]][$w[$j]] = 0.8 * $t[$w[$i]][$w[$j]] + $delta[$w[$i]][$w[$j]];
-                $t[$w[$j]][$w[$i]] = $t[$w[$i]][$w[$j]];
-
+        $full_router = [$w[0]];
+        for ($i=1; $i < count($w); $i++) { 
+            $next = $w[$i];
+                $p = path($w[$i - 1], $next, $td);
+                if(!empty($p)){
+                    foreach($p as $v){
+                        $full_router[] = $v;
+                    }
+                } 
+                $full_router[] = $next;
+        }
+        for ($i=1; $i < count($full_router); $i++) { 
+            $delta[$full_router[$i-1]][$full_router[$i]] = $delta[$full_router[$i-1]][$full_router[$i]] + $q/$cost;
+            // $delta[$full_router[$i]][$full_router[$i-1]] = $delta[$full_router[$i-1]][$full_router[$i]];
+        }
+        
+        // echo  ' [kien '. $K . ']: cost -' .$cost_best . '   router: ' . implode('=>', $best_router) . '<br>';
+        for($i = 1; $i <= $soDinh; $i ++){
+            for($j = 1; $j <= $soDinh; $j ++){
+                    if($i == $j) continue;
+                    $t[$i][$j] = 0.8 * $t[$i][$j] + $delta[$i][$j];
+                    // $t[$j][$i] = $t[$i][$j];
+    
             }
         }
-        // echo  ' [kien '. $K . ']: cost -' .$cost_best . '   router: ' . implode('=>', $best_router) . '<br>';
     }
     
+    
 } while ($n_loop < 500);
-
-
-
-    
-    
 
 $full_router = [$best_router[0]];
 for ($i=1; $i < count($best_router); $i++) { 
@@ -181,6 +190,8 @@ for ($i=1; $i < count($best_router); $i++) {
         } 
         $full_router[] = $next;
 }
+var_dump($cost_best);
+var_dump($best_router);
 var_dump($full_router);die;
 
 function point($start, $not_yet_visited, $t, $distanc){
@@ -196,8 +207,6 @@ function point($start, $not_yet_visited, $t, $distanc){
         $i ++;
         if ($i > count($p) - 1) $i = 0;
     }
-    // var_dump($p);
-    // echo $p[$i] . '<br>';
     return $not_yet_visited[$i];
 }
 function p($start, $not_yet_visited, $t, $distanc){
