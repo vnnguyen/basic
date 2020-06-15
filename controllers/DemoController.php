@@ -90,7 +90,7 @@ class DemoController extends MyController
     public function actionRouter(
         $points = [],//cac diem trong mang
         $start = 5,
-        $visities = [3, 6, 7, 4],
+        $visities = [5, 6, 7],
         $end_p = 5,
         $points_detail = [],// thong so cua diem: vung, khu vuc
         $points_distanc = [] // trong so neu co
@@ -139,31 +139,40 @@ class DemoController extends MyController
         $distanc = $getData['d'];
         $t = $getData['t'];
         
-        function path($t_param, $u, $v){
-            $mid = $t_param[$u][$v];
+        
+        function path($start, $end, $td){
             $p = [];
-            $left = [];
-            $right = [];
-            if ($mid != -1){
+            $mid = $td[$start][$end];
+            if($mid !== -1){
                 $p[] = $mid;
-                if ($t_param[$u][$mid] !== -1) {
-                    $left = path($t_param, $u, $mid);
-                    if (!empty($left)) {
-                        array_push($left, $mid);
-                        $p = $left;
-                    }
+                
+                $left = [];
+                $right = [];
+                if ($td[$start][$mid] !== -1){
+                    $left = path($start, $mid, $td);
                 }
-                if ($t_param[$mid][$v] !== -1) {
-                    $left = path($t_param, $mid, $v);
-                    if (!empty($right)) {
-                        array_unshift($right, $mid);
-                        $p = $right;
-                    }
+                
+                if ($td[$mid][$end] !== -1){
+                    $right = path($mid, $end, $td);
                 }
-
+                
+                if (!empty($left)) {
+                    $p = array_push($left, $mid);
+                    $p = $left;
+                }
+                if (!empty($right)) {
+                    array_unshift($right, $mid);
+                    $p = $right;
+                }
+                return $p;
+            } else {
+                $p = [];
             }
             return $p;
-         }
+            
+
+            
+        }
         
         $not_yet_visited = $visities;
 
@@ -189,7 +198,7 @@ class DemoController extends MyController
             $next = next($distanc, $start, $not_yet_visited);
             $cost += $distanc[$start][$next];
             if ($cost >= $INF) {
-                echo json_encode(['unknown way go from '. $start . ' to ' => $next]); exit;
+                echo json_encode(['unknown anyway to go from '. $start . ' to ' => $next]); exit;
             }
             $visited[] = $next;
             $not_yet_visited = array_diff($visities, $visited);
@@ -212,12 +221,13 @@ class DemoController extends MyController
         array_unshift($w, $start_p);
         $lichTrinh[] = $w[0];
         for ($i=1; $i < count($w); $i++) { 
-            $path = path($t, $w[$i- 1], $w[$i]);
+            $path = path($w[$i- 1], $w[$i], $t);
             foreach ($path as $v) {
                 $lichTrinh[] = $v;
             }
             $lichTrinh[] = $w[$i];
         }
+        array_unshift($visited, $start_p);
         echo 'order: '. implode(' => ', $visited). ' | Cost: '. $cost . '<br>';
         echo 'detail: '. implode(' => ', $lichTrinh).'<br>';
     }
