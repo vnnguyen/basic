@@ -70,81 +70,75 @@ require_once Yii::$app->basePath.'/googleClient/vendor/autoload.php';
 class DemoController extends MyController
 {
     
-    function Init($tongSoDinh = 0){
-        $distanc = [];
-        $max = 1000000;
-        $t = [];
-        for ($i = 1; $i <= $tongSoDinh ; $i++) { 
-            for ($j = 1 ; $j <= $tongSoDinh; $j++) { 
-                $t[$i][$j] =  -1;
-                if($i == $j) {
-                    $distanc[$i][$j] = 0;
-                } else {
-                    $distanc[$i][$j] = $max;
-                }
-            }
-        }
-        return ['d' => $distanc, 't' => $t, 'max' => $max];
-    }
-    function floyd($distanc_param = [], $t_param = [], $soDinh_param = 0){
+    
+    function floyd($distanc_param = [], $t_param = [], $soDinh_param = []){
         $distanc = $distanc_param;$t = $t_param;
         //update khoang cach
-         for ($k = 1; $k <= $soDinh_param; $k++) {
-             for ($i = 1; $i <= $soDinh_param ; $i++) {
-                for($j = 1; $j <= $soDinh_param ; $j++){
+        foreach( $soDinh_param as $k ){
+            foreach( $soDinh_param as $i ){
+                foreach( $soDinh_param as $j ){
                     if ( $i == $j || $i == $k || $k == $j)    continue;
                     if ($distanc[$i][$j] > $distanc[$i][$k] + $distanc[$k][$j] ) {
                         $distanc[$i][$j] = $distanc[$i][$k] + $distanc[$k][$j];
                         $t[$i][$j] = $k;
                     }
-
                 }
             }
         }
         return ['d' => $distanc, 't' => $t]; 
     }
-    public function actionFloyd1($start = 5, $visities = [3, 6, 7, 4], $end_p = 5){
-        $soDinh = 7;
+    public function actionRouter(
+        $points = [],//cac diem trong mang
+        $start = 5,
+        $visities = [3, 6, 7, 4],
+        $end_p = 5,
+        $points_detail = [],// thong so cua diem: vung, khu vuc
+        $points_distanc = [] // trong so neu co
+    ){
+        $soDinh = empty($points)? [1, 2, 3, 4, 5, 6, 7]: $points;
         $distanc = [];// khoang cach cacs diem
         $t = []; // dinh thu 3 giua 2 diem
         $visited = [];// cac diem da tham
         $not_yet_visited = [];//cac diem chua tham
         $INF = 100000000;
-
         $comeBack = $start == $end_p;
         
         // khoi tao khoang cach cac cap 
-        for ($i = 1; $i <= $soDinh ; $i++) {
-            for($j = 1; $j <= $soDinh ; $j++){
-                $t[$i][$j] =  -1;
-                if ($i == $j) {
-                     $distanc[$i][$j] = 0;
+        for ($i = 0; $i < count($soDinh); $i++) {
+            for($j = 0; $j < count($soDinh) ; $j++){
+                $t[$soDinh[$i]][$soDinh[$j]] =  -1;
+                if ($i == $j){$distanc[$soDinh[$i]][$soDinh[$j]] = 0; continue;}
+                if (isset($points_distanc[$soDinh[$i]][$soDinh[$j]])){
+                    $distanc[$soDinh[$i]][$soDinh[$j]] = $points_distanc[$soDinh[$i]][$soDinh[$j]];
                 } else {
-                     $distanc[$i][$j] = $INF;
+                    $distanc[$soDinh[$i]][$soDinh[$j]] = $INF;
                 }
             }
         }
         
-         $distanc[1][2] = 5;
-         $distanc[2][1] = 5;
-         $distanc[1][4] = $distanc[4][1] = 3;
-         $distanc[1][5] = 1;
-         $distanc[5][1]= 1;
-         $distanc[2][3] = 2;
-         $distanc[3][2]= 2;
-         
-         $distanc[3][4] = 7;
-         $distanc[4][3]= 7;
-         $distanc[5][4] = $distanc[4][5]= 5;
-
-         $distanc[2][6]= $distanc[6][2]= 4;
-         $distanc[2][7]= $distanc[7][2]= 3;
-         $distanc[3][7]= $distanc[7][3]= 6;
-
+        //load trong so cho cac diem
+        if (empty($points_distanc)) {
+            $distanc[1][2] = $distanc[2][1] = 5;
+            $distanc[1][4] = $distanc[4][1] = 3;
+            $distanc[1][5] = $distanc[5][1]= 1;
+            $distanc[2][3] = $distanc[3][2]= 2;
+            $distanc[3][4] = $distanc[4][3]= 7;
+            $distanc[5][4] = $distanc[4][5]= 5;
+            $distanc[2][6]= $distanc[6][2]= 4;
+            $distanc[2][7]= $distanc[7][2]= 3;
+            $distanc[3][7]= $distanc[7][3]= 6;
+        }
+        
+        foreach($visities as $point){
+            if (array_sum($distanc[$point]) == (count($soDinh) - 1) * $INF) {
+                echo json_encode(['point unlinked' => $point]); die;
+            }
+        }
          
         $getData = $this->floyd($distanc, $t, $soDinh);
         $distanc = $getData['d'];
         $t = $getData['t'];
+        
         function path($t_param, $u, $v){
             $mid = $t_param[$u][$v];
             $p = [];
@@ -194,6 +188,9 @@ class DemoController extends MyController
         while (!empty($not_yet_visited) && $start > 0) {
             $next = next($distanc, $start, $not_yet_visited);
             $cost += $distanc[$start][$next];
+            if ($cost >= $INF) {
+                echo json_encode(['unknown way go from '. $start . ' to ' => $next]); exit;
+            }
             $visited[] = $next;
             $not_yet_visited = array_diff($visities, $visited);
             $start = end($visited);
