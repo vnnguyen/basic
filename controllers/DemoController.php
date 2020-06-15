@@ -352,8 +352,7 @@ class DemoController extends MyController
         
          $distanc[1][2] = 5;
          $distanc[2][1] = 5;
-         $distanc[1][4] = 9;
-         $distanc[4][1]= 9;
+         $distanc[1][4] = $distanc[4][1] = 3;
          $distanc[1][5] = 1;
          $distanc[5][1]= 1;
          $distanc[2][3] = 2;
@@ -361,8 +360,7 @@ class DemoController extends MyController
          
          $distanc[3][4] = 7;
          $distanc[4][3]= 7;
-         $distanc[5][4] = 2;
-         $distanc[4][5]= 2;
+         $distanc[5][4] = $distanc[4][5]= 5;
 
          $distanc[2][6]= $distanc[6][2]= 4;
          $distanc[2][7]= $distanc[7][2]= 3;
@@ -396,7 +394,6 @@ class DemoController extends MyController
                 }
 
             }
-            
             return $p;
          }
         
