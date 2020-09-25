@@ -69,7 +69,194 @@ require_once Yii::$app->basePath.'/googleClient/vendor/autoload.php';
 
 class DemoController extends MyController
 {
-    
+    public function actionUpdateTree(){
+       // change parent category
+
+                $parent = $model->parents(1)->one();
+                $post_parent = Yii::$app->request->post('parent', '');
+                $tableName = Category::tableName();
+                $current_tree = $model->tree;
+                $iItemId = $model->category_id;
+                $iItemPosLeft = $model->lft;
+                $iItemPosRight = $model->rgt;
+                $iSize = $iItemPosRight - $iItemPosLeft + 1;
+
+
+                $sql_remove_nodes = 'UPDATE ' . $tableName .
+                '
+                            SET `lft` = 0-(`lft`), `rgt` = 0-(`rgt`)
+                            WHERE `lft` >= "' . $iItemPosLeft . '" AND `rgt` <= "' . $iItemPosRight . '" AND `tree` = "' . $current_tree . '"';
+                $sql_update_left_node = 'UPDATE ' . $tableName .
+                '
+                        SET `lft` = `lft` - ' . $iSize . '
+                        WHERE `lft` > "' . $iItemPosRight . '" AND `tree` = "' . $current_tree . '"';
+                $sql_update_right_node = 'UPDATE ' . $tableName .
+                '
+                        SET `rgt` = `rgt` - ' . $iSize . '
+                        WHERE `rgt` > "' . $iItemPosRight . '" AND `tree` = "' . $current_tree . '"';
+
+                $post_parent = (int)$post_parent;
+                if ($post_parent === 0) {
+                    $chidren = $model->children()->all();
+
+                    // make root tree and update left, right tree
+                    $data_order_num = Yii::$app->db->createCommand("SELECT MAX(order_num) as num_max FROM " . $tableName)->queryColumn();
+                    $max_order_num = (int)$data_order_num[0] + 1;
+
+                    $offset_depth = 0 - $model->depth;
+                    if ($chidren) {
+                        $sql_update_new_nodes = 'UPDATE ' . $tableName .
+                        '
+                            SET
+                                `lft` = 0-(`lft`)+' . (1 - $iItemPosLeft) . ',
+                                `rgt` = 0-(`rgt`)+' . (1 - $iItemPosLeft) . ',
+                                `depth` = `depth` + ' . $offset_depth . ',
+                                `order_num` = ' . $max_order_num . ',
+                                `tree` = "' . $iItemId . '"
+                            WHERE `lft` <= "' . (0 - $iItemPosLeft) . '" AND `rgt` >= "' . (0 - $iItemPosRight) . '"' . ' AND `tree` = "' . $current_tree . '"';
+                    } else {
+                        $sql_update_new_nodes = 'UPDATE ' . $tableName .
+                        '
+                            SET
+                                `lft` = 1,
+                                `rgt` = 2,
+                                `depth` = 0,
+                                `order_num` = ' . $max_order_num .
+                        ',
+                                `tree` = "' . $iItemId .
+                        '"
+                            WHERE `category_id` = "' . $model->category_id . '"';
+                    }
+
+
+                    $sql = array(
+                        // step 1: temporary "remove" moving node
+                        $sql_remove_nodes,
+                        // step 2: decrease left and/or right position values of currently 'lower' items (and parents)
+                        $sql_update_left_node,
+                        $sql_update_right_node,
+                        // step 4: move node (ant it's subnodes) and update it's parent item id
+                        $sql_update_new_nodes
+                    );
+                    // var_dump($sql);
+                    // die;
+                    foreach ($sql as $sqlQuery) {
+                        Yii::$app->db->createCommand($sqlQuery)->execute();
+                    }
+                } else if (!$parent || $parent->category_id != $post_parent) {
+
+                    $newparent = Category::findOne($post_parent);
+
+
+                    if (!$newparent) {
+                        die('not found this parent ' . $post_parent);
+                        return $this->redirect(['/admin/' . $this->module->id]);
+                    }
+
+
+                    $parent_tree = $newparent->tree;
+                    $iParentPosRight = $newparent->rgt;
+                    $offset_depth = ($model->depth == $newparent->depth + 1) ? 0 : $newparent->depth + 1 - $model->depth;
+
+                    $sql_add_left_space = 'UPDATE ' . $tableName .
+                    '
+                            SET `lft` = `lft` + ' . $iSize . '
+                            WHERE `lft` >= "' . ($iParentPosRight > $iItemPosRight ? $iParentPosRight - $iSize : $iParentPosRight) . '"';
+                    $sql_add_right_space = 'UPDATE ' . $tableName .
+                    '
+                            SET `rgt` = `rgt` + ' . $iSize . '
+                            WHERE `rgt` >= "' . ($iParentPosRight > $iItemPosRight ? $iParentPosRight - $iSize : $iParentPosRight) . '"';
+
+
+                    if ($current_tree == $parent_tree) {
+                        $sql_add_left_space  = $sql_add_left_space . ' AND `tree` = "' . $current_tree . '"';
+                        $sql_add_right_space  =  $sql_add_right_space . ' AND `tree` = "' . $current_tree . '"';
+                        $sql_update_new_nodes = 'UPDATE ' . $tableName .
+                        '
+                            SET
+                                `lft` = 0-(`lft`)+' . ($iParentPosRight > $iItemPosRight ? $iParentPosRight - $iItemPosRight - 1 : $iParentPosRight - $iItemPosRight - 1 + $iSize) . ',
+                                `rgt` = 0-(`rgt`)+' . ($iParentPosRight > $iItemPosRight ? $iParentPosRight - $iItemPosRight - 1 : $iParentPosRight - $iItemPosRight - 1 + $iSize) . ',
+                                `depth` = `depth` + ' . $offset_depth .
+                        '
+                            WHERE `lft` <= "' . (0 - $iItemPosLeft) . '" AND `rgt` >= "' . (0 - $iItemPosRight) . '"' . ' AND `tree` = "' . $current_tree . '"';
+                    } else {
+                        $sql_add_left_space = 'UPDATE ' . $tableName .
+                            '
+                            SET `lft` = `lft` + ' . $iSize . '
+                            WHERE `lft` >= "' . $iParentPosRight . '"';
+                        $sql_add_right_space = 'UPDATE ' . $tableName .
+                            '
+                            SET `rgt` = `rgt` + ' . $iSize . '
+                            WHERE `rgt` >= "' . $iParentPosRight . '"';
+                        $sql_add_left_space  = $sql_add_left_space . ' AND `tree` = "' . $parent_tree . '"';
+                        $sql_add_right_space  =  $sql_add_right_space . ' AND `tree` = "' . $parent_tree . '"';
+                        if ($iParentPosRight > $iItemPosRight) {
+                            $sql_update_new_nodes = 'UPDATE ' . $tableName .
+                                '
+                            SET
+                                `lft` = 0-(`lft`)+' . (1 - $iItemPosLeft) . '+' . ($iParentPosRight - 1) . ',
+                                `rgt` = 0-(`rgt`)+' . (1 - $iItemPosLeft) . ' + ' . ($iParentPosRight - 1) . ',
+                                `depth` = `depth` + ' . $offset_depth . ',
+                                `order_num` = ' . $newparent->order_num . ',
+                                `tree` = "' . $parent_tree . '"
+                            WHERE `lft` <= "' . (0 - $iItemPosLeft) . '" AND `rgt` >= "' . (0 - $iItemPosRight) . '"' . ' AND `tree` = "' . $current_tree . '"';
+                        } else {
+                            $sql_update_new_nodes = 'UPDATE ' . $tableName .
+                                '
+                            SET
+                                `lft` = 0-(`lft`)+' . (1 - $iItemPosLeft) . '+' . ($iParentPosRight - ($iItemPosRight + (1 - $iItemPosLeft))  - 1 + $iSize) . ',
+                                `rgt` = 0-(`rgt`)+' . (1 - $iItemPosLeft) . ' + ' . ($iParentPosRight - ($iItemPosRight + (1 - $iItemPosLeft)) - 1 + $iSize) . ',
+                                `depth` = `depth` + ' . $offset_depth . ',
+                                `order_num` = ' . $newparent->order_num . ',
+                                `tree` = "' . $parent_tree . '"
+                            WHERE `lft` <= "' . (0 - $iItemPosLeft) . '" AND `rgt` >= "' . (0 - $iItemPosRight) . '"' . ' AND `tree` = "' . $current_tree . '"';
+                        }
+
+
+                    }
+                    $sql = [
+                        // step 1: temporary "remove" moving node
+                        $sql_remove_nodes,
+                        // step 2: decrease left and/or right position values of currently 'lower' items (and parents)
+                        $sql_update_left_node,
+                        $sql_update_right_node,
+                        // step 3: increase left and/or right position values of future 'lower' items (and parents)
+                        $sql_add_left_space,
+                        $sql_add_right_space,
+                        // step 4: move node (ant it's subnodes) and update it's parent item id
+                        $sql_update_new_nodes
+                    ];
+                    // var_dump($sql);
+                    // var_dump($iParentPosRight);
+                    // var_dump($iItemPosRight);
+                    // var_dump($iSize);
+                    // var_dump($iParentPosRight);
+
+                    // var_dump($iItemPosRight);
+                    // die;
+                    foreach ($sql as $sqlQuery) {
+                        Yii::$app->db->createCommand($sqlQuery)->execute();
+                    }
+                }
+                // end change parent category
+    }
+    public function actionUploadimg($image_url = ''){
+        if ($image_url == '') {
+            $image_url = 'https://www.floristgrays.co.uk/upload/mt/fmnf173/products/201402163-based-red-rose-wreath.jpg';
+        }
+        $fileName = basename($image_url);
+        $rawFileExt = strrchr($image_url, '.');
+        if ( !in_array($rawFileExt, ['.jpg', '.png'])) {
+            return ['error' => "error format on image!"];
+            exit;
+        }
+        $newDir = Yii::getAlias('@webroot').'/imgs/'.substr(time(), 0, 7);
+        @mkdir($newDir);
+        // Function to write image into file
+        file_put_contents($newDir .'/'. $fileName, file_get_contents($image_url));
+        return ['uploadUrl' => $newDir .'/'. $fileName];
+    }
+
     function getServiceAccountClient()
     {
         try {

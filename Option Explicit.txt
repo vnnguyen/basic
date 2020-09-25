@@ -1,0 +1,247 @@
+Option Explicit
+Dim cbSource As Variant
+
+Private Sub TempCombo_KeyUp(ByVal KeyCode As MSForms.ReturnInteger, ByVal Shift As Integer)
+    Dim cbVal As String
+    Dim Oldvalue As String
+    On Error Resume Next
+    Dim str As String
+    cbVal = Trim(TempCombo.Text)
+    
+    If cbVal = "" Then
+        Select Case KeyCode
+            Case 9  'tab
+                If Shift <> 1 Then
+                    ActiveCell.Offset(0, 1).Activate
+                Else
+                    If ActiveCell.Column > 1 Then
+                        ActiveCell.Offset(0, -1).Activate
+                    End If
+                End If
+            Case 13 'enter
+            
+                
+            Case Else
+        End Select
+        Exit Sub
+    End If
+    Dim check_str As Variant
+    Dim check As Integer
+    check = 0
+
+    'cbVal = Trim(TempCombo.Text)
+    'Dim arrSource As Variant
+    'If strSource = "" Then
+    '     Dim item1 As Variant
+    '     For Each item1 In Sheets("Sheet1").Range(TempCombo.ListFillRange)
+    '         If InStr(1, LCase(check_str.Value), LCase(cbVal)) > 0 Then
+    '             strSource = strSource & "," & item1
+    '         End If
+    '     Next
+    '     strSource = Right(strSource, Len(strSource) - 1)
+    ' End If
+    ' arrSource = Split(strSource, ",")
+    ' TempCombo.clear
+    ' For Each check_str In arrSource
+    '     If InStr(1, LCase(check_str.Value), LCase(cbVal)) > 0 Then
+    '         TempCombo.AddItem check_str
+    '     End If
+    ' Next check_str
+    ' TempCombo.DropDown
+
+    For Each check_str In Sheets("Sheet1").Range(TempCombo.ListFillRange)
+        If InStr(1, LCase(check_str.Value), LCase(cbVal)) > 0 Then
+            check = 1
+            Exit For
+        End If
+    Next check_str
+    If check = 1 Then
+        TempCombo.DropDown
+    End If
+
+    Select Case KeyCode
+    Case 9  'tab
+        If Shift <> 1 Then
+            ActiveCell.Offset(0, 1).Activate
+        End If
+    Case 13 'enter
+            Oldvalue = ActiveCell.Value
+            Dim Ar() As String
+            Ar = Split(Oldvalue, ", ")
+            Dim strVal As String
+            Dim i As Integer
+            Dim lcount As Integer
+            lcount = 0
+            
+            For i = LBound(Ar) To UBound(Ar)
+                If cbVal = CStr(Ar(i)) Then
+                    lcount = 1
+                    Exit For
+                End If
+            Next i
+            If lcount = 0 Then
+                Dim cell As Variant
+                Dim flag As Integer
+                
+                For Each cell In Sheets("Sheet1").Range(TempCombo.ListFillRange)
+                   If cbVal = cell.Value Then
+                        flag = 1
+                   End If
+                Next cell
+                
+                If flag = 1 Then
+                    If Oldvalue = "" Then
+                        ActiveCell.Value = cbVal
+                    Else
+                        If TempCombo.ListFillRange = "nccList" Then
+                            ActiveCell.Value = Oldvalue & ", " & cbVal
+                        Else
+                            ActiveCell.Value = cbVal
+                        End If
+                    End If
+                Else
+                    If LCase(cbVal) = "clear" Then
+                        ActiveCell.Value = ""
+                    Else
+                        If InStr(1, LCase(cbVal), "del.") <> 0 Then
+                            Dim so As Integer
+                            so = CInt(Right(cbVal, Len(cbVal) - 4)) - 1
+                            Dim arr() As String
+                            arr = Split(ActiveCell.Value, ", ")
+                            If so <= UBound(arr) - LBound(arr) + 1 Then
+                                Dim str_new As String
+                                
+                                For i = LBound(arr) To UBound(arr)
+                                    If so <> i Then
+                                        If str_new = "" Then
+                                            str_new = CStr(arr(i))
+                                        Else
+                                            str_new = str_new & ", " & CStr(arr(i))
+                                        End If
+                                        
+                                    End If
+                                Next i
+                                
+                                ActiveCell.Value = str_new
+                                
+                            End If
+                        End If
+                        
+                    End If
+                End If
+            End If
+            
+            TempCombo.Text = ""
+          Case Else
+            'do nothing
+    End Select
+    
+End Sub
+Private Sub TempCombo_KeyPress(ByVal KeyAscii As MSForms.ReturnInteger)
+    If KeyAscii = 27 Then
+        HideCombo
+        Exit Sub
+    End If
+End Sub
+Private Sub Worksheet_BeforeDoubleClick _
+  (ByVal Target As Range, Cancel As Boolean)
+        Cancel = True
+    initCbBox
+End Sub
+
+
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+    TempCombo.Visible = False
+    Application.OnKey "{ESC}", "Sheet2.HideCombo"
+    Application.OnKey "~", "Sheet2.initCbBox"
+End Sub
+Private Sub Worksheet_Change(ByVal Target As Range)
+    Dim Oldvalue As String
+    Dim Newvalue As String
+    Application.EnableEvents = True
+    On Error GoTo Exitsub
+    
+    'If Left(Target.Address, 2) = "$A" Or Left(Target.Address, 2) = "$B" Then
+        If Target.SpecialCells(xlCellTypeAllValidation) Is Nothing Then
+            GoTo Exitsub
+        Else: If Target.Value = "" Then GoTo Exitsub Else
+            Application.EnableEvents = False
+            Newvalue = Target.Value
+            Application.Undo
+            Oldvalue = Target.Value
+            If Oldvalue = "" Then
+                Target.Value = Newvalue
+            Else
+                If InStr(1, Oldvalue, Newvalue) = 0 Then
+                    Target.Value = Oldvalue & ", " & Newvalue
+                Else:
+                    Target.Value = Oldvalue
+                End If
+            End If
+          End If
+        'End If
+        Application.EnableEvents = True
+Exitsub:
+    Application.EnableEvents = True
+End Sub
+Public Sub initCbBox()
+    Dim str As String
+    Dim cboTemp As OLEObject
+    Dim ws As Worksheet
+    Dim wsList As Worksheet
+    Dim lSplit As Long
+    Dim wb As Workbook
+    Dim nm As Name
+    Dim wsNm As Worksheet
+    Dim rng As Range
+    
+    Set ws = ActiveSheet
+    Set wsList = Sheets("INC")
+    Set cboTemp = ws.OLEObjects("TempCombo")
+    On Error Resume Next
+
+    With cboTemp
+        .ListFillRange = ""
+        .LinkedCell = ""
+        .Text = ""
+        .Visible = False
+    End With
+
+    On Error GoTo errHandler
+
+    If ActiveCell.Validation.Type = 3 Then
+        Application.EnableEvents = False
+        str = ActiveCell.Validation.Formula1
+        str = Right(str, Len(str) - 1)
+        cbSource = str
+        ShowCombo cboTemp
+    End If
+    
+errHandler:
+    Application.EnableEvents = True
+    Exit Sub
+
+End Sub
+Public Sub ShowCombo(cboTemp As OLEObject)
+    With cboTemp
+        .Visible = True
+        .Left = ActiveCell.Left
+        .Top = ActiveCell.Top - 20
+        .Width = ActiveCell.Width + 15
+        .Height = ActiveCell.Height + 5
+        .ListFillRange = cbSource
+        .LinkedCell = ""
+    End With
+    cboTemp.Activate
+End Sub
+Public Sub HideCombo()
+    With TempCombo
+        .Top = 10
+        .Left = 10
+        .Width = 0
+        .ListFillRange = ""
+        .LinkedCell = ""
+        '.Visible = False
+        .Value = ""
+    End With
+End Sub

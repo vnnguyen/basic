@@ -21,7 +21,7 @@ use yii\db\Expression;
  * @author Alexander Kochetov <creocoder@gmail.com>
  */
 class NestedSetsBehavior extends Behavior
-{
+{ 
     const OPERATION_MAKE_ROOT = 'makeRoot';
     const OPERATION_PREPEND_TO = 'prependTo';
     const OPERATION_APPEND_TO = 'appendTo';
@@ -328,11 +328,10 @@ class NestedSetsBehavior extends Behavior
      * @throws NotSupportedException
      */
     public function beforeInsert()
-    {
+    { 
         if ($this->node !== null && !$this->node->getIsNewRecord()) {
             $this->node->refresh();
         }
-
         switch ($this->operation) {
             case self::OPERATION_MAKE_ROOT:
                 $this->beforeInsertRootNode();
@@ -350,7 +349,7 @@ class NestedSetsBehavior extends Behavior
                 $this->beforeInsertNode($this->node->getAttribute($this->rightAttribute) + 1, 0);
                 break;
             default:
-                throw new NotSupportedException('Method "'. get_class($this->owner) . '::insert" is not supported for inserting new nodes.');
+                // throw new NotSupportedException('Method "'. get_class($this->owner) . '::insert" is not supported for inserting new nodes.');
         }
     }
 
