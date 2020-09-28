@@ -1,0 +1,11 @@
+/*fontface for amica*/
+
+/*FONT FOR USE*/
+@font-face {
+	font-family: 'DINAlternate-Medium';
+	src: url('fonts/DINAlternate-Medium/DINAlternate-Medium.eot?') format('eot'), 
+	     url('fonts/DINAlternate-Medium/DINAlternate-Medium.woff') format('woff'), 
+	     url('fonts/DINAlternate-Medium/DINAlternate-Medium.ttf')  format('truetype'),
+	     url('fonts/DINAlternate-Medium/DINAlternate-Medium.svg#DINAlternate-Medium') format('svg');
+        
+}
