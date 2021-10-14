@@ -1,6 +1,5 @@
 <?
-
-Yii::setAlias('common', 'D:/wamp/www/basic/common-ims/');
+Yii::setAlias('common', 'D:/xampp/htdocs/basic/common-ims/');
 
 return [
 	'components.cache' => [
@@ -28,7 +27,7 @@ return [
 	'components.user' => [
 		'identityClass' => 'app\models\User',
 		'enableAutoLogin'=>true,
-		'authTimeout'=>720000,
+		'authTimeout'=>720000000,
 		'loginUrl'=>['login/index'],
 	],
 
